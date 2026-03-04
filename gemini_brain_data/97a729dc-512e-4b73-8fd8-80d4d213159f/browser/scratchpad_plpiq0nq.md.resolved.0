@@ -1,0 +1,17 @@
+# Task: UI Review of "Needs Work" Section
+
+## Checklist
+- [ ] Navigate to http://localhost:3000
+- [ ] Log in if necessary
+- [ ] Enter prompt "write a poem about space"
+- [ ] Click 'Generate' / 'Analyze'
+- [ ] Wait for results
+- [ ] Scroll to "Needs Work" section
+- [ ] Take screenshot of the "Needs Work" section
+- [ ] Click blueprint cards and check for split view
+- [ ] Capture HTML element details for the section
+- [ ] Report findings
+
+## Progress / Notes
+- Started task.
+- Scratchpad initialized.

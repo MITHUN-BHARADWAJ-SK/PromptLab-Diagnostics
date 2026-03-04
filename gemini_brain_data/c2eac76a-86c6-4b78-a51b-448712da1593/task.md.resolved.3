@@ -1,0 +1,16 @@
+# Prompt Generator Overhaul (PRD)
+
+- [x] Analyze codebase against PRD requirements
+- [ ] Fix [generatePrompt()](file:///f:/PROMPTLAB/public/js/app.js#179-226) function
+  - [ ] Remove `#generatorIntent` reference
+  - [ ] Fix property mapping (`finalPrompt` not `improvedPrompt`)
+  - [ ] Pass full result object to renderer
+  - [ ] Add progress indicator updates
+- [ ] Rewrite [renderGeneratorResults()](file:///f:/PROMPTLAB/public/js/app.js#581-598) 
+  - [ ] Final Prompt section with copy button
+  - [ ] Auto-Score dimension bars
+  - [ ] V1 → V2 comparison (when auto-improvement triggers)
+  - [ ] Intent & Blueprint collapsible section
+  - [ ] "Why This Prompt Works" collapsible section
+- [ ] Rebuild engine bundle
+- [ ] Browser test all 3 models

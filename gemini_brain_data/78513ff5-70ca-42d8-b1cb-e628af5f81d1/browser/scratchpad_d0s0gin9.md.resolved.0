@@ -1,0 +1,13 @@
+# Task Checklist
+- [ ] Open http://localhost:3000/login.html
+- [ ] Login or navigate to the app
+- [ ] Navigate to Generator tab
+- [ ] Test OpenAI prompt generation
+- [ ] Test Anthropic prompt generation
+- [ ] Test Gemini prompt generation
+- [ ] Verify no scoring/analysis is rendered
+
+# Current Status
+- Encountered ERR_CONNECTION_REFUSED on localhost:3000 after multiple attempts and waiting.
+- Attempted localhost:5000 and 127.0.0.1:3000 with no luck.
+- Will try to check if the server is starting or if there's an alternative port.

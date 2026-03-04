@@ -1,0 +1,50 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+biotech
+PROMPT
+LAB
+Beta v4.0.2
+[0] (369,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2 active'>Analyzer />
+	[1] (347,44)<span >analytics />
+[2] (448,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Generator />
+	[3] (422,44)<span >auto_awesome />
+[4] (531,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Dashboard />
+	[5] (503,44)<span >dashboard />
+Test User
+[6] (725,44)<button class='text-xs text-primary hover:text-white transition-colors' title='Sign Out'>Sign Out />
+[7] (765,44)<button class='w-8 h-8 flex items-center justify-center rounded-full bg-neutral-800 shadow-sm' />
+	[8] (765,44)<span >dark_mode />
+[9] (791,44)<button class='w-8 h-8 flex items-center justify-center rounded-full text-slate-400' />
+	[10] (791,44)<span >light_mode />
+[11] (858,44)<button class='bg-primary hover:bg-accent text-white px-4 py-2 rounded text-sm font-bold transition-all transform hover:scale-105'>UPGRADE PRO />
+2.6
+SCORE / 5.0
+Your prompt uses
+some elements of a universal prompt framework
+, but doesn't fully commit to one. Consider structuring your prompt around a complete framework like: Role → Task → Context → Constraints → Output Format, or the Evaluate → Diagnose → Improve pattern, or an iterative refinement cycle (generate v1, critique, improve to v2). Using a full framework dramatically improves output reliability and quality.
+Your prompt weakly expresses this intent — only
+2/5
+required elements are present. Most of the structural scaffolding the model needs for a plan task is absent. Missing required elements:
+Scope/Length, Context, Output Format
+. These are essential for OpenAI GPT to produce quality planning & productivity output. Additionally, 4 recommended elements are missing (Sequencing, Exclusions, Success Criteria…) — adding these would significantly improve response quality. Preferred structure for OpenAI GPT: System role → Task → Constraints → Format.
+Next Steps (ranked by impact):
+1) Add
+Scope/Length
+— boundaries on how much to cover. 2) Add
+Context
+— background information or situation. 3) Include
+Sequencing
+— numbered steps, ordering, or flow.
+radar
+Metric Pentagon Diagnostic
+Analysis Engine Active
+Controllability
+20%
+priority_high
+Clarity
+100%
+check_circle
+
+</current_dom>

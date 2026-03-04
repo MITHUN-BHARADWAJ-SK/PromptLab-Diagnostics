@@ -1,0 +1,10 @@
+# Task Checklist
+
+- [ ] Navigate to http://127.0.0.1:8080/index.html
+- [ ] Enter "Write a high CTR email about a 50% off sale." in the textarea
+- [ ] Click "ANALYZE"
+- [ ] Wait for analysis to complete
+- [ ] Capture screenshot of top section and verify summary text
+- [ ] Scroll down and capture screenshot of Pentagon and Checklist
+- [ ] Verify text tags on Pentagon and color of ambiguity risk bar
+- [ ] Final report

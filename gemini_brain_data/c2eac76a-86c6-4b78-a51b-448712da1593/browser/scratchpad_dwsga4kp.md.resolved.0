@@ -1,0 +1,13 @@
+# Firebase Auth Diagnosis Plan
+
+- [ ] Navigate to http://localhost:3000/login.html
+- [ ] Check dev tools console for initial errors
+- [ ] Attempt sign up:
+    - [ ] Click 'Sign Up'
+    - [ ] Fill 'Display Name'
+    - [ ] Fill 'Email' (testuser@example.com)
+    - [ ] Fill 'Password' (password123)
+    - [ ] Choose 'User Type'
+    - [ ] Click 'Create Account'
+- [ ] Observe and record results (redirection or error messages)
+- [ ] Final report on auth flow status

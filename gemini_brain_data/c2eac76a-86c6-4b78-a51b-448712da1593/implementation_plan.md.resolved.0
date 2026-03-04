@@ -1,0 +1,43 @@
+# Goal Description
+
+Fix the Firebase Authentication issues, overhaul the Prompt Generator page using the three-layer system (Intent Inference, Blueprint, Generation), and host the application using Firebase Hosting.
+
+## Proposed Changes
+
+### Firebase Auth Fix
+
+#### [MODIFY] [server.js](file:///f:/PROMPTLAB/src/server.js)
+- Update Content-Security-Policy (CSP) headers in `helmet` configuration to allow scripts from `https://www.gstatic.com` and connections to `https://*.googleapis.com`. This fixes the issue where Firebase Auth scripts are blocked from loading on [login.html](file:///f:/PROMPTLAB/public/login.html) and [index.html](file:///f:/PROMPTLAB/public/index.html).
+
+### Prompt Generator Improvements
+
+#### [MODIFY] [Index / UI](file:///f:/PROMPTLAB/public/index.html)
+- Redesign the generator UI to match the analyzer's quality.
+- Remove the explicit "Task Intent" input field; the system will infer intent automatically from the core prompt.
+- Add components for visualizing the Prompt Blueprint before final generation.
+- Ensure a single "Generate" button functionality.
+
+#### [MODIFY] [Engine / Service](file:///f:/PROMPTLAB/src/services/generatorService.js) (and/or [build-engine.js](file:///f:/PROMPTLAB/build-engine.js))
+- Implement a three-layer generation system:
+  1. Intent Inference: Analyze the user's base prompt to determine their goal.
+  2. Prompt Blueprint: Create a structured outline of the prompt elements.
+  3. Prompt Generation: Assemble the final prompt based on the blueprint.
+- Integrate the analyzer scoring loop to auto-improve the generated prompt until it reaches a desired quality threshold.
+
+### Hosting
+
+#### [NEW/MODIFY] Firebase Configuration
+- Ensure `firebase.json` and `.firebaserc` are configured to deploy the `public` directory to Firebase Hosting.
+- Run `firebase deploy` to host the site.
+
+## Verification Plan
+
+### Automated Tests
+- N/A (Using browser subagent for end-to-end testing).
+
+### Manual Verification
+1. Run local dev server (`npm run dev`).
+2. Use the browser to open `http://localhost:3000/login.html` and verify that the Firebase scripts load without CSP errors.
+3. Test signing up and signing in with a test account.
+4. Go to the Generator page and paste a simple prompt. Click "Generate" and verify the three-layer process (Intent -> Blueprint -> Final Prompt) works correctly and looks visually appealing.
+5. Deploy to Firebase using `firebase deploy` and verify the live URL works.

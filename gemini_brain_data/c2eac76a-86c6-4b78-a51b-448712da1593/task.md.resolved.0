@@ -1,0 +1,15 @@
+# Task Plan
+
+- [ ] Diagnose Firebase Auth
+  - [ ] Check firebase configuration and initialization.
+  - [ ] Start dev server.
+  - [ ] Use browser tool to verify sign up, login, and logout.
+- [ ] Improvise Prompt Generator
+  - [ ] Review current architecture in `generatorService.js` and `build-engine.js`.
+  - [ ] Integrate/refine the three-layer system (Intent Inference, Blueprint, Generation).
+  - [ ] Refine the UI for the generator page.
+  - [ ] Integrate analyzer scoring loop for auto-improvement.
+- [ ] Host the Website
+  - [ ] Verify production build.
+  - [ ] Deploy to Firebase Hosting.
+  - [ ] Verify live website.

@@ -1,0 +1,34 @@
+# PromptLab — Landing Page & Firebase Migration
+
+## Planning
+- [x] Review full codebase (models, controllers, routes, middleware, services)
+- [x] Write implementation plan
+- [ ] Get user approval
+
+## Frontend Pages
+- [ ] Create `landing.html` — hero, features, model showcase, CTA
+- [ ] Create `landing.css` — styles for landing page
+- [ ] Create `login.html` — email/password + Google sign-in
+- [ ] Create `login.css` — styles for login page
+- [ ] Update [index.html](file:///F:/PROMPTLAB/public/index.html) — remove onboard modal, add Firebase scripts, add sign-out
+
+## Firebase Integration
+- [ ] Create `firebase-config.js` — SDK init, Auth functions, Firestore CRUD
+- [ ] Update [app.js](file:///F:/PROMPTLAB/public/js/app.js) — replace fetch calls with Firestore, add auth guards
+
+## Engine Bundling
+- [ ] Create `promptlab-engine.js` — browser bundle of analyzer + generator + scoring + blueprints
+
+## Firebase Hosting Config
+- [ ] Create `firebase.json` + `.firebaserc`
+
+## Cleanup
+- [ ] Remove Express backend files (server, models, controllers, routes, middleware, utils)
+- [ ] Remove [package.json](file:///F:/PROMPTLAB/package.json) (no longer needed for static site)
+
+## Verification
+- [ ] Test landing page renders correctly
+- [ ] Test login/signup flow with Firebase Auth
+- [ ] Test analyzer works end-to-end with Firestore persistence
+- [ ] Test dashboard loads history from Firestore
+- [ ] Test sign-out redirects to login

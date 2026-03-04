@@ -1,0 +1,13 @@
+# Testing Plan for PROMPTLAB Generator
+
+- [ ] Navigate to http://localhost:3000
+- [ ] Log in or Create Account (test@test.com / testtest123)
+- [ ] Navigate to Generator tab
+- [ ] Test Generator with prompt: "Create a daily study plan for a college student balancing CS lectures, gym, and meal prep"
+- [ ] Select "OpenAI (GPT)"
+- [ ] Click "GENERATE"
+- [ ] Verify results and UI components
+- [ ] Take screenshot
+- [ ] Check console logs
+- [ ] Extract first 200 chars of generated prompt
+- [ ] Report findings

@@ -1,0 +1,47 @@
+# PromptLab Backend — Task Breakdown
+
+## Planning
+- [x] Create implementation plan and get user approval
+
+## Project Scaffolding
+- [x] Initialize Node.js project with [package.json](file:///f:/PROMPTLAB/package.json) and dependencies
+- [x] Create folder structure (routes, controllers, services, models, middleware, config, utils)
+- [x] Set up Express server entry point with middleware stack
+- [x] Create configuration module (env, tiers, scoring)
+
+## Data Models
+- [x] `User` model
+- [x] [Prompt](file:///f:/PROMPTLAB/src/controllers/promptController.js#16-88) model
+- [x] `PromptAnalysis` model
+- [x] `PromptVersion` model
+- [x] `UserLearningStats` model
+- [x] `SubscriptionTier` seed data / constants
+
+## Core Services
+- [x] Prompt Analyzer service (five-dimension scoring engine)
+- [x] Prompt Generator service (improve + auto-analyze)
+- [x] Scoring framework (deterministic structure, explainable)
+- [x] Model-alignment evaluator (openai / anthropic / gemini rules)
+- [x] Learning stats aggregation service
+
+## Middleware
+- [x] Auth-ready middleware (stub for external auth)
+- [x] Subscription-tier gating middleware
+- [x] Rate-limiting / quota middleware
+- [x] Error handling middleware
+- [x] Request validation middleware
+
+## API Routes & Controllers
+- [x] `POST /api/prompts/analyze` — Prompt Analyzer
+- [x] `POST /api/prompts/generate` — Prompt Generator (auto-routes through analyzer)
+- [x] `GET  /api/dashboard/history` — Prompt history per user
+- [x] `GET  /api/dashboard/quota` — Daily analysis quota remaining
+- [x] `GET  /api/dashboard/trends` — Prompt score trends over time
+- [x] `GET  /api/dashboard/mistakes` — Aggregated common mistakes
+- [x] `POST /api/users/onboard` — User onboarding (student/creator)
+- [x] `GET  /api/users/profile` — User profile + subscription info
+
+## Verification
+- [x] Run the server successfully
+- [x] Test all API endpoints with example payloads (14/14 passed)
+- [x] Create walkthrough with example request/response payloads

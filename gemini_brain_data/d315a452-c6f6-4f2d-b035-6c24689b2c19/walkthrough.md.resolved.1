@@ -1,0 +1,44 @@
+# PromptLab — Walkthrough
+
+## What Was Built
+
+A production-grade Node.js backend + premium web UI for a SaaS prompt-engineering learning platform.
+**Backend: 14/14 API tests passed. Frontend: fully verified in browser — all features working.**
+
+---
+
+## Live UI Screenshots
+
+### Prompt Analyzer — Score Ring + Dimension Bars + Issues
+![Analysis results showing 4.2/5 score with dimension breakdown](file:///C:/Users/ASUS/.gemini/antigravity/brain/d315a452-c6f6-4f2d-b035-6c24689b2c19/analysis_results_quantum_1772200793371.png)
+
+### Learning Dashboard — Stats + Prompt History
+![Dashboard showing prompts analyzed, average score, streak, and history table](file:///C:/Users/ASUS/.gemini/antigravity/brain/d315a452-c6f6-4f2d-b035-6c24689b2c19/dashboard_results_1772200811834.png)
+
+---
+
+## How to Run
+
+```powershell
+# Start with in-memory MongoDB (no external DB needed)
+$env:USE_MEMORY_DB='true'; node src/server.js
+```
+
+Then open **http://localhost:3000** in your browser.
+
+## Features Verified
+
+| Feature | Status |
+|---------|--------|
+| Onboarding modal (name, email, user type) | ✅ |
+| Prompt Analyzer (5-dimension scoring) | ✅ |
+| Score ring + dimension bars | ✅ |
+| Highlighted issues with badges | ✅ |
+| Model-specific suggestions | ✅ |
+| Educational learning feedback | ✅ |
+| Prompt Generator (auto-analyzed) | ✅ |
+| Learning Dashboard (stats + history) | ✅ |
+| Daily quota tracking | ✅ |
+| Tier gating (Pro endpoints blocked for free) | ✅ |
+| Black & red colour theme | ✅ |
+| Button clicks via CSP fix | ✅ |

@@ -1,0 +1,37 @@
+# Implementation Plan - Landing Page Hero Redeisgn
+
+The goal is to update the hero section of the PromptLab landing page to match the provided "Diagnostic Hero" design, and to incorporate the rotating text animation from the provided React component. 
+
+## User Review Required
+
+> [!IMPORTANT]  
+> The prompt included a request to set up a React/shadcn project. However, the current PromptLab frontend is built with vanilla HTML, CSS, and Express. To prevent breaking the entire application architecture and forcing a massive rewrite, I will implement the requested React animation effect and the new Hero layout using **vanilla JavaScript and CSS**. This will seamlessly achieve the exact aesthetic and functionality you requested while keeping your current technical stack intact.
+
+## Proposed Changes
+
+### [Frontend - HTML Content]
+
+#### [MODIFY] [landing.html](file:///f:/PROMPTLAB/public/landing.html)
+- Replace the side-by-side `.hero` section with the centered, high-fidelity Diagnostic Hero layout from the reference code.
+- Add the `<div class="particles">` and background converging lines.
+- Add an `id="animated-word-container"` to the hero title to house the animated text.
+- Include a new script `hero-animation.js` to handle the text rotation logic.
+
+### [Frontend - Styling]
+
+#### [MODIFY] [landing.css](file:///f:/PROMPTLAB/public/css/landing.css)
+- Add the necessary CSS utilities from the tailwind reference (`terminal-glass`, `glow-border`, `glow-text`, `converging-lines`).
+- Add CSS animations for the rotating text effect.
+
+### [Frontend - Logic]
+
+#### [NEW] [hero-animation.js](file:///f:/PROMPTLAB/public/js/hero-animation.js)
+- Implement a vanilla JS loop that uses CSS classes to animate words in and out, replicating the Framer Motion "spring" effect from the React component.
+
+## Verification Plan
+
+### Automated Tests
+- I will run the local dev server and open `http://localhost:3000/landing.html` using the browser tool to verify the new design and the text animation.
+
+### Manual Verification
+- You can navigate to `http://localhost:3000` to see the new Diagnostic Terminal and the rotating text effect in action.

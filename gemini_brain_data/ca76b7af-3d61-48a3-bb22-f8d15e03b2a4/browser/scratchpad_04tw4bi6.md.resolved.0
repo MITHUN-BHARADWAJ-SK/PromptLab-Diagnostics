@@ -1,0 +1,6 @@
+# Task Checklist
+- [ ] Navigate to http://localhost:3000/landing.html
+- [ ] Verify horizontal centering of hero title and description
+- [ ] Verify terminal box spacing from bottom
+- [ ] Verify animation cycle (NOT A TRICK in red, then loops)
+- [ ] Report findings

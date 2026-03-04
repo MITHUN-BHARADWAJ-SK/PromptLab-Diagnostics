@@ -1,0 +1,12 @@
+# Task Backdrop: Verify Landing Page Hero Layout
+
+## Progress Checklist
+- [ ] Navigate to http://localhost:3000/landing.html (bypass cache)
+- [ ] Capture initial hero layout screenshot
+- [ ] Verify header text: 'CORE_SYSTEMS DIAGNOSTICS ARCHIVES INITIALIZE SESSION'
+- [ ] Verify logo: red beaker/flask icon
+- [ ] Verify 'TRICK' text: static, red, massive, centered
+- [ ] Save final verification screenshot for walkthrough
+
+## Observations
+- 

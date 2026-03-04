@@ -1,0 +1,52 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (177,44)<a class='logo' href='#' />
+	[1] (121,44)<div >P />
+	[2] (174,44)<span >PromptLab />
+	[3] (230,44)<span >Beta />
+[4] (420,44)<button class='nav-btn active'>✨ Analyzer />
+[5] (499,44)<button class='nav-btn'>🔧 Generator />
+[6] (583,44)<button class='nav-btn'>📊 Dashboard />
+T
+Test Student
+free
+Target Model
+[7] (198,124)<select class='select-input' id='analyzerModel' />
+Example Output (optional)
+[8] (325,124)<input class='text-input' id='analyzerExample' placeholder='What ideal output looks like…' />
+[9] (814,110)<button class='btn btn-primary' id='analyzeBtn'>Analyze />
+	[10] (794,110)<span >⚡ />
+Daily analyses
+9 / 10
+3.9
+/ 5.0
+Good
+Decent prompt with room for improvement.
+Clarity
+3.5
+Constraints
+3
+Model Align
+4.4
+Ambiguity
+5
+Control
+3.8
+⚠️
+Highlighted Issues
+Vague
+stuff
+— 
+            "stuff" is vague — replace with a specific term.
+Vague
+things
+— 
+            "things" is vague — replace with a specific term.
+Hedge
+maybe
+— 
+            "maybe" is a hedge word — be more assertive.
+
+</current_dom>

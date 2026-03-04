@@ -1,0 +1,23 @@
+# Prompt Generator Overhaul (PRD)
+
+- [x] Analyze codebase against PRD requirements
+- [x] Fix [generatePrompt()](file:///f:/PROMPTLAB/public/js/app.js#179-226) function
+  - [x] Remove `#generatorIntent` reference
+  - [x] Fix property mapping (`finalPrompt` not `improvedPrompt`)
+  - [x] Pass full result object to renderer
+  - [x] Add progress indicator updates
+- [x] Rewrite [renderGeneratorResults()](file:///f:/PROMPTLAB/public/js/app.js#581-598) 
+  - [x] Final Prompt section with copy button
+  - [x] Auto-Score dimension bars
+  - [x] V1 → V2 comparison (when auto-improvement triggers)
+  - [x] Intent & Blueprint collapsible section
+  - [x] "Why This Prompt Works" collapsible section
+- [x] Rebuild engine bundle
+- [x] Browser test all 3 models
+- [x] Fix Ambiguity Risk display logic (0% is green/no risk)
+
+# PromptCowboy Generator Update
+- [x] Update [generatorService.js](file:///f:/PROMPTLAB/src/services/generatorService.js) to use the EXACT system prompt format provided.
+- [x] Enforce the STRICT output format (ROLE, OBJECTIVE, CONTEXT, CONSTRAINTS, PROCESS, OUTPUT FORMAT).
+- [x] Implement model-specific generation rules in the prompt (ChatGPT, Claude, Gemini differences).
+- [x] Rebuild the engine (`node build-engine.js`).

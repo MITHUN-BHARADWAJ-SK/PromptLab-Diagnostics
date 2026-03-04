@@ -1,0 +1,31 @@
+[0] (177,44)<a class='logo' href='#' />
+	[1] (121,44)<div >P />
+	[2] (174,44)<span >PromptLab />
+	[3] (230,44)<span >Beta />
+[4] (423,44)<button class='nav-btn active'>✨ Analyzer />
+[5] (502,44)<button class='nav-btn'>🔧 Generator />
+[6] (586,44)<button class='nav-btn'>📊 Dashboard />
+D
+Demo User
+free
+Analyze Your Prompt
+Paste any prompt and get instant, explainable feedback across five dimensions.
+                            Learn
+why
+prompts succeed or fail — then improve them.
+[7] (500,379)<label class='prompt-label'>Your Prompt />
+[8] (500,496)<textarea class='prompt-textarea' id='analyzerPrompt' placeholder='Paste your prompt here... e.g. 'Tell me about renewable energy sources'' />
+Target Model
+[9] (198,672)<select class='select-input' id='analyzerModel' />
+Example Output (optional)
+[10] (325,672)<input class='text-input' id='analyzerExample' placeholder='What ideal output looks like…' />
+[11] (814,658)<button class='btn btn-primary' id='analyzeBtn'>Analyze />
+	[12] (794,658)<span >⚡ />
+Daily analyses
+9 / 10
+4
+/ 5.0
+Excellent
+We detected your intent as:
+explain
+— educational explanation about "beginner audience in  numbered list format". Implicit audience: beginner. Depth: moderate. Your prompt expresses this intent clearly — most structural elements are present. Tip for this model: OpenAI responds well to system-role framing ("You are a …")

@@ -1,0 +1,39 @@
+biotech
+PROMPT
+LAB
+Beta v4.0.2
+[0] (369,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2 active'>Analyzer />
+	[1] (347,44)<span >analytics />
+[2] (448,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Generator />
+	[3] (422,44)<span >auto_awesome />
+[4] (531,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Dashboard />
+	[5] (503,44)<span >dashboard />
+Test User
+[6] (725,44)<button class='text-xs text-primary hover:text-white transition-colors' title='Sign Out'>Sign Out />
+[7] (765,44)<button class='w-8 h-8 flex items-center justify-center rounded-full bg-neutral-800 shadow-sm' />
+	[8] (765,44)<span >dark_mode />
+[9] (791,44)<button class='w-8 h-8 flex items-center justify-center rounded-full text-slate-400' />
+	[10] (791,44)<span >light_mode />
+[11] (858,44)<button class='bg-primary hover:bg-accent text-white px-4 py-2 rounded text-sm font-bold transition-all transform hover:scale-105'>UPGRADE PRO />
+Write a high CTR email about a 50% off sale. Ensure the output has clear structure with defined sections, engaging language, and is tailored to the target audience. Include specific examples where appropriate.
+Example: [Insert an example of the desired output here]
+Think step by step before answering.
+Context:
+I need assistance with high CTR email about  50% off sale. The goal is to get a high-quality creative content on this topic.
+Constraints:
+Focus specifically on high CTR email about  50% off sale. Avoid tangential information or overly generic responses.
+Format:
+Provide structured output with clear headings, sections, and formatting.
+Scope:
+Target 200–500 words.
+Tone:
+Clear and engaging.
+lightbulb
+Model Alignment Tip
+Provide a clear persona/role for creative generation: "You are a senior copywriter."
+settings_input_component
+Control Strategy
+Include a style sample: "Write in a tone similar to [example]."
+find_in_page
+Context Guidance
+Specify word count and structure (e.g., "800 words, 4 sections with headers").

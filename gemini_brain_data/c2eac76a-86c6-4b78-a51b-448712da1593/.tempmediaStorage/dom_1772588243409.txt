@@ -1,0 +1,51 @@
+biotech
+PROMPT
+LAB
+Beta v4.0.2
+[0] (31,97)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Analyzer />
+	[1] (8,94)<span >analytics />
+[2] (99,97)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2 active'>Generator />
+	[3] (73,94)<span >auto_awesome />
+[4] (172,97)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Dashboard />
+	[5] (143,94)<span >dashboard />
+Test User
+free
+T
+[6] (115,138)<button class='text-xs text-primary hover:text-white transition-colors' title='Sign Out'>Sign Out />
+[7] (9,177)<button class='w-8 h-8 flex items-center justify-center rounded-full bg-neutral-800 shadow-sm'>dark_mode />
+	dark_mode
+[8] (29,177)<button class='w-8 h-8 flex items-center justify-center rounded-full text-slate-400'>light_mode />
+	light_mode
+[9] (33,220)<button class='bg-primary hover:bg-accent text-white px-4 py-2 rounded text-sm font-bold transition-all transform hover:scale-105'>UPGRADE PRO />
+THREE-LAYER GENERATION ENGINE
+Generate
+Your Prompt
+Enter what you need and select your target model. PromptLab infers your intent, builds a structured blueprint, and generates an optimized prompt — then auto-scores and improves it.
+[10] (173,491)<label class='block text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-500 mb-2'>What do you need? />
+[11] (276,477)<textarea class='w-full h-32 bg-black/40 border border-neutral-800 focus:ring-1 focus:ring-primary/50 font-mono text-sm text-neutral-300 resize-none p-4 rounded-lg' id='generatorPrompt' placeholder='Describe what you want... e.g. 'Create a daily study plan for a college student balancing CS, gym, and meal prep'' scrollable='true' />
+[12] (157,526)<label class='block text-[10px] font-mono font-bold uppercase text-neutral-500 mb-1'>Target Model />
+[13] (236,528)<select class='w-full bg-black/40 border border-neutral-800 rounded px-3 py-2 text-sm font-mono focus:ring-primary text-neutral-300' id='generatorModel' />
+[14] (159,565)<button class='bg-primary text-white px-8 h-10 rounded font-bold hover:bg-accent transition-all flex items-center justify-center gap-2 group w-full md:w-auto' id='generateBtn'>GENERATE
+bolt />
+	bolt
+PROTOCOL: INTENT → BLUEPRINT → GENERATE → SCORE
+ENGINE: COMPLETE
+auto_awesome
+Generated Prompt for OpenAI GPT
+[15] (147,773)<button class='text-xs font-mono font-bold text-primary flex items-center gap-1 hover:underline cursor-pointer'>COPY
+content_copy />
+	content_copy
+You are a senior SEO content strategist and copywriter with 10+ years of experience in audience-targeted content creation.
+
+Create optimized content for detailed blog post about the benefits of learning Python.
+
+Context: I need assistance with detailed blog post about the benefits of learning Python. The goal is to get a high-quality structured bullets on this topic.
+
+Constraints:
+- Focus specifically on detailed blog post about the benefits of learning Python. Avoid tangential information or overly generic responses.
+- Write for a moderately knowledgeable audience with clear language
+- Provide comprehensive coverage with detailed explanations
+
+Output format: Respond in structured markdown with headers and bullet points for easy scanning.
+
+Think step by step before answering.

@@ -1,0 +1,55 @@
+# Prompt Generator Overhaul — PRD Implementation
+
+Align the Prompt Generator frontend with the PRD three-layer architecture. The backend engine ([generatorService.js](file:///f:/PROMPTLAB/src/services/generatorService.js)) already implements the full system — the work is **entirely frontend wiring and UI**.
+
+## Current Issues
+
+1. **[generatePrompt()](file:///f:/PROMPTLAB/public/js/app.js#179-226) crash** — references non-existent `#generatorIntent` element (removed from HTML)
+2. **Wrong property name** — uses `genResult.improvedPrompt` but service returns `finalPrompt`
+3. **Stub renderer** — [renderGeneratorResults](file:///f:/PROMPTLAB/public/js/app.js#581-598) is 16 lines, ignores intent/blueprint/scores/explanation
+4. **No progress indicator** — no visual feedback during the INTENT → BLUEPRINT → GENERATE → SCORE pipeline
+
+## Proposed Changes
+
+### Frontend Logic
+
+#### [MODIFY] [app.js](file:///f:/PROMPTLAB/public/js/app.js)
+
+**[generatePrompt()](file:///f:/PROMPTLAB/public/js/app.js#179-226) (lines 179-225):**
+- Remove `#generatorIntent` reference (PRD: intent inference is silent)
+- Pass the full `genResult` object to the renderer (intent, blueprint, v1, v2, improvements, whyItWorks, finalPrompt, finalScore)
+- Add progress indicator updates during generation (INTENT → BLUEPRINT → GENERATE → SCORE)
+
+**[renderGeneratorResults()](file:///f:/PROMPTLAB/public/js/app.js#581-598) (lines 581-597):**
+Complete rewrite to display 5 sections per PRD:
+
+1. **Final Prompt** — generated prompt with copy button, model badge
+2. **Auto-Score** — analyzer scores with dimension bars (v1 → v2 if improved)
+3. **V1 → V2 Comparison** — side-by-side if auto-improvement triggered
+4. **Intent & Blueprint** — collapsible, shows inferred task type/domain/format/control + blueprint schema
+5. **Why This Prompt Works** — collapsible educational explanation
+
+### Engine Rebuild
+
+#### [MODIFY] [build-engine.js](file:///f:/PROMPTLAB/build-engine.js)
+- No changes needed — already bundles generatorService with analyzerFn wired in
+
+### Generator HTML
+
+#### [MODIFY] [index.html](file:///f:/PROMPTLAB/public/index.html)
+- No structural changes needed — the input form, model selector, and results container are correct
+- Status bar already shows `PROTOCOL: INTENT → BLUEPRINT → GENERATE → SCORE`
+
+## Verification Plan
+
+### Browser Testing
+1. Start local server (`node src/server.js`)
+2. Navigate to Generator view
+3. Enter test prompt: "Create a daily study plan for a college student"
+4. Select each model (OpenAI, Claude, Gemini) and verify:
+   - Progress indicator animates through stages
+   - Final prompt displays correctly with copy button
+   - Auto-score dimensions render with colored bars
+   - Intent & Blueprint section shows inferred data
+   - "Why This Prompt Works" section is expandable
+5. Verify V1 → V2 comparison appears when auto-improvement triggers

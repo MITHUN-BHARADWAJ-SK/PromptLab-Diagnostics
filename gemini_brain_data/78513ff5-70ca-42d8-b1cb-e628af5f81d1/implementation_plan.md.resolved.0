@@ -1,0 +1,39 @@
+# Remove Scoring from Generator and Optimize Prompt Generation
+
+The goal is to modify the Generator tab so that it no longer scores the generated prompts, and instead purely focuses on crafting the best possible prompt for the targeted model based on the user's requirements.
+
+## Proposed Changes
+
+### 1. [src/services/generatorService.js](file:///F:/PROMPTLAB/src/services/generatorService.js)
+*   **Remove connection to Analyzer**: Remove the dependency on `analyzerService`. The generator will no longer analyze the prompt it generates.
+*   **Deeply Optimize Generation Logic**: Enhance the prompt augmentation rules to maximize model usage based on industry best practices:
+    *   **OpenAI**: Inject clear role assignments, task definitions, step-by-step reasoning instructions ("think step-by-step"), and strict formatting constraints.
+    *   **Anthropic**: Use XML tags extensively (`<instructions>`, `<context>`, `<task>`, `<output_format>`) as Claude is highly optimized to parse structured XML inputs. Use `<scratchpad>` for complex reasoning.
+    *   **Gemini**: Emphasize markdown structures, clear headings, bullet points, and specific output format declarations, as Gemini favors well-structured, document-like inputs.
+    *   **General**: Reduce ambiguity, add explicit constraints for tone/audience, and enforce example inclusion if one is provided.
+*   Return only `{ improvedPrompt, improvements }`.
+
+### 2. [public/js/app.js](file:///F:/PROMPTLAB/public/js/app.js)
+*   **Update [generatePrompt()](file:///F:/PROMPTLAB/src/controllers/promptController.js#103-203)**:
+    *   Remove the internal call to `PromptLabEngine.analyze` on the generated output.
+    *   Remove the code that saves the analysis to Firestore (`PromptLabDB.saveAnalysis`) and updates stats (`PromptLabDB.updateStats`) for generated prompts. These are now purely client-side transformations (though we will still [consumeQuota](file:///F:/PROMPTLAB/public/js/firebase-config.js#73-80)).
+*   **Update [renderGeneratorResults()](file:///F:/PROMPTLAB/public/js/app.js#613-636)**:
+    *   Remove the injection of `analysisContainer` and the call to [renderAnalysisResults](file:///F:/PROMPTLAB/public/js/app.js#275-537). The UI will only show the "Improved Prompt" and the "Improvements Made" checklist, with no scoring components.
+
+### 3. [src/controllers/promptController.js](file:///F:/PROMPTLAB/src/controllers/promptController.js)
+*   Update the backend [generatePrompt](file:///F:/PROMPTLAB/src/controllers/promptController.js#103-203) route (if it's used by API consumers) to match the new behavior:
+    *   Remove analysis execution and `PromptAnalysis` creation.
+    *   Save only the [Prompt](file:///F:/PROMPTLAB/public/js/app.js#108-173) and `PromptVersion` without an `analysisId`.
+    *   Return only the generated prompt and improvements in the response.
+
+## Verification Plan
+
+### Manual Verification
+1.  Run the engine build script inside the `/F:/PROMPTLAB` directory: `node build-engine.js`
+2.  Start the application.
+3.  Log in, and go to the "Generator" tab.
+4.  Enter a simple prompt (e.g., "Write a blog post about AI") for different models (OpenAI, Anthropic, Gemini).
+5.  Click Generate.
+6.  Verify that the resulting prompt is highly structured and uses model-specific formatting (e.g., XML tags for Anthropic).
+7.  Verify that **no scoring ring, no blueprint, and no analysis results** appear on the Generator tab.
+8.  Check the Firebase Firestore dashboard (via UI or console) to ensure no empty/anomalous analysis records are being saved upon generation.

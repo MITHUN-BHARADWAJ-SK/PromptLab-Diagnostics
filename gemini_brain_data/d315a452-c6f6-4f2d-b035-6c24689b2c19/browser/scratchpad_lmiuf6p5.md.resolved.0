@@ -1,0 +1,15 @@
+# Task: Verify Subject Extraction Fix
+
+## Steps:
+- [ ] Navigate to http://localhost:3000
+- [ ] Handle onboarding modal (if any)
+    - Name: "Test"
+    - Email: "t@t.com"
+    - Role: "Student"
+- [ ] Enter prompt: "Explain the concept of neural networks for a beginner audience in a numbered list format with examples, keeping it under 300 words"
+- [ ] Select "OpenAI (GPT)"
+- [ ] Click "Analyze"
+- [ ] Wait for results
+- [ ] Verify "Subject" field in "Intent Detection" card
+- [ ] Capture screenshot
+- [ ] Report final results (Subject field text and overall score)

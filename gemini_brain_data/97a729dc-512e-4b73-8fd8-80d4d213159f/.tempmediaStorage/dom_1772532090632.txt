@@ -1,0 +1,124 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (177,44)<a class='logo' href='/landing.html' />
+	[1] (121,44)<div >P />
+	[2] (174,44)<span >PromptLab />
+	[3] (230,44)<span >Beta />
+[4] (414,44)<button class='nav-btn active'>✨ Analyzer />
+[5] (494,44)<button class='nav-btn'>🔧 Generator />
+[6] (578,44)<button class='nav-btn'>📊 Dashboard />
+D
+dark
+free
+[7] (863,44)<button class='nav-btn' title='Sign Out'>🚪 Out />
+❌
+System role defined
+✅
+Clear task verb at start
+❌
+Output format specified
+❌
+Chain-of-thought trigger
+❌
+Scope/length defined
+❌
+Example provided
+Prompt Blueprint
+2
+2/14 elements
+Required
+[8] (197,411)<div class='bp-element bp-present' />
+	[9] (197,393)<div  />
+		[10] (157,393)<div  />
+		[11] (188,393)<div >Task Verb />
+	[12] (197,426)<div  />
+		[13] (173,426)<span >Strong />
+[14] (316,411)<div class='bp-element bp-present' />
+	[15] (316,393)<div  />
+		[16] (276,393)<div  />
+		[17] (302,393)<div >Subject />
+	[18] (316,426)<div  />
+		[19] (292,426)<span >Strong />
+[20] (435,411)<div class='bp-element bp-missing' />
+	[21] (435,393)<div  />
+		[22] (395,393)<div  />
+		[23] (434,393)<div >Scope/Length />
+	[24] (435,426)<div  />
+		[25] (411,426)<span >Missing />
+[26] (554,411)<div class='bp-element bp-missing' />
+	[27] (554,393)<div  />
+		[28] (514,393)<div  />
+		[29] (541,393)<div >Context />
+	[30] (554,426)<div  />
+		[31] (530,426)<span >Missing />
+[32] (673,411)<div class='bp-element bp-missing' />
+	[33] (673,393)<div  />
+		[34] (633,393)<div  />
+		[35] (673,393)<div >Output Format />
+	[36] (673,426)<div  />
+		[37] (649,426)<span >Missing />
+Recommended
+[38] (197,586)<div class='bp-element bp-missing' />
+	[39] (197,557)<div  />
+		[40] (157,557)<div  />
+		[41] (187,557)<div >Audience />
+	[42] (197,590)<div  />
+		[43] (174,590)<span >Missing />
+[44] (316,586)<div class='bp-element bp-missing' />
+	[45] (316,557)<div  />
+		[46] (276,557)<div  />
+		[47] (311,557)<div >Sequencing />
+	[48] (316,590)<div  />
+		[49] (293,590)<span >Missing />
+[50] (435,586)<div class='bp-element bp-missing' />
+	[51] (435,557)<div  />
+		[52] (395,557)<div  />
+		[53] (428,557)<div >Exclusions />
+	[54] (435,590)<div  />
+		[55] (411,590)<span >Missing />
+[56] (554,586)<div class='bp-element bp-missing' />
+	[57] (554,557)<div  />
+		[58] (514,557)<div  />
+		[59] (558,557)<div >Success Criteria />
+	[60] (554,590)<div  />
+		[61] (530,590)<span >Missing />
+[62] (673,586)<div class='bp-element bp-missing' />
+	[63] (673,568)<div  />
+		[64] (633,568)<div  />
+		[65] (681,568)<div >Reasoning Guidance />
+	[66] (673,611)<div  />
+		[67] (649,611)<span >Missing />
+[68] (792,586)<div class='bp-element bp-missing' />
+	[69] (792,568)<div  />
+		[70] (752,568)<div  />
+		[71] (800,568)<div >Prompt Framework />
+	[72] (792,611)<div  />
+		[73] (768,611)<span >Missing />
+Optional
+[74] (197,760)<div class='bp-element bp-missing' />
+	[75] (197,743)<div  />
+		[76] (157,743)<div  />
+		[77] (190,743)<div >Tone/Style />
+	[78] (197,775)<div  />
+		[79] (174,775)<span >Missing />
+[80] (316,760)<div class='bp-element bp-missing' />
+	[81] (316,743)<div  />
+		[82] (276,743)<div  />
+		[83] (306,743)<div >Examples />
+	[84] (316,775)<div  />
+		[85] (293,775)<span >Missing />
+[86] (435,760)<div class='bp-element bp-missing' />
+	[87] (435,743)<div  />
+		[88] (395,743)<div  />
+		[89] (433,743)<div >Role/Persona />
+	[90] (435,775)<div  />
+		[91] (411,775)<span >Missing />
+Additional Feedback
+Model Align
+GPT models produce better reasoning with chain-of-thought triggers. Add "Think step by step" for complex tasks.
+Control
+GPT follows explicit format instructions precisely. Specify "Format: JSON / markdown table / numbered list" for consistent output.
+
+</current_dom>

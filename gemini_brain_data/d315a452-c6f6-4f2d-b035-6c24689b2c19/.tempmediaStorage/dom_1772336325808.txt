@@ -1,0 +1,112 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (177,44)<a class='logo' href='#' />
+	[1] (121,44)<div >P />
+	[2] (174,44)<span >PromptLab />
+	[3] (230,44)<span >Beta />
+[4] (437,44)<button class='nav-btn active'>✨ Analyzer />
+[5] (516,44)<button class='nav-btn'>🔧 Generator />
+[6] (600,44)<button class='nav-btn'>📊 Dashboard />
+T
+Test
+free
+Prompt Blueprint
+2
+2/12 elements
+Click any element to see details and suggestions
+Required
+[7] (198,427)<div class='bp-element bp-present bp-expanded' />
+	[8] (198,188)<div  />
+		[9] (158,188)<div  />
+		[10] (191,188)<div >Task Verb />
+		[11] (240,188)<div  />
+	[12] (198,225)<div  />
+		[13] (173,225)<span >Strong />
+	[14] (198,286)<div  />
+		[15] (198,288)<div >A clear action verb telling the AI what to do />
+[16] (319,427)<div class='bp-element bp-present' />
+	[17] (319,188)<div  />
+		[18] (279,188)<div  />
+		[19] (307,188)<div >Subject />
+		[20] (361,188)<div  />
+	[21] (319,225)<div  />
+		[22] (294,225)<span >Strong />
+[23] (440,427)<div class='bp-element bp-missing bp-expanded' />
+	[24] (440,188)<div  />
+		[25] (399,188)<div  />
+		[26] (431,188)<div >Audience />
+		[27] (481,188)<div  />
+	[28] (440,225)<div  />
+		[29] (415,225)<span >Missing />
+	[30] (440,455)<div  />
+		[31] (440,288)<div >Who the output is intended for />
+		[32] (440,466)<div  />
+			[33] (440,466)<div >Missing 3 required element(s) for a explain prompt on OpenAI GPT: Audience, Output Format, Scope/Length. These are essential for the model to produce quality output. />
+				[34] (402,341)<span  />
+		explain photosynthesis
+
+Target audience: a general audience with moderate domain knowledge.
+[35] (560,427)<div class='bp-element bp-missing bp-expanded' />
+	[36] (560,197)<div  />
+		[37] (520,197)<div  />
+		[38] (562,197)<div >Output Format />
+		[39] (602,197)<div  />
+	[40] (560,243)<div  />
+		[41] (536,243)<span >Missing />
+	[42] (560,473)<div  />
+		[43] (560,306)<div >The format/structure of the response />
+		[44] (560,667)<div >No output format specified. Without a format, the AI picks its own structure. For a explain task, try: "Respond in structured markdown with headers, key points as bullet lists, and a code/practical example" />
+			[45] (560,484)<div >Missing 3 required element(s) for a explain prompt on OpenAI GPT: Audience, Output Format, Scope/Length. These are essential for the model to produce quality output. />
+				[46] (523,359)<span  />
+			[47] (523,652)<span  />
+			No output format specified. Without a format, the AI picks its own structure. For a explain task, try: "Respond in structured markdown with headers, key points as bullet lists, and a code/practical example"
+[48] (681,427)<div class='bp-element bp-missing' />
+	[49] (681,188)<div  />
+		[50] (641,188)<div  />
+		[51] (682,188)<div >Scope/Length />
+		[52] (723,188)<div  />
+	[53] (681,225)<div  />
+		[54] (656,225)<span >Missing />
+Recommended
+[55] (198,835)<div class='bp-element bp-missing' />
+	[56] (198,806)<div  />
+		[57] (158,806)<div  />
+		[58] (186,806)<div >Context />
+		[59] (240,806)<div  />
+	[60] (198,843)<div  />
+		[61] (174,843)<span >Missing />
+[62] (319,835)<div class='bp-element bp-missing' />
+	[63] (319,806)<div  />
+		[64] (279,806)<div  />
+		[65] (313,806)<div >Tone/Style />
+		[66] (361,806)<div  />
+	[67] (319,843)<div  />
+		[68] (294,843)<span >Missing />
+[69] (440,835)<div class='bp-element bp-missing' />
+	[70] (440,806)<div  />
+		[71] (399,806)<div  />
+		[72] (431,806)<div >Examples />
+		[73] (481,806)<div  />
+	[74] (440,843)<div  />
+		[75] (415,843)<span >Missing />
+[76] (560,835)<div class='bp-element bp-missing' />
+	[77] (560,815)<div  />
+		[78] (520,815)<div  />
+		[79] (562,815)<div >Reasoning Guidance />
+		[80] (602,815)<div  />
+	[81] (560,861)<div  />
+		[82] (536,861)<span >Missing />
+[83] (681,835)<div class='bp-element bp-missing' />
+	[84] (681,806)<div  />
+		[85] (641,806)<div  />
+		[86] (680,806)<div >Role/Persona />
+		[87] (723,806)<div  />
+	[88] (681,843)<div  />
+		[89] (656,843)<span >Missing />
+Optional
+Exclusions
+Success Criteria
+
+</current_dom>

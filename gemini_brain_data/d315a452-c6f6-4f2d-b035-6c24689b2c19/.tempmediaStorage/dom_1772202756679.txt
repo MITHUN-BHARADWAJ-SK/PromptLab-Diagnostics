@@ -1,0 +1,58 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (177,44)<a class='logo' href='#' />
+	[1] (121,44)<div >P />
+	[2] (174,44)<span >PromptLab />
+	[3] (230,44)<span >Beta />
+[4] (421,44)<button class='nav-btn active'>✨ Analyzer />
+[5] (501,44)<button class='nav-btn'>🔧 Generator />
+[6] (585,44)<button class='nav-btn'>📊 Dashboard />
+D
+Deep Tester
+free
+Clarity
+stuff
+— 
+            "stuff" is non-specific. In a list prompt, replace it with the exact subject you want the AI to list.
+Clarity
+something
+— 
+            "something" is non-specific. In a list prompt, replace it with the exact subject you want the AI to list.
+Clarity
+whatever
+— 
+            "whatever" is non-specific. In a list prompt, replace it with the exact subject you want the AI to list.
+Clarity
+basically
+— 
+            "basically" is a filler word that adds no meaning. Removing it makes your instruction more direct and reduces token waste.
+Clarity
+just
+— 
+            "just" is a filler word that adds no meaning. Removing it makes your instruction more direct and reduces token waste.
+Clarity
+maybe
+— 
+            "maybe" signals uncertainty. AI models produce better results with direct, assertive instructions. State what you want, not what you "might" want.
+Clarity
+i think
+— 
+            "i think" signals uncertainty. AI models produce better results with direct, assertive instructions. State what you want, not what you "might" want.
+Clarity
+tell
+— 
+            "tell" is a weak, generic verb. For a list task, use a more precise verb like explain / describe / outline. Specific verbs give the AI a clearer action to perform.
+Constraints
+Missing 6 constraint(s): format, length/scope, tone/style, audience, example, exclusions. For a list prompt, you need: format, length/scope, tone/style.
+Constraints
+No context or background provided. Who are you? What's the situation? Adding context like "I am a student writing a research paper on X" helps the AI calibrate its response.
+Model Align
+This prompt doesn't use any OpenAI (GPT)-optimized patterns. OpenAI (GPT) responds best to: system-role framing; step-by-step instruction; explicit output format (JSON / markdown). Adapting your prompt structure to the target model significantly improves output quality.
+Ambiguity
+some
+— 
+            "some" is ambiguous — the AI could interpret this as anywhere from 2 to 20+. Specify an exact number (e.g., "5") for predictable output.
+
+</current_dom>

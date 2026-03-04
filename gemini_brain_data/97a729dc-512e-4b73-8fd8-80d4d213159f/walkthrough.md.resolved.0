@@ -1,0 +1,52 @@
+# Analyzer Engine Optimization — Walkthrough
+
+## What Changed
+
+Enhanced [promptlab-engine.js](file:///f:/PROMPTLAB/public/js/promptlab-engine.js) with niche-specific prompt structures and universal frameworks from the user's reference document.
+
+### 1. Four New Niche Task Categories
+
+| Category | Triggers | Example Prompt |
+|---|---|---|
+| [plan](file:///f:/PROMPTLAB/public/js/app.js#690-694) | plan, schedule, routine, milestone, workflow | "Create a daily schedule from 9am to 5pm" |
+| [story](file:///f:/PROMPTLAB/public/js/local-db.js#143-151) | story, fiction, narrative, character, plot | "Write a story outline using a three-act structure" |
+| `content` | SEO, article, blog, content calendar, headline | "Generate an SEO-optimized article outline" |
+| `evaluate` | evaluate+improve, diagnose, iterate, refine | "Evaluate this prompt and suggest improvements" |
+
+Each niche has **dedicated blueprints for all 3 models** (OpenAI, Anthropic, Gemini) with **6 detailed tips** per blueprint.
+
+### 2. Universal Framework Detection
+
+New `framework` structural element detects 10 recognised prompt patterns:
+
+- Role → Task → Context → Constraints → Output
+- Clarify-first prompting
+- Evaluate → Diagnose → Improve
+- Iterative refinement (v1 → critique → v2)
+- Critic + Creator dual-role
+- And 5 more...
+
+### 3. More Suggestions (3 → 5)
+
+Increased the suggestion cap, and added a full **framework suggestion** that generates a complete model-specific template.
+
+### 4. Multi-Paragraph Educational Summary
+
+Now outputs 4 paragraphs: intent detection + niche label, framework analysis, structural comparison, and ranked next steps.
+
+## Verification
+
+Tested with: *"Create a daily schedule from 9am to 5pm, prioritizing tasks by urgency and energy levels"*
+
+````carousel
+![Analyzer input — planning prompt on OpenAI GPT](C:/Users/ASUS/.gemini/antigravity/brain/97a729dc-512e-4b73-8fd8-80d4d213159f/analysis_results_full.png)
+<!-- slide -->
+![Analysis results — detected plan intent, multi-paragraph summary, dimension scores, optimization checklist](C:/Users/ASUS/.gemini/antigravity/brain/97a729dc-512e-4b73-8fd8-80d4d213159f/analysis_results_scrolled.png)
+````
+
+**Results confirmed:**
+- ✅ Intent detected as **plan — planning & productivity output**
+- ✅ Multi-paragraph summary with **framework detection** and **ranked next steps**
+- ✅ Blueprint shows **2/14 elements** present (correctly strict for a bare prompt)
+- ✅ Optimization checklist renders correctly
+- ✅ No console errors

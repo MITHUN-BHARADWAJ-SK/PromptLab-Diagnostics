@@ -1,0 +1,19 @@
+[0] (175,47)<a class='logo' href='#' />
+	[1] (137,47)<div >P />
+	[2] (190,47)<span >PromptLab />
+[3] (362,47)<a class='nav-link' href='#features'>Features />
+[4] (433,47)<a class='nav-link' href='#models'>Models />
+[5] (515,47)<a class='nav-link' href='#how-it-works'>How It Works />
+[6] (596,47)<a class='nav-link' href='#pricing'>Pricing />
+[7] (665,47)<a class='nav-link' href='#reviews'>Reviews />
+[8] (735,47)<a class='nav-link' href='/login.html'>Sign In />
+[9] (825,47)<a class='rainbow-button' href='/login.html?mode=signup' id='signupBtn'>Get Started />
+System Protocol: Active Analysis
+LEARN PROMPTING
+AS A SKILL,
+NOT A
+TRICK
+Understand why prompts fail. Fix them systematically.
+Improve across models with precision diagnostic telemetry.
+Diagnostic_Terminal_v4.0.2
+Buffer Load

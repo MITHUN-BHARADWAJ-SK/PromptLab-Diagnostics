@@ -1,0 +1,12 @@
+[0] (56,40)<a class='back-link' href='/landing.html'>← Back to PromptLab />
+P
+Welcome Back
+Sign in to continue analyzing prompts
+or
+[1] (500,467)<label class='form-label'>Email />
+[2] (500,510)<input class='form-input' id='authEmail' placeholder='you@example.com' />
+[3] (500,566)<label class='form-label'>Password />
+[4] (500,610)<input class='form-input' id='authPassword' placeholder='••••••••' />
+[5] (500,693)<button class='btn-submit' id='submitBtn'>Sign In />
+Don't have an account?
+[6] (548,760)<button class='toggle-btn' id='toggleBtn'>Sign Up />

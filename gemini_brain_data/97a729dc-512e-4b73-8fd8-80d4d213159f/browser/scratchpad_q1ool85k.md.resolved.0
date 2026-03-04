@@ -1,0 +1,7 @@
+# Task List
+- [ ] Wait 3 seconds for analysis results.
+- [ ] Scroll down 800 pixels.
+- [ ] Screenshot Pentagon SVG labels.
+- [ ] Screenshot Ambiguity Risk metric card (color check).
+- [ ] Verify if labels are present on the pentagon corners.
+- [ ] Verify if Ambiguity Risk bar is RED when high and GREEN when low.

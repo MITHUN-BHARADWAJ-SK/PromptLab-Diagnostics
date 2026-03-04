@@ -1,0 +1,10 @@
+This site can’t be reached
+localhost
+refused to connect.
+Try:
+Checking the connection
+[0] (407,500)<a href='#buttons'>Checking the proxy and the firewall />
+ERR_CONNECTION_REFUSED
+[1] (329,662)<button class='blue-button text-button' id='reload-button'>Reload />
+[2] (671,663)<button class='secondary-button text-button
+              small-link ' id='details-button'>Details />

@@ -1,0 +1,5 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough detailing the process of detaching the Analyzer from the Generator and applying model-specific structural rules to create highly optimized prompts natively.",
+  "updatedAt":  "2026-03-01T08:05:10.293442200Z"
+}

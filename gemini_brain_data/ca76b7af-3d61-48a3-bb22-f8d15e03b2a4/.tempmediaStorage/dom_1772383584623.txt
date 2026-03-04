@@ -1,0 +1,54 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+/**
+ * Hero Animation Script
+ * Handles the rotating text effect in the hero section.
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('animated-word-container');
+    if (!container) return;
+
+    const words = [
+        "AS A SKILL, <span style='color: var(--accent-primary);'>NOT A</span><br/><span style='font-size: 1.35em; color: var(--accent-primary); text-shadow: 0 0 40px rgba(220,38,38,0.8), 0 0 20px rgba(220,38,38,0.5); display: inline-block; margin-top: 16px; letter-spacing: -0.02em;'>TRICK</span>",
+        "AS A SKILL"
+    ];
+    let currentIndex = 0;
+
+    // Create spans for each word
+    words.forEach((word, index) => {
+        const span = document.createElement('span');
+        span.innerHTML = word;
+        span.className = 'animated-word';
+        if (index === 0) {
+            span.classList.add('active');
+        }
+        container.appendChild(span);
+    });
+
+    const spans = container.querySelectorAll('.animated-word');
+
+    setInterval(() => {
+        // Remove active class from current word
+        spans[currentIndex].classList.remove('active');
+        spans[currentIndex].classList.add('exit');
+
+        // Calculate next index
+        currentIndex = (currentIndex + 1) % words.length;
+
+        // Clean up previous exit classes and add active to new word
+        setTimeout(() => {
+            spans.forEach((span, i) => {
+                if (i !== currentIndex) {
+                    span.classList.remove('exit');
+                }
+            });
+            spans[currentIndex].classList.add('active');
+        }, 50); // Small delay to allow CSS transition to start
+
+    }, 2000); // Rotate every 2 seconds
+});
+
+</current_dom>

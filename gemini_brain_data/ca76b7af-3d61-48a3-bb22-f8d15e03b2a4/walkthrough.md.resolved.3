@@ -1,0 +1,26 @@
+# Walkthrough - Animated Diagnostic Hero
+
+I have updated the landing page hero section to match the "Diagnostic Terminal" design you provided, and integrated the animated text effect.
+
+## Approach
+
+As noted in the implementation plan, the PromptLab frontend uses a vanilla HTML, CSS, and JS stack. To avoid rewriting the entire frontend into React/shadcn just for a single hero section, I converted the desired layout and animation into vanilla code. This allowed us to achieve the exact visual effect seamlessly while maintaining your current architecture.
+
+## Changes Made
+- **HTML Layout**: Replaced the original `.hero` section with the centered, terminal-glass design. Included the `animated-word-container` for the text effect.
+- **CSS Styling**: Added classes like `.terminal-glass`, `.glow-border`, `.converging-lines`, and the animation keyframes for the text transitions (`.animated-word`, `.active`, `.exit`).
+- **JS Logic**: Created [hero-animation.js](file:///f:/PROMPTLAB/public/js/hero-animation.js) to handle the text rotation. It loops through the target words, applying CSS classes to simulate the Framer Motion "spring" effect.
+
+## Verification
+
+The browser subagent confirmed the text cycles correctly ("amazing", "new", "wonderful", etc.) and the styling looks as expected.
+
+````carousel
+![Hero state 1](/C:/Users/ASUS/.gemini/antigravity/brain/ca76b7af-3d61-48a3-bb22-f8d15e03b2a4/landing_page_after_wait_1772380495975.png)
+<!-- slide -->
+![Hero state 2 (cycling text)](/C:/Users/ASUS/.gemini/antigravity/brain/ca76b7af-3d61-48a3-bb22-f8d15e03b2a4/landing_page_word_cycle_2_1772380522668.png)
+<!-- slide -->
+![Hero Verification Recording](/C:/Users/ASUS/.gemini/antigravity/brain/ca76b7af-3d61-48a3-bb22-f8d15e03b2a4/verify_hero_animation_1772380471185.webp)
+````
+
+You can check it out live at [http://localhost:3000](http://localhost:3000)!

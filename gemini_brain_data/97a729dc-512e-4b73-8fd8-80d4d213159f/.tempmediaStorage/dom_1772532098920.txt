@@ -1,0 +1,36 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (177,44)<a class='logo' href='/landing.html' />
+	[1] (121,44)<div >P />
+	[2] (174,44)<span >PromptLab />
+	[3] (230,44)<span >Beta />
+[4] (414,44)<button class='nav-btn active'>✨ Analyzer />
+[5] (494,44)<button class='nav-btn'>🔧 Generator />
+[6] (578,44)<button class='nav-btn'>📊 Dashboard />
+D
+dark
+free
+[7] (863,44)<button class='nav-btn' title='Sign Out'>🚪 Out />
+OpenAI models perform best with system-role framing followed by a clear user instruction. Below is your prompt restructured for optimal GPT performance.
+System: You are a productivity and planning expert specializing in structured goal-setting, time management, and workflow optimization. You excel at breaking complex objectives into actionable milestones with clear deadlines and risk assessments.
+
+User: Create a daily schedule from 9am to 5pm, prioritizing tasks by urgency and energy levels. Break this down into clearly defined milestones with actionable sub-tasks. For each milestone, identify potential bottlenecks and propose mitigation strategies. Include habit stacking opportunities and rest/recovery buffers where appropriate.
+
+Context: I need assistance with daily schedule from 9am. The goal is to get a high-quality planning & productivity output on this topic.
+Constraints: From 9am to 5pm, prioritizing tasks by urgency and energy levels
+Format: Respond as a structured timeline table with columns: Phase, Task, Priority, Deadline, Risk, Mitigation.
+Scope: Break into 3–5 milestones with monthly, weekly, and daily tasks.
+Tone: Clear, structured, and actionable.
+
+Think step by step before answering.
+OpenAI GPT Tips
+• Assign a planning-expert role: "You are a productivity coach specializing in [domain]." GPT follows role-framing precisely.
+• Specify your goals [X], constraints [Y], and time horizon [Z] upfront so GPT can generate milestones and risk points.
+• Request numbered steps with milestones: "Break this into monthly, weekly, and daily actionable tasks with clear deliverables."
+• Ask GPT to identify bottlenecks: "Identify potential blockers in this workflow and propose improvements for each."
+• Include habit stacking and rest buffers: "Design a routine optimized for consistency, including habit stacking and recovery buffers."
+• Use the format: "Respond as a structured timeline with columns: Task, Priority, Deadline, Risk, Mitigation."
+
+</current_dom>

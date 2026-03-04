@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sign in to PromptLab — Analyze and improve your AI prompts.">
+    <title>PromptLab — Sign In</title>
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23dc2626'/><text x='32' y='44' text-anchor='middle' fill='white' font-size='36' font-weight='800' font-family='sans-serif'>P</text></svg>">
+
+    <!-- PromptLab Local Auth Engine -->
+    <!-- (Firebase removed per user request) -->
+</head>
+
+<body>
+    <div class="login-page">
+        <!-- ── Back link ──────────────────────────────────── -->
+        <a href="/landing.html" class="back-link">← Back to PromptLab</a>
+
+        <!-- ── Auth Card ──────────────────────────────────── -->
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="logo-icon">P</div>
+                <h1 class="auth-title" id="authTitle">Welcome Back</h1>
+                <p class="auth-subtitle" id="authSubtitle">Sign in to continue analyzing prompts</p>
+            </div>
+
+            <!-- (Google Sign-In Removed) -->
+
+            <div class="divider">
+                <span class="divider-text">or</span>
+            </div>
+
+            <!-- ── Email/Password Form ─────────────────────── -->
+            <form class="auth-form" id="authForm" onsubmit="handleEmailAuth(event)">
+                <!-- Name field (signup only) -->
+                <div class="form-group" id="nameGroup" style="display:none;">
+                    <label class="form-label" for="authName">Display Name</label>
+                    <input class="form-input" id="authName" type="text" placeholder="Your name" autocomplete="name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="authEmail">Email</label>
+                    <input class="form-input" id="authEmail" type="email" placeholder="you@example.com" required
+                        autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="authPassword">Password</label>
+                    <input class="form-input" id="authPassword" type="password" placeholder="••••••••" required
+                        minlength="6" autocomplete="current-password">
+                </div>
+
+                <!-- User type selector (signup only) -->
+                <div class="form-group" id="userTypeGroup" style="display:none;">
+                    <label class="form-label">I am a…</label>
+                    <div class="user-type-selector">
+                        <button type="button" class="user-type-option selected"
+                            onclick="selectUserType(this, 'student')">
+                            <span class="ut-icon">🎓</span>
+                            <span class="ut-label">Student</span>
+                        </button>
+                        <button type="button" class="user-type-option" onclick="selectUserType(this, 'creator')">
+                            <span class="ut-icon">🎨</span>
+                            <span class="ut-label">Creator</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="error-message" id="errorMessage"></div>
+
+                <button class="btn-submit" type="submit" id="submitBtn">
+                    Sign In
+                </button>
+            </form>
+
+            <!-- ── Toggle mode ─────────────────────────────── -->
+            <div class="auth-toggle">
+                <span id="toggleText">Don't have an account?</span>
+                <button class="toggle-btn" id="toggleBtn" onclick="toggleAuthMode()">Sign Up</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── PromptLab Local DB ──────────────────────────────────── -->
+    <script src="/js/local-db.js"></script>
+    <!-- ── Firebase Auth ──────────────────────────────────── -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT",
+            storageBucket: "YOUR_PROJECT.firebasestorage.app",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef",
+            measurementId: "G-ABCDEF"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Attach to window so standard script can trigger auth
+        window.firebaseAuth = auth;
+        window.firebaseSignIn = signInWithEmailAndPassword;
+        window.firebaseSignUp = createUserWithEmailAndPassword;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                localStorage.setItem('promptlab_active_user', user.uid);
+                window.location.href = '/index.html';
+            }
+        });
+    </script>
+
+    <script>
+        let currentMode = 'signin';
+        let selectedUserType = 'student';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('mode') === 'signup') {
+                toggleAuthMode();
+            }
+        });
+
+        function toggleAuthMode() {
+            currentMode = currentMode === 'signin' ? 'signup' : 'signin';
+
+            const title = document.getElementById('authTitle');
+            const subtitle = document.getElementById('authSubtitle');
+            const toggleText = document.getElementById('toggleText');
+            const toggleBtn = document.getElementById('toggleBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            const nameGroup = document.getElementById('nameGroup');
+            const userTypeGroup = document.getElementById('userTypeGroup');
+
+            if (currentMode === 'signup') {
+                title.textContent = 'Create Account';
+                subtitle.textContent = 'Start mastering AI prompts today';
+                toggleText.textContent = 'Already have an account?';
+                toggleBtn.textContent = 'Sign In';
+                submitBtn.textContent = 'Create Account';
+                nameGroup.style.display = 'block';
+                userTypeGroup.style.display = 'block';
+                document.getElementById('authPassword').autocomplete = 'new-password';
+            } else {
+                title.textContent = 'Welcome Back';
+                subtitle.textContent = 'Sign in to continue analyzing prompts';
+                toggleText.textContent = "Don't have an account?";
+                toggleBtn.textContent = 'Sign Up';
+                submitBtn.textContent = 'Sign In';
+                nameGroup.style.display = 'none';
+                userTypeGroup.style.display = 'none';
+                document.getElementById('authPassword').autocomplete = 'current-password';
+            }
+
+            clearError();
+        }
+
+        function selectUserType(el, type) {
+            document.querySelectorAll('.user-type-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedUserType = type;
+        }
+
+        async function handleEmailAuth(e) {
+            e.preventDefault();
+            clearError();
+
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const submitBtn = document.getElementById('submitBtn');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = currentMode === 'signup' ? 'Creating…' : 'Signing in…';
+
+            try {
+                if (!window.firebaseAuth || !window.firebaseSignUp) {
+                    throw new Error('Firebase not initialized yet. Wait a moment.');
+                }
+
+                if (currentMode === 'signup') {
+                    const name = document.getElementById('authName').value.trim();
+                    if (!name) {
+                        showError('Please enter your display name.');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Create Account';
+                        return;
+                    }
+
+                    const cred = await window.firebaseSignUp(window.firebaseAuth, email, password);
+                    if (window.PromptLabDB && window.PromptLabDB.initUserProfile) {
+                        window.PromptLabDB.initUserProfile(cred.user.uid, email, name, selectedUserType);
+                    }
+                } else {
+                    const cred = await window.firebaseSignIn(window.firebaseAuth, email, password);
+                    if (window.PromptLabDB && window.PromptLabDB.initUserProfile) {
+                        window.PromptLabDB.initUserProfile(cred.user.uid, email, email.split('@')[0], 'student');
+                    }
+                }
+            } catch (err) {
+                let msg = 'Something went wrong. Please try again.';
+                if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+                    msg = 'Email or password is incorrect';
+                } else if (err.code === 'auth/email-already-in-use') {
+                    msg = 'User already exists. Please sign in';
+                } else if (err.code === 'auth/weak-password') {
+                    msg = 'Password must be at least 6 characters.';
+                } else if (err.code === 'auth/invalid-email') {
+                    msg = 'Please enter a valid email address.';
+                }
+                showError(msg);
+                submitBtn.disabled = false;
+                submitBtn.textContent = currentMode === 'signup' ? 'Create Account' : 'Sign In';
+            }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function clearError() {
+            const el = document.getElementById('errorMessage');
+            el.textContent = '';
+            el.style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>

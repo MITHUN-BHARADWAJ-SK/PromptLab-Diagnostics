@@ -1,0 +1,21 @@
+[0] (63,45)<a class='back-link' href='/landing.html'>← Back to PromptLab />
+P
+Create Account
+Start mastering AI prompts today
+or
+[1] (415,384)<label class='form-label'>Display Name />
+[2] (518,383)<input class='form-input' id='authName' placeholder='Your name' />
+[3] (500,445)<label class='form-label'>Email />
+[4] (500,493)<input class='form-input' id='authEmail' placeholder='you@example.com' />
+[5] (500,555)<label class='form-label'>Password />
+[6] (500,604)<input class='form-input' id='authPassword' placeholder='••••••••' />
+[7] (403,669)<label class='form-label'>I am a… />
+[8] (442,715)<button class='user-type-option selected' />
+	[9] (405,715)<span >🎓 />
+	[10] (434,715)<span >Student />
+[11] (558,715)<button class='user-type-option' />
+	[12] (520,715)<span >🎨 />
+	[13] (549,715)<span >Creator />
+[14] (500,812)<button class='btn-submit' id='submitBtn'>Create Account />
+Already have an account?
+[15] (558,887)<button class='toggle-btn' id='toggleBtn'>Sign In />

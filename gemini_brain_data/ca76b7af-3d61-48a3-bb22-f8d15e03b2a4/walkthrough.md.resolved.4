@@ -1,0 +1,31 @@
+# Walkthrough - Animated Diagnostic Hero
+
+I have updated the landing page hero section to match the "Diagnostic Terminal" design you provided, and integrated the animated text effect.
+
+## Approach
+
+As noted in the implementation plan, the PromptLab frontend uses a vanilla HTML, CSS, and JS stack. To avoid rewriting the entire frontend into React/shadcn just for a single hero section, I converted the desired layout and animation into vanilla code. This allowed us to achieve the exact visual effect seamlessly while maintaining your current architecture.
+
+## Changes Made
+- **HTML Layout**: Replaced the original `.hero` section with the centered, terminal-glass design. Included the `animated-word-container` for the text effect.
+- **CSS Styling**: Added classes like `.terminal-glass`, `.glow-border`, `.converging-lines`, and the animation keyframes for the text transitions (`.animated-word`, `.active`, `.exit`).
+- **JS Logic**: Created [hero-animation.js](file:///f:/PROMPTLAB/public/js/hero-animation.js) to handle the text rotation. It loops through the target words, applying CSS classes to simulate the Framer Motion "spring" effect.
+
+## Layout & Animation Updates
+The user requested further layout tuning and text updates to the hero section.
+
+### Changes Made
+- **Centering & Layout**: Ensured that the primary hero title, paragraph text, and "Initialize Session" CTA button are all perfectly centered on the page. We also added a max-width and explicit bottom margin to the terminal interface so it is distinct from the bottom edge of the screen and side margins.
+- **Animation Text Update**: Altered the Javascript `words` array so that the first term that cycles is natively "NOT A TRICK" (with "TRICK" styled in the crimson red accent color), before cycling to "amazing", "wonderful", etc.
+
+### Final Verification
+
+The browser subagent confirmed the text cycles correctly ("NOT A TRICK" -> "amazing", etc.) and the styling looks as expected.
+
+````carousel
+![Hero state (cycling text centered)](/C:/Users/ASUS/.gemini/antigravity/brain/ca76b7af-3d61-48a3-bb22-f8d15e03b2a4/final_hero_verification_1772381683288.png)
+<!-- slide -->
+![Hero Verification Recording](/C:/Users/ASUS/.gemini/antigravity/brain/ca76b7af-3d61-48a3-bb22-f8d15e03b2a4/verify_final_centering_1772381559832.webp)
+````
+
+You can check it out live at [http://localhost:3000](http://localhost:3000)!

@@ -1,0 +1,105 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (177,44)<a class='logo' href='#' />
+	[1] (121,44)<div >P />
+	[2] (174,44)<span >PromptLab />
+	[3] (230,44)<span >Beta />
+[4] (437,44)<button class='nav-btn active'>✨ Analyzer />
+[5] (516,44)<button class='nav-btn'>🔧 Generator />
+[6] (600,44)<button class='nav-btn'>📊 Dashboard />
+T
+Test
+free
+Prompt Blueprint
+2
+2/12 elements
+Required
+[7] (197,142)<div class='bp-element bp-present' />
+	[8] (197,124)<div  />
+		[9] (157,124)<div  />
+		[10] (188,124)<div >Task Verb />
+	[11] (197,157)<div  />
+		[12] (173,157)<span >Strong />
+[13] (316,142)<div class='bp-element bp-present' />
+	[14] (316,124)<div  />
+		[15] (276,124)<div  />
+		[16] (302,124)<div >Subject />
+	[17] (316,157)<div  />
+		[18] (292,157)<span >Strong />
+[19] (435,142)<div class='bp-element bp-missing' />
+	[20] (435,124)<div  />
+		[21] (395,124)<div  />
+		[22] (425,124)<div >Audience />
+	[23] (435,157)<div  />
+		[24] (411,157)<span >Missing />
+[25] (554,142)<div class='bp-element bp-missing' />
+	[26] (554,124)<div  />
+		[27] (514,124)<div  />
+		[28] (554,124)<div >Output Format />
+	[29] (554,157)<div  />
+		[30] (530,157)<span >Missing />
+[31] (673,142)<div class='bp-element bp-missing' />
+	[32] (673,124)<div  />
+		[33] (633,124)<div  />
+		[34] (672,124)<div >Scope/Length />
+	[35] (673,157)<div  />
+		[36] (649,157)<span >Missing />
+Recommended
+[37] (197,317)<div class='bp-element bp-missing' />
+	[38] (197,289)<div  />
+		[39] (157,289)<div  />
+		[40] (184,289)<div >Context />
+	[41] (197,322)<div  />
+		[42] (174,322)<span >Missing />
+[43] (316,317)<div class='bp-element bp-missing' />
+	[44] (316,289)<div  />
+		[45] (276,289)<div  />
+		[46] (309,289)<div >Tone/Style />
+	[47] (316,322)<div  />
+		[48] (293,322)<span >Missing />
+[49] (435,317)<div class='bp-element bp-missing' />
+	[50] (435,289)<div  />
+		[51] (395,289)<div  />
+		[52] (425,289)<div >Examples />
+	[53] (435,322)<div  />
+		[54] (411,322)<span >Missing />
+[55] (554,317)<div class='bp-element bp-missing' />
+	[56] (554,299)<div  />
+		[57] (514,299)<div  />
+		[58] (562,299)<div >Reasoning Guidance />
+	[59] (554,343)<div  />
+		[60] (530,343)<span >Missing />
+[61] (673,317)<div class='bp-element bp-missing' />
+	[62] (673,289)<div  />
+		[63] (633,289)<div  />
+		[64] (671,289)<div >Role/Persona />
+	[65] (673,322)<div  />
+		[66] (649,322)<span >Missing />
+Optional
+[67] (197,492)<div class='bp-element bp-missing' />
+	[68] (197,474)<div  />
+		[69] (157,474)<div  />
+		[70] (190,474)<div >Exclusions />
+	[71] (197,507)<div  />
+		[72] (174,507)<span >Missing />
+[73] (316,492)<div class='bp-element bp-missing' />
+	[74] (316,474)<div  />
+		[75] (276,474)<div  />
+		[76] (320,474)<div >Success Criteria />
+	[77] (316,507)<div  />
+		[78] (293,507)<span >Missing />
+Additional Feedback
+Model Align
+GPT models produce better reasoning with chain-of-thought triggers. Add "Think step by step" for complex tasks.
+Control
+GPT follows explicit format instructions precisely. Specify "Format: JSON / markdown table / numbered list" for consistent output.
+Control
+explain photosynthesis
+
+Format: Respond in structured markdown with headers, key points as bullet lists, and a code/practical example.
+GPT-Optimized Structure
+OpenAI models perform best with system-role framing followed by a clear user instruction.
+
+</current_dom>

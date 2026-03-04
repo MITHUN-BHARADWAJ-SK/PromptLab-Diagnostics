@@ -1,0 +1,60 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+biotech
+PROMPT
+LAB
+Beta v4.0.2
+[0] (369,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2 active'>Analyzer />
+	[1] (347,44)<span >analytics />
+[2] (448,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Generator />
+	[3] (422,44)<span >auto_awesome />
+[4] (531,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Dashboard />
+	[5] (503,44)<span >dashboard />
+Test User
+[6] (725,44)<button class='text-xs text-primary hover:text-white transition-colors' title='Sign Out'>Sign Out />
+[7] (765,44)<button class='w-8 h-8 flex items-center justify-center rounded-full bg-neutral-800 shadow-sm' />
+	[8] (765,44)<span >dark_mode />
+[9] (791,44)<button class='w-8 h-8 flex items-center justify-center rounded-full text-slate-400' />
+	[10] (791,44)<span >light_mode />
+[11] (858,44)<button class='bg-primary hover:bg-accent text-white px-4 py-2 rounded text-sm font-bold transition-all transform hover:scale-105'>UPGRADE PRO />
+radio_button_unchecked
+Audience
+radio_button_unchecked
+Scope/Length
+radio_button_unchecked
+Context
+radio_button_unchecked
+Examples
+radio_button_unchecked
+Role/Persona
+radio_button_unchecked
+Exclusions
+radio_button_unchecked
+Success Criteria
+radio_button_unchecked
+Reasoning Guidance
+auto_fix_high
+OpenAI GPT-Optimized Structure
+[12] (793,203)<button class='text-xs font-mono font-bold text-primary flex items-center gap-1 hover:underline cursor-pointer'>COPY ALL />
+	[13] (813,203)<span >content_copy />
+OpenAI models perform best with system-role framing followed by a clear user instruction. Below is your prompt restructured for optimal GPT performance.
+System:
+You are a skilled content creator and writer with expertise in high CTR email about  50% off sale, known for producing engaging, well-structured, and audience-appropriate content.
+User:
+Write a high CTR email about a 50% off sale. Ensure the output has clear structure with defined sections, engaging language, and is tailored to the target audience. Include specific examples where appropriate.
+Example: [Insert an example of the desired output here]
+Think step by step before answering.
+Context:
+I need assistance with high CTR email about  50% off sale. The goal is to get a high-quality creative content on this topic.
+Constraints:
+Focus specifically on high CTR email about  50% off sale. Avoid tangential information or overly generic responses.
+Format:
+Provide structured output with clear headings, sections, and formatting.
+Scope:
+Target 200–500 words.
+Tone:
+Clear and engaging.
+
+</current_dom>

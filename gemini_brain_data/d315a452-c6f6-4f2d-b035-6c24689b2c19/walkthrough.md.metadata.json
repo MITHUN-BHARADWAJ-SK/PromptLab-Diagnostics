@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_WALKTHROUGH",
+  "summary":  "Walkthrough documenting the complete blueprint-based analyzer architecture: intent extraction, model-specific blueprints, structural comparison, mechanical scoring. Includes verified screenshots showing correct subject detection, dimension scores, and structural table.",
+  "updatedAt":  "2026-02-28T16:35:15.823918800Z",
+  "version":  "3"
+}

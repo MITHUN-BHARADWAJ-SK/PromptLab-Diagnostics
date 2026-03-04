@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>PromptLab | High-Fidelity Diagnostic Hero</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff002b",
+                        "crimson": "#8b0000",
+                        "vibrant-red": "#ff1a1a",
+                        "background-light": "#fcfcfd",
+                        "background-dark": "#000000",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    keyframes: {
+                        'text-swap-out': {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '10%': { opacity: '1', transform: 'translateY(0)' },
+                            '40%': { opacity: '1', transform: 'translateY(0)' },
+                            '50%': { opacity: '0', transform: 'translateY(-10px)' },
+                            '100%': { opacity: '0', transform: 'translateY(-10px)' },
+                        },
+                        'text-swap-in': {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '50%': { opacity: '0', transform: 'translateY(10px)' },
+                            '60%': { opacity: '1', transform: 'translateY(0)' },
+                            '90%': { opacity: '1', transform: 'translateY(0)' },
+                            '100%': { opacity: '0', transform: 'translateY(-10px)' },
+                        },
+                        'border-glow-light': {
+                            '0%': { borderColor: 'rgba(255, 0, 43, 0.1)', boxShadow: '0 0 5px rgba(255, 0, 43, 0.05)' },
+                            '25%': { borderColor: 'rgba(255, 0, 43, 0.2)', boxShadow: '2px 0 10px rgba(255, 0, 43, 0.08)' },
+                            '50%': { borderColor: 'rgba(255, 0, 43, 0.3)', boxShadow: '0 2px 15px rgba(255, 0, 43, 0.1)' },
+                            '75%': { borderColor: 'rgba(255, 0, 43, 0.2)', boxShadow: '-2px 0 10px rgba(255, 0, 43, 0.08)' },
+                            '100%': { borderColor: 'rgba(255, 0, 43, 0.1)', boxShadow: '0 0 5px rgba(255, 0, 43, 0.05)' }
+                        },
+                        'border-glow-dark': {
+                            '0%': { borderColor: 'rgba(255, 0, 43, 0.4)', boxShadow: '0 0 5px rgba(255, 0, 43, 0.2)' },
+                            '25%': { borderColor: 'rgba(255, 0, 43, 0.8)', boxShadow: '2px 0 10px rgba(255, 0, 43, 0.4)' },
+                            '50%': { borderColor: 'rgba(255, 0, 43, 1.0)', boxShadow: '0 2px 15px rgba(255, 0, 43, 0.6)' },
+                            '75%': { borderColor: 'rgba(255, 0, 43, 0.8)', boxShadow: '-2px 0 10px rgba(255, 0, 43, 0.4)' },
+                            '100%': { borderColor: 'rgba(255, 0, 43, 0.4)', boxShadow: '0 0 5px rgba(255, 0, 43, 0.2)' }
+                        }
+                    },
+                    animation: {
+                        'swap-out': 'text-swap-out 6s infinite',
+                        'swap-in': 'text-swap-in 6s infinite',
+                        'border-pulse-light': 'border-glow-light 3s linear infinite',
+                        'border-pulse-dark': 'border-glow-dark 3s linear infinite',
+                    }
+                },
+            },
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .perspective-container {
+                perspective: 1000px;
+            }
+            .glow-text {
+                text-shadow: 0 2px 10px rgba(255, 0, 43, 0.1);
+            }
+            .dark .glow-text {
+                text-shadow: 0 0 20px rgba(255, 0, 43, 0.4);
+            }
+            .terminal-glass {
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(252, 252, 253, 0.95) 100%);
+                backdrop-filter: blur(16px);
+            }
+            .dark .terminal-glass {
+                background: linear-gradient(135deg, rgba(10, 0, 1, 0.9) 0%, rgba(5, 0, 0, 0.98) 100%);
+                backdrop-filter: blur(12px);
+            }
+            .glow-border {
+                box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            }
+            .dark .glow-border {
+                box-shadow: 0 0 15px rgba(255, 0, 43, 0.2), inset 0 0 10px rgba(255, 0, 43, 0.1);
+            }
+        }
+        .converging-lines {
+            background-image: 
+                linear-gradient(to top, rgba(255, 0, 43, 0.03) 0%, transparent 80%),
+                repeating-linear-gradient(90deg, transparent 0, transparent 40px, rgba(0, 0, 0, 0.03) 41px),
+                repeating-linear-gradient(0deg, transparent 0, transparent 40px, rgba(0, 0, 0, 0.03) 41px);
+            mask-image: radial-gradient(ellipse at center, black, transparent 85%);
+            transform: perspective(600px) rotateX(60deg) scale(2.5);
+            transform-origin: center bottom;
+        }
+        .dark .converging-lines {
+            background-image: 
+                linear-gradient(to top, rgba(139, 0, 0, 0.25) 0%, transparent 80%),
+                repeating-linear-gradient(90deg, transparent 0, transparent 40px, rgba(255, 0, 43, 0.08) 41px),
+                repeating-linear-gradient(0deg, transparent 0, transparent 40px, rgba(255, 0, 43, 0.08) 41px);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-800 dark:text-slate-100 antialiased overflow-x-hidden selection:bg-primary selection:text-white transition-colors duration-500">
+    <div class="relative flex min-h-screen w-full flex-col overflow-hidden">
+        <div class="absolute inset-0 z-0 pointer-events-none">
+            <div
+                class="absolute bottom-0 left-0 right-0 h-[70%] converging-lines opacity-60 dark:opacity-50 transition-opacity duration-500">
+            </div>
+            <div
+                class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] h-[90%] bg-gradient-to-t from-primary/20 dark:from-primary via-primary/5 dark:via-primary/40 to-transparent blur-[1px] opacity-30 dark:opacity-70 transition-all duration-500">
+            </div>
+            <div
+                class="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/5 dark:bg-primary/15 blur-[140px] rounded-full transition-all duration-500">
+            </div>
+            <div
+                class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-white dark:from-black via-transparent to-background-light dark:to-black/40 transition-colors duration-500">
+            </div>
+        </div>
+
+        <header
+            class="relative z-50 flex items-center justify-between border-b border-slate-100 dark:border-white/5 bg-white/60 dark:bg-black/40 backdrop-blur-xl px-6 py-4 lg:px-10 transition-colors duration-500">
+            <div class="flex items-center gap-3 group cursor-pointer">
+                <div
+                    class="flex items-center justify-center size-9 rounded-sm border border-primary/20 dark:border-primary/50 bg-primary/5 dark:bg-primary/10 text-primary shadow-[0_4px_12px_rgba(255,0,43,0.1)] dark:shadow-[0_0_15px_rgba(255,0,43,0.3)] group-hover:shadow-[0_4px_20px_rgba(255,0,43,0.15)] dark:group-hover:shadow-[0_0_25px_rgba(255,0,43,0.5)] transition-all">
+                    <span class="material-symbols-outlined !text-[22px]">biotech</span>
+                </div>
+                <h2
+                    class="text-slate-900 dark:text-white text-xl font-bold tracking-tighter uppercase transition-colors duration-500">
+                    Prompt<span class="text-primary">Lab</span></h2>
+            </div>
+            <div class="hidden md:flex flex-1 justify-end gap-10 items-center">
+                <nav class="flex items-center gap-8">
+                    <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] font-bold tracking-widest uppercase transition-colors"
+                        href="#">Features</a>
+                    <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] font-bold tracking-widest uppercase transition-colors"
+                        href="#">How it works</a>
+                    <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] font-bold tracking-widest uppercase transition-colors"
+                        href="#">Pricing</a>
+                    <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] font-bold tracking-widest uppercase transition-colors"
+                        href="#">Reviews</a>
+                </nav>
+                <button
+                    class="relative group flex items-center justify-center overflow-hidden rounded-sm px-6 py-2 bg-transparent border border-primary/20 dark:border-primary/40 text-slate-800 dark:text-white text-[10px] font-bold tracking-widest uppercase transition-all animate-border-pulse-light dark:animate-border-pulse-dark whitespace-nowrap">
+                    <div class="absolute inset-0 bg-primary/5 dark:group-hover:bg-primary/10 transition-all"></div>
+                    <span class="relative z-10">Get Started</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="relative z-10 flex flex-1 flex-col items-center justify-center px-4 py-16">
+            <div class="w-full max-w-5xl flex flex-col items-center">
+                <div class="flex flex-col gap-6 text-center items-center mb-16">
+                    <div
+                        class="inline-flex items-center gap-3 px-4 py-1.5 rounded-sm border border-primary/10 dark:border-primary/40 bg-primary/5 text-[9px] font-mono font-bold tracking-[0.3em] text-primary uppercase whitespace-nowrap transition-colors duration-500">
+                        <span
+                            class="size-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(255,0,43,0.3)] dark:shadow-[0_0_8px_#ff002b]"></span>
+                        System Protocol: Active Analysis
+                    </div>
+                    <h1
+                        class="text-slate-900 dark:text-white glow-text text-6xl md:text-[84px] font-bold leading-[0.9] tracking-tighter max-w-4xl uppercase transition-colors duration-500">
+                        LEARN PROMPTING <br />
+                        <div class="relative h-[1.1em] overflow-hidden inline-block w-full">
+                            <div class="absolute inset-0 flex justify-center animate-swap-out">
+                                <span>AS A SKILL,</span>
+                            </div>
+                            <div class="absolute inset-0 flex justify-center animate-swap-in opacity-0">
+                                <span class="text-primary">NOT A</span>&nbsp;<span
+                                    class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-vibrant-red">TRICK</span>
+                            </div>
+                        </div>
+                    </h1>
+                    <p
+                        class="text-slate-500 dark:text-slate-400 text-lg md:text-xl font-medium tracking-tight max-w-2xl mt-4 border-l-2 dark:border-l border-primary/10 dark:border-primary/40 pl-6 transition-colors duration-500">
+                        Understand why prompts fail. Fix them systematically. <br class="hidden md:block" />
+                        Improve across models with precision diagnostic telemetry.
+                    </p>
+                </div>
+
+                <div class="w-full max-w-3xl relative">
+                    <div
+                        class="absolute -inset-[1px] dark:-inset-[2px] bg-primary/5 dark:bg-primary/20 rounded-lg blur-xl opacity-30 transition-all duration-500">
+                    </div>
+                    <div
+                        class="relative terminal-glass border border-slate-200/60 dark:border-primary/20 shadow-2xl overflow-hidden rounded-lg glow-border transition-all duration-500">
+                        <div
+                            class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/60 transition-colors duration-500">
+                            <div class="flex gap-2">
+                                <div
+                                    class="size-2.5 rounded-full bg-slate-200 dark:bg-primary/20 dark:border dark:border-primary/30">
+                                </div>
+                                <div
+                                    class="size-2.5 rounded-full bg-slate-200 dark:bg-primary/20 dark:border dark:border-primary/30">
+                                </div>
+                                <div
+                                    class="size-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(255,0,43,0.3)] dark:shadow-[0_0_10px_rgba(255,0,43,0.9)]">
+                                </div>
+                            </div>
+                            <div class="text-[10px] font-mono text-primary/70 tracking-[0.25em] uppercase font-bold">
+                                Diagnostic_Terminal_v4.0.2
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col md:flex-row items-stretch min-h-[140px]">
+                            <div class="flex-1 relative bg-white/40 dark:bg-transparent transition-colors duration-500">
+                                <textarea
+                                    class="w-full h-full bg-transparent border-none text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-700 focus:ring-0 text-xl p-8 font-mono resize-none leading-relaxed transition-colors duration-500"
+                                    placeholder="TYPE_YOUR_PROMPT >_" rows="3"></textarea>
+                                <div
+                                    class="absolute bottom-4 right-6 flex gap-6 text-[10px] font-mono text-slate-400 dark:text-primary/20 pointer-events-none uppercase tracking-widest transition-colors duration-500">
+                                    <span>ln: 01</span>
+                                    <span>col: 00</span>
+                                    <span>utf-8</span>
+                                </div>
+                            </div>
+
+                            <div
+                                class="md:w-56 border-l border-slate-100 dark:border-white/5 bg-slate-50/20 dark:bg-white/[0.02] flex flex-col p-6 justify-between transition-colors duration-500">
+                                <div class="space-y-3">
+                                    <div
+                                        class="h-1.5 w-full bg-slate-100 dark:bg-primary/10 rounded-full overflow-hidden transition-colors duration-500">
+                                        <div
+                                            class="h-full bg-primary w-2/3 shadow-[0_0_10px_rgba(255,0,43,0.2)] dark:shadow-[0_0_12px_rgba(255,0,43,0.6)]">
+                                        </div>
+                                    </div>
+                                    <div
+                                        class="text-[9px] font-mono text-slate-500 uppercase tracking-[0.2em] font-bold">
+                                        Buffer Load</div>
+                                </div>
+                                <button
+                                    class="mt-8 w-full group relative overflow-hidden bg-primary px-6 py-4 rounded-xl transition-all hover:scale-[0.98] active:scale-95 shadow-[0_10px_20px_-5px_rgba(255,0,43,0.25)] dark:shadow-[0_0_30px_rgba(255,0,43,0.3)] hover:shadow-[0_15px_30px_-5px_rgba(255,0,43,0.4)] dark:hover:shadow-[0_0_50px_rgba(255,0,43,0.5)]">
+                                    <div
+                                        class="absolute inset-0 bg-gradient-to-tr from-black/5 dark:from-black/30 to-transparent transition-colors duration-500">
+                                    </div>
+                                    <span
+                                        class="relative z-10 text-white text-xs font-bold tracking-[0.3em] uppercase">Analyze</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div
+                            class="px-6 py-4 bg-slate-50/70 dark:bg-black/80 flex items-center justify-between border-t border-slate-100 dark:border-white/5 transition-colors duration-500">
+                            <div class="flex items-center gap-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="relative group">
+                                        <select
+                                            class="bg-white dark:bg-transparent border border-slate-200 dark:border-white/10 text-[10px] font-mono text-primary font-bold py-1.5 dark:py-1 pl-3 dark:pl-2 pr-8 dark:pr-6 rounded-sm dark:rounded focus:ring-0 focus:border-primary/30 dark:focus:border-primary/50 appearance-none cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-500">
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="gpt-4">OpenAI ChatGPT</option>
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="claude-3">Anthropic Claude</option>
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="gemini-pro">Google Gemini</option>
+                                        </select>
+                                        <span
+                                            class="material-symbols-outlined absolute right-2 dark:right-1 top-1/2 -translate-y-1/2 !text-[14px] text-primary pointer-events-none transition-all duration-500">expand_more</span>
+                                    </div>
+                                    <div class="relative group">
+                                        <select
+                                            class="bg-white dark:bg-transparent border border-slate-200 dark:border-white/10 text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold py-1.5 dark:py-1 pl-3 dark:pl-2 pr-8 dark:pr-6 rounded-sm dark:rounded focus:ring-0 focus:border-primary/30 dark:focus:border-primary/50 appearance-none cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-500">
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="neutral">Neutral Tone</option>
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="analytical">Analytical</option>
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="creative">Creative</option>
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="concise">Concise</option>
+                                        </select>
+                                        <span
+                                            class="material-symbols-outlined absolute right-2 dark:right-1 top-1/2 -translate-y-1/2 !text-[14px] text-slate-400 pointer-events-none transition-all duration-500">expand_more</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="text-[10px] font-mono text-slate-500 dark:text-slate-600 flex gap-6 font-medium transition-colors duration-500">
+                                <span class="flex items-center gap-1"><span
+                                        class="material-symbols-outlined !text-[12px]">memory</span> 14MS</span>
+                                <span class="hidden sm:inline">0x2F4A</span>
+                                <span
+                                    class="text-slate-400 dark:text-current transition-colors duration-500">MODEL_A_SYNC</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="absolute -bottom-12 left-1/2 -translate-x-1/2 w-[90%] h-8 bg-black/5 dark:bg-primary/20 blur-3xl rounded-full opacity-20 dark:opacity-100 transition-all duration-500">
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-4 mt-20">
+                    <div
+                        class="flex items-center gap-3 px-6 py-3 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-none hover:border-primary/30 dark:hover:border-primary/50 hover:bg-primary/5 transition-all cursor-crosshair group rounded-sm">
+                        <span
+                            class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary !text-[20px] transition-colors duration-500">center_focus_strong</span>
+                        <span
+                            class="text-xs font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Clarity</span>
+                    </div>
+                    <div
+                        class="flex items-center gap-3 px-6 py-3 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-none hover:border-primary/30 dark:hover:border-primary/50 hover:bg-primary/5 transition-all cursor-crosshair group rounded-sm">
+                        <span
+                            class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary !text-[20px] transition-colors duration-500">straighten</span>
+                        <span
+                            class="text-xs font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Constraints</span>
+                    </div>
+                    <div
+                        class="flex items-center gap-3 px-6 py-3 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-none hover:border-primary/30 dark:hover:border-primary/50 hover:bg-primary/5 transition-all cursor-crosshair group rounded-sm">
+                        <span
+                            class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary !text-[20px] transition-colors duration-500">account_tree</span>
+                        <span
+                            class="text-xs font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Alignment</span>
+                    </div>
+                    <div
+                        class="flex items-center gap-3 px-6 py-3 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-none hover:border-primary/30 dark:hover:border-primary/50 hover:bg-primary/5 transition-all cursor-crosshair group rounded-sm">
+                        <span
+                            class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary !text-[20px] transition-colors duration-500">grain</span>
+                        <span
+                            class="text-xs font-bold tracking-widest uppercase text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Ambiguity</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div
+            class="fixed inset-0 pointer-events-none z-[100] opacity-[0.02] dark:opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] transition-opacity duration-500">
+        </div>
+    </div>
+
+    <!-- Theme Toggle Switch -->
+    <button id="themeToggle"
+        class="fixed bottom-6 right-6 z-[200] p-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 border border-white/10">
+        <span class="material-symbols-outlined dark:hidden">dark_mode</span>
+        <span class="material-symbols-outlined hidden dark:block">light_mode</span>
+    </button>
+
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        // Check for saved theme or system preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark');
+            htmlElement.classList.remove('light');
+        } else {
+            htmlElement.classList.remove('dark');
+            htmlElement.classList.add('light');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                htmlElement.classList.add('light');
+                localStorage.theme = 'light';
+            } else {
+                htmlElement.classList.remove('light');
+                htmlElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+        });
+    </script>
+</body>
+
+</html>

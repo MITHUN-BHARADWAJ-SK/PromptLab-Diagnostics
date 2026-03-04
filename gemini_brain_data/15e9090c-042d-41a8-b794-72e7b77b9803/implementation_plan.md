@@ -1,0 +1,130 @@
+# Prompt Generator — Three-Layer System Overhaul
+
+Redesign the Prompt Generator to follow the PRD's three-layer architecture: **Intent Inference → Prompt Blueprint → Prompt Generation**, with an integrated Analyzer scoring loop that auto-improves prompts below a quality threshold. The user sees a single **"Generate"** button instead of "Generate & Score".
+
+---
+
+## Proposed Changes
+
+### Engine Layer — Generator Service Rewrite
+
+#### [MODIFY] [generatorService.js](file:///F:/PROMPTLAB/src/services/generatorService.js)
+
+Complete rewrite with three internal layers:
+
+**Layer 1 — Intent Inference** (reuses patterns from existing `analyzerService.js`):
+- Infer **task type** (plan, write, analyze, explain, generate, evaluate, compare, optimize)
+- Infer **domain/niche** (productivity, storytelling, content writing, learning, research, etc.)
+- Infer **desired output format** (step-by-step, checklist, table, narrative, bullets, etc.)
+- Infer **control level** (low/medium/high) from signal words ("exact" → high, "suggest" → low)
+- Apply **model context awareness** (ChatGPT prefers structure, Claude prefers clarity, Gemini needs framing)
+
+**Layer 2 — Prompt Blueprint** (internal schema):
+```json
+{
+  "role": "string",
+  "task": "string", 
+  "context": "string",
+  "constraints": ["string"],
+  "output_format": "string",
+  "control_level": "low | medium | high",
+  "model": "chatgpt | claude | gemini"
+}
+```
+
+**Layer 3 — Prompt Generation**:
+- Transform blueprint into model-specific prompt (OpenAI: system-role + structured; Claude: XML-tagged; Gemini: context-first)
+- Use niche-specific framing already in the engine (`_getNicheFraming`)
+
+**Analyzer Loop Integration**:
+- Run generated prompt through `analyzerService.analyze()` to get scores
+- If overall score < 3.5 threshold → auto-revise using issue feedback → re-score
+- Return both v1 and v2 (if applicable) with all scoring data
+
+New `generate()` return shape:
+```js
+{
+  intent: { taskType, domain, outputFormat, controlLevel },
+  blueprint: { role, task, context, constraints, output_format, control_level, model },
+  v1: { prompt, score, dimensions },
+  v2: { prompt, score, dimensions } | null,  // only if v1 < threshold
+  improvements: [...],
+  whyItWorks: "string"
+}
+```
+
+---
+
+### UI — Generator View Redesign
+
+#### [MODIFY] [index.html](file:///F:/PROMPTLAB/public/index.html)
+
+Redesign the Generator view (lines 155–195) to match analyzer's premium aesthetic:
+- Hero section with title "Generate Your Prompt" + subtitle about the three-layer system
+- Full-width textarea with dark card background
+- Model selector dropdown (ChatGPT/Claude/Gemini) — no separate "Task Intent" input (the system infers intent)
+- Single **"GENERATE"** button with bolt icon (matching analyzer's ANALYZE button)
+- Remove the old "Generate & Score" label
+- Results panel container
+
+---
+
+### Frontend Logic
+
+#### [MODIFY] [app.js](file:///F:/PROMPTLAB/public/js/app.js)
+
+**`generatePrompt()` rewrite**:
+- Read prompt + model selection
+- Call `PromptLabEngine.generate()` with new API
+- Receives full result with intent, blueprint, v1/v2, scores
+- Pass to new `renderGeneratorResults()`
+
+**`renderGeneratorResults()` rewrite** — Premium results UI:
+1. **Generated Prompt Card** — The final prompt in a styled card with copy button
+2. **Score Banner** — Score ring showing the prompt's quality (reuses analyzer score-ring pattern)
+3. **Version Compare** — v1 → v2 if auto-improvement occurred, showing score delta
+4. **"Why This Prompt Works"** — Expandable section explaining inferred intent, applied framework, model optimizations
+5. **Enhancements List** — What was added/changed
+
+---
+
+### CSS
+
+#### [MODIFY] [index.css](file:///F:/PROMPTLAB/public/css/index.css)
+
+Add generator-specific styles:
+- Generated prompt card (monospace text, dark bg, copy button, glow border)
+- Version compare layout (side-by-side or stacked v1 → v2)
+- "Why it works" expandable section
+
+---
+
+### Build
+
+After modifying `generatorService.js`, run the build script to rebundle:
+```
+node build-engine.js
+```
+
+---
+
+## Verification Plan
+
+### Browser Testing
+1. Start the dev server: `npm start` (or `node src/server.js`)
+2. Navigate to the app in the browser
+3. Switch to the **Generator** tab
+4. Test with these prompts for each model:
+   - **Vague**: "Tell me about dogs" → should produce structured, high-scoring prompt
+   - **Detailed**: "Create a detailed daily study plan for a college student balancing CS lectures, gym, and meal prep" → should detect `plan` intent, produce time-blocked schedule prompt
+   - **Creative**: "Write a scary short story" → should detect `story` intent, apply narrative framework
+5. Verify the "Generate" button text (no "& Score")
+6. Verify score displays, version compare (if applicable), and "Why this works" section
+7. Verify copy button works
+8. Verify responsive design on smaller viewports
+
+### Engine Self-Test
+After build, run a quick test script to verify the engine produces valid output:
+```
+node -e "const e = require('./src/services/generatorService'); const r = e.generate({promptText:'Tell me about dogs',modelTarget:'openai'}); console.log(JSON.stringify(r,null,2))"
+```

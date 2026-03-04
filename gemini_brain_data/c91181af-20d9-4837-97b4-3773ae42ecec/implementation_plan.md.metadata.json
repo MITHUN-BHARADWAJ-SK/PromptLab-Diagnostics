@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary":  "Implementation plan for adding a landing page, Firebase Auth login page, migrating from Express+MongoDB to client-side Firebase (Firestore + Hosting). Details all new files, modified files, and deleted files. Analyzer/Generator engine kept as pure JS bundled for browser.",
+  "updatedAt":  "2026-03-01T04:36:18.718389700Z",
+  "version":  "1"
+}

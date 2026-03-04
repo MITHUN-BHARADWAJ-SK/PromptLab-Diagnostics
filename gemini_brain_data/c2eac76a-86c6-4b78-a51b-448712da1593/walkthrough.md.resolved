@@ -1,0 +1,47 @@
+# Prompt Generator Overhaul — Walkthrough
+
+## What Was Done
+
+Rewired the Prompt Generator frontend to fully utilize the existing three-layer engine service per the PRD.
+
+### Changes Made
+
+#### [app.js](file:///f:/PROMPTLAB/public/js/app.js)
+
+**[generatePrompt()](file:///f:/PROMPTLAB/public/js/app.js#179-226) — Fixed & Enhanced**
+- Removed crashed `#generatorIntent` reference (element doesn't exist in HTML)
+- Fixed property mapping: `genResult.finalPrompt` instead of broken `genResult.improvedPrompt`
+- Passes the full generation result (intent, blueprint, v1, v2, scores, whyItWorks) to the renderer
+- Added step-by-step progress indicator: `LAYER 1: INFERRING INTENT...` → `LAYER 2: BUILDING BLUEPRINT...` → `LAYER 3: GENERATING PROMPT...` → `ENGINE: COMPLETE`
+
+**[renderGeneratorResults()](file:///f:/PROMPTLAB/public/js/app.js#603-847) — Complete Rewrite (16 lines → 240 lines)**
+Five premium sections:
+1. **Final Prompt** — dark card with copy button and model name badge
+2. **Auto-Score** — 5-dimension progress bars with overall score badge
+3. **V1 → V2 Comparison** — side-by-side diff when auto-improvement triggers
+4. **Intent & Blueprint Analysis** — split-view: inferred intent (task type, domain, format, control level) + prompt blueprint (role, task, constraints, target model)
+5. **Why This Prompt Works** — collapsible educational explanation with emerald accents
+
+#### [build-engine.js](file:///f:/PROMPTLAB/build-engine.js) — No Changes
+Engine bundle was rebuilt to pick up latest service code.
+
+## Verification
+
+Tested with prompt: *"Create a daily study plan for a college student balancing CS, gym, and meal prep"* targeting OpenAI GPT.
+
+### Results
+
+````carousel
+![Generated Prompt + Auto-Score](C:/Users/ASUS/.gemini/antigravity/brain/c2eac76a-86c6-4b78-a51b-448712da1593/generator_results_top_1772591376421.png)
+<!-- slide -->
+![Intent & Blueprint Analysis](C:/Users/ASUS/.gemini/antigravity/brain/c2eac76a-86c6-4b78-a51b-448712da1593/generator_results_bottom_1772591379839.png)
+````
+
+| Section | Status |
+|---------|--------|
+| Generated Prompt + COPY | ✅ Working |
+| Auto-Score (5 dimensions) | ✅ Working |
+| Intent Inference (Plan / Planning & Productivity / Step-By-Step Plan / Medium) | ✅ Correct |
+| Prompt Blueprint (Role, Task, 2 Constraints, OpenAI GPT target) | ✅ Correct |
+| Why This Prompt Works | ✅ Collapsible, working |
+| Progress Indicator (ENGINE: COMPLETE) | ✅ Working |

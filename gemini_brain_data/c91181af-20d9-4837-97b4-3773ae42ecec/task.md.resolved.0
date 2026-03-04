@@ -1,0 +1,38 @@
+# Model-Specific Analyzer Optimization
+
+## Research
+- [x] Read [analyzerService.js](file:///F:/PROMPTLAB/src/services/analyzerService.js), [blueprints.js](file:///F:/PROMPTLAB/src/config/blueprints.js), [scoring.js](file:///F:/PROMPTLAB/src/config/scoring.js)
+- [x] Read [generatorService.js](file:///F:/PROMPTLAB/src/services/generatorService.js), [promptController.js](file:///F:/PROMPTLAB/src/controllers/promptController.js), [app.js](file:///F:/PROMPTLAB/public/js/app.js)
+- [x] Read existing test file [test-endpoints.js](file:///F:/PROMPTLAB/src/scripts/test-endpoints.js)
+- [x] Identify gaps: identical weights/output for all models, shallow model checks
+
+## Planning
+- [/] Write implementation plan
+- [ ] Get user approval
+
+## Execution — Scoring Config ([scoring.js](file:///F:/PROMPTLAB/src/config/scoring.js))
+- [ ] Add model-specific scoring weights (OpenAI / Anthropic / Gemini)
+- [ ] Add model-specific anti-pattern lists and bonus pattern lists
+- [ ] Add model-specific dimension emphasis metadata
+
+## Execution — Blueprints ([blueprints.js](file:///F:/PROMPTLAB/src/config/blueprints.js))
+- [ ] Complete missing Anthropic task blueprints (analyze, list, instruct, brainstorm)
+- [ ] Complete missing Gemini task blueprints (summarize, analyze, list, instruct, brainstorm)
+- [ ] Add richer, more specific tips per model per task
+- [ ] Add new detection patterns for Anthropic XML tags, Gemini context-first patterns
+
+## Execution — Analyzer Engine ([analyzerService.js](file:///F:/PROMPTLAB/src/services/analyzerService.js))
+- [ ] Refactor to load model-specific weights from config
+- [ ] Add deep model-specific scoring rules per model (not just 3 anti-pattern checks)
+- [ ] Implement model-specific output format builder
+- [ ] Add per-model response shaping (different JSON structure per model)
+- [ ] Enhance clarity scoring with model-specific heuristics
+- [ ] Enhance model alignment with richer checks per model
+
+## Execution — Controller & Frontend
+- [ ] Update controller to pass through model-specific output format
+- [ ] Update frontend to render model-specific sections/UI
+
+## Verification
+- [ ] Run existing [test-endpoints.js](file:///F:/PROMPTLAB/src/scripts/test-endpoints.js) to confirm no regressions
+- [ ] Browser test: analyze same prompt for all 3 models, verify different outputs

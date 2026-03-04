@@ -1,0 +1,40 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+biotech
+PROMPT
+LAB
+Beta v4.0.2
+[0] (369,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2 active'>Analyzer />
+	[1] (347,44)<span >analytics />
+[2] (448,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Generator />
+	[3] (422,44)<span >auto_awesome />
+[4] (531,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Dashboard />
+	[5] (503,44)<span >dashboard />
+Test User
+[6] (725,44)<button class='text-xs text-primary hover:text-white transition-colors' title='Sign Out'>Sign Out />
+[7] (765,44)<button class='w-8 h-8 flex items-center justify-center rounded-full bg-neutral-800 shadow-sm' />
+	[8] (765,44)<span >dark_mode />
+[9] (791,44)<button class='w-8 h-8 flex items-center justify-center rounded-full text-slate-400' />
+	[10] (791,44)<span >light_mode />
+[11] (858,44)<button class='bg-primary hover:bg-accent text-white px-4 py-2 rounded text-sm font-bold transition-all transform hover:scale-105'>UPGRADE PRO />
+SYSTEM PROTOCOL: ACTIVE ANALYSIS
+Analyze
+Your Prompt
+Paste any prompt and get instant, explainable feedback across five dimensions. Learn why prompts succeed or fail — then improve them.
+[12] (500,551)<label class='block text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-500 mb-2'>Your Prompt />
+[13] (500,660)<textarea class='w-full h-32 bg-black/40 border border-neutral-800 focus:ring-1 focus:ring-primary/50 font-mono text-sm text-neutral-300 resize-none p-4 rounded-lg' id='analyzerPrompt' placeholder='Enter prompt to analyze... e.g. 'Tell me about renewable energy'' />
+[14] (310,800)<label class='block text-[10px] font-mono font-bold uppercase text-neutral-500 mb-1'>Target Model />
+[15] (310,841)<select class='w-full bg-black/40 border border-neutral-800 rounded px-3 py-2 text-sm font-mono focus:ring-primary text-neutral-300' id='analyzerModel' />
+[16] (574,800)<label class='block text-[10px] font-mono font-bold uppercase text-neutral-500 mb-1'>Example Output (Optional) />
+[17] (574,841)<input class='w-full bg-black/40 border border-neutral-800 rounded px-3 py-2 text-sm font-mono focus:ring-primary text-neutral-300' id='analyzerExample' placeholder='What ideal output looks like...' />
+[18] (765,840)<button class='bg-primary text-white px-8 h-10 rounded font-bold hover:bg-accent transition-all flex items-center justify-center gap-2 group w-full md:w-auto' id='analyzeBtn'>ANALYZE />
+	[19] (794,840)<span >bolt />
+DAILY QUOTA
+0 / 10
+STATUS: READY_FOR_TELEMETRY
+ENGINE: ACTIVE
+Daily analysis quota exhausted. Try again tomorrow or upgrade to Pro.
+
+</current_dom>

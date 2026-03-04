@@ -1,0 +1,11 @@
+# Task: Verify PromptLab analysis and optimization flow
+
+## Checklist
+- [ ] Navigate to http://127.0.0.1:8080/index.html and reload.
+- [ ] Enter prompt: "Write a high CTR email about a 50% off sale"
+- [ ] Click "ANALYZE" and wait for results.
+- [ ] Copy optimized prompt from "COPY ALL" button.
+- [ ] Paste optimized prompt back into "Your Prompt" textarea.
+- [ ] Click "ANALYZE" again.
+- [ ] Verify Overall Score hits close to 5.0 and checklist is green.
+- [ ] Capture screenshot of results.

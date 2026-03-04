@@ -1,0 +1,10 @@
+# Test Plan for PromptLab Analyzer
+
+- [ ] Navigate to http://localhost:3000
+- [ ] Handle onboarding modal (if present)
+- [ ] Enter "explain photosynthesis" in the analyzer
+- [ ] Select "OpenAI (GPT)" model
+- [ ] Click "Analyze" and wait
+- [ ] Verify Structural Comparison table (Subject and Task Verb rows)
+- [ ] Take screenshot of results
+- [ ] Report Subject status, quality, and overall score

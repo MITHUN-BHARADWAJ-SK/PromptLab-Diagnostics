@@ -1,0 +1,37 @@
+# Transition to LocalStorage Authentication
+
+The goal is to completely remove Firebase from the application and replace it with a simple, frontend-only LocalStorage solution that mimics a backend system. The user wants a simple signup process and a 10-query limit for the analyzer tool.
+
+## Proposed Changes
+
+### 1. `public/js/firebase-config.js` -> `public/js/local-db.js`
+*   **DELETE**: Remove the existing `firebase-config.js` logic completely, along with its Firebase SDK dependencies.
+*   **CREATE**: Replace it with `local-db.js`, exposing a unified interface (`PromptLabDB`) that mimics the old API but uses `localStorage` instead of Firestore.
+*   **Features Engine**:
+    *   `registerUser()` / `loginUser()`: Stores and retrieves profiles locally based on email/username.
+    *   `checkQuota()`: Returns limit (10), used count, and remaining count.
+    *   `consumeQuota()`: Decrements local quota counter.
+    *   `saveAnalysis()` / `getHistory()`: Appends generation and analysis logs to an array in `localStorage`.
+    *   `updateStats()`: Recalculates total scores, averages, and day streaks without needing a server.
+
+### 2. `public/login.html`
+*   **Remove Firebase SDKs**: Delete `<script src="https://www.gstatic.com/firebasejs..."></script>` imports from the header.
+*   **Update Auth Flow**: Rewrite the email authentication flow. Clicking "Sign Up" or "Sign In" will now call functions from our new `local-db.js` layer instead of `firebase.auth()`.
+*   **Remove Google SSO**: Strip the "Continue with Google" button since SSO is highly tied to a real identity provider setup.
+
+### 3. `public/index.html`
+*   **Remove Firebase SDKs**: Delete Firebase SDK links from the HTML header.
+*   **Script Swaps**: Replace `<script src="/js/firebase-config.js"></script>` with `<script src="/js/local-db.js"></script>`.
+
+### 4. `public/js/app.js`
+*   **Remove Auth Listener**: Delete the `firebase.auth().onAuthStateChanged` hook.
+*   **Replace with Local Check**: On `DOMContentLoaded`, just check if a user session exists in `localStorage`. If not, redirect to `/login.html`.
+
+### 5. `src/server.js` (Optional Cleanup)
+*   Since the frontend now does not rely on backend databases or auth, the Node.js server acts purely as a static file host. We can disable the MongoDB initialization.
+
+## Verification Plan
+1. Start the Node frontend server.
+2. Verify I can visit `/login.html` and create a dummy account seamlessly without a database connection.
+3. Verify that the Dashboard correctly tracks remaining queries (starting at 10 free queries) using `localStorage`.
+4. Run 1 prompt and ensure the quota drops from 10 to 9.

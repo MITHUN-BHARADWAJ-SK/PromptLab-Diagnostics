@@ -1,0 +1,21 @@
+# Implementation Plan - Hero Redesign Updates
+
+The user requested specific layout and animation changes to the newly implemented hero section.
+
+## Proposed Changes
+
+### [Frontend - HTML Content]
+
+#### [MODIFY] [landing.html](file:///f:/PROMPTLAB/public/landing.html)
+- Change `<span class="text-primary" style="color: var(--accent-primary);">NOT A</span>` to be inside the animation sequence. Specifically, the static text will now say "AS A SKILL," and the animated words container will follow immediately.
+- Update the layout classes to center the text content horizontally. The text alignment appears to be left-aligned on the paragraphs based on the previous inline styles (`text-align: left`); I will change this to center.
+- Add `margin-bottom` or padding to the bottom of the `.hero` section or the `.terminal-glass` container so it doesn't touch the bottom edge of the page.
+
+### [Frontend - Logic]
+
+#### [MODIFY] [hero-animation.js](file:///f:/PROMPTLAB/public/js/hero-animation.js)
+- Update the list of animated words to: `["NOT A TRICK", "amazing", "new", "wonderful", "beautiful", "smart"]`.
+- The first word ("NOT A TRICK") needs to have the word "TRICK" colored red as requested. Since the animation script adds text content, I need to update the script to allow for HTML insertion (using `innerHTML` instead of `textContent`) so I can wrap "TRICK" in a `<span class="text-primary">`.
+
+## Verification Plan
+- I will verify the changes locally by checking the browser preview to ensure the text is centered, there's space at the bottom, and the animation correctly includes "NOT A TRICK" with "TRICK" in red.

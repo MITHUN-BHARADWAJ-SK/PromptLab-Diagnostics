@@ -1,0 +1,45 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (493,37)<a class='logo' href='#' />
+	[1] (493,24)<div >P />
+	[2] (42,50)<span >PromptLab />
+	[3] (95,50)<span >Beta />
+[4] (50,81)<button class='nav-btn active'>✨ Analyzer />
+[5] (144,81)<button class='nav-btn'>🔧 Generator />
+[6] (244,81)<button class='nav-btn'>📊 Dashboard />
+Analyze Your Prompt
+Paste any prompt and get instant, explainable feedback across five dimensions.
+                            Learn
+why
+prompts succeed or fail — then improve them.
+[7] (47,304)<label class='prompt-label'>Your Prompt />
+[8] (172,286)<textarea class='prompt-textarea' id='analyzerPrompt' placeholder='Paste your prompt here... e.g. 'Tell me about renewable energy sources'' scrollable='true' />
+Target Model
+[9] (72,358)<select class='select-input' id='analyzerModel' />
+Example Output (optional)
+[10] (260,386)<input class='text-input' id='analyzerExample' placeholder='What ideal output looks like…' />
+[11] (48,418)<button class='btn btn-primary' id='analyzeBtn'>⚡
+Analyze />
+	⚡
+Improve Your Prompt
+Enter a rough prompt and your intent. PromptLab will generate an improved version
+                            with constraints, model alignment, and structure — then auto-score it.
+[12] (47,641)<label class='prompt-label'>Base Prompt />
+[13] (172,624)<textarea class='prompt-textarea' id='generatorPrompt' placeholder='Enter your rough prompt... e.g. 'Tell me about dogs'' scrollable='true' />
+Target Model
+[14] (72,696)<select class='select-input' id='generatorModel' />
+Task Intent
+[15] (162,724)<input class='text-input' id='generatorIntent' placeholder='e.g. research essay, code review…' />
+[16] (77,756)<button class='btn btn-primary' id='generateBtn'>🔧
+Generate & Score />
+	🔧
+Your Learning Dashboard
+📝
+0
+Prompts Analyzed
+📈
+0.0
+
+</current_dom>

@@ -1,0 +1,76 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (177,44)<a class='logo' href='#' />
+	[1] (121,44)<div >P />
+	[2] (174,44)<span >PromptLab />
+	[3] (230,44)<span >Beta />
+[4] (437,44)<button class='nav-btn active'>✨ Analyzer />
+[5] (516,44)<button class='nav-btn'>🔧 Generator />
+[6] (600,44)<button class='nav-btn'>📊 Dashboard />
+T
+Test
+free
+Prompt Blueprint
+2
+2/12 elements
+Required
+[7] (200,110)<div class='bp-element bp-present bp-selected' />
+	[8] (200,106)<div  />
+		[9] (155,106)<div  />
+		[10] (184,106)<div >Task Verb />
+[11] (200,172)<div class='bp-element bp-present' />
+	[12] (200,168)<div  />
+		[13] (155,168)<div  />
+		[14] (179,168)<div >Subject />
+[15] (200,235)<div class='bp-element bp-missing' />
+	[16] (200,231)<div  />
+		[17] (155,231)<div  />
+		[18] (183,231)<div >Audience />
+[19] (200,297)<div class='bp-element bp-missing' />
+	[20] (200,293)<div  />
+		[21] (155,293)<div  />
+		[22] (192,293)<div >Output Format />
+[23] (200,360)<div class='bp-element bp-missing' />
+	[24] (200,356)<div  />
+		[25] (155,356)<div  />
+		[26] (192,356)<div >Scope/Length />
+Recommended
+[27] (200,464)<div class='bp-element bp-missing' />
+	[28] (200,460)<div  />
+		[29] (155,460)<div  />
+		[30] (180,460)<div >Context />
+[31] (200,527)<div class='bp-element bp-missing' />
+	[32] (200,523)<div  />
+		[33] (155,523)<div  />
+		[34] (186,523)<div >Tone/Style />
+[35] (200,589)<div class='bp-element bp-missing' />
+	[36] (200,585)<div  />
+		[37] (155,585)<div  />
+		[38] (183,585)<div >Examples />
+[39] (200,652)<div class='bp-element bp-missing' />
+	[40] (200,648)<div  />
+		[41] (155,648)<div  />
+		[42] (204,648)<div >Reasoning Guidance />
+[43] (200,714)<div class='bp-element bp-missing' />
+	[44] (200,710)<div  />
+		[45] (155,710)<div  />
+		[46] (190,710)<div >Role/Persona />
+Optional
+[47] (200,819)<div class='bp-element bp-missing' />
+	[48] (200,815)<div  />
+		[49] (155,815)<div  />
+		[50] (185,815)<div >Exclusions />
+[51] (200,881)<div class='bp-element bp-missing' />
+	[52] (200,877)<div  />
+		[53] (155,877)<div  />
+		[54] (196,877)<div >Success Criteria />
+[55] (838,91)<div class='bp-detail-close' />
+Task Verb
+Required
+Present — Strong
+A clear action verb telling the AI what to do
+Additional Feedback
+
+</current_dom>

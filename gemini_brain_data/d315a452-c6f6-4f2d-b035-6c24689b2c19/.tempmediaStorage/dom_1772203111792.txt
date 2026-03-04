@@ -1,0 +1,30 @@
+[0] (177,44)<a class='logo' href='#' />
+	[1] (121,44)<div >P />
+	[2] (174,44)<span >PromptLab />
+	[3] (230,44)<span >Beta />
+[4] (421,44)<button class='nav-btn'>✨ Analyzer />
+[5] (501,44)<button class='nav-btn'>🔧 Generator />
+[6] (585,44)<button class='nav-btn active'>📊 Dashboard />
+D
+Deep Tester
+free
+Your Learning Dashboard
+📝
+0
+Prompts Analyzed
+📈
+0.0
+Average Score
+🔥
+0
+Day Streak
+🎯
+—
+Analyses Left Today
+Prompt
+Model
+Version
+Score
+Date
+📭
+No prompts analyzed yet. Head to the Analyzer to get started!

@@ -1,0 +1,21 @@
+[0] (177,44)<a class='logo' href='#' />
+	[1] (121,44)<div >P />
+	[2] (174,44)<span >PromptLab />
+	[3] (230,44)<span >Beta />
+[4] (420,44)<button class='nav-btn'>✨ Analyzer />
+[5] (499,44)<button class='nav-btn active'>🔧 Generator />
+[6] (583,44)<button class='nav-btn'>📊 Dashboard />
+T
+Test Student
+free
+Improve Your Prompt
+Enter a rough prompt and your intent. PromptLab will generate an improved version
+                            with constraints, model alignment, and structure — then auto-score it.
+[7] (500,554)<label class='prompt-label'>Base Prompt />
+[8] (500,671)<textarea class='prompt-textarea' id='generatorPrompt' placeholder='Enter your rough prompt... e.g. 'Tell me about dogs'' />
+Target Model
+[9] (198,847)<select class='select-input' id='generatorModel' />
+Task Intent
+[10] (325,847)<input class='text-input' id='generatorIntent' placeholder='e.g. research essay, code review…' />
+[11] (794,832)<button class='btn btn-primary' id='generateBtn'>Generate & Score />
+	[12] (753,832)<span >🔧 />

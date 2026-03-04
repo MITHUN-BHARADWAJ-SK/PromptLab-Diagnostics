@@ -1,0 +1,93 @@
+# Model-Specific Analyzer Optimization
+
+The current analyzer uses **identical scoring weights, heuristics, and output format** for all three models (OpenAI, Anthropic, Gemini). The user wants each model's analyzer to be fully optimized to that model's spec and produce a **differentiated output format** per model.
+
+## Problem Summary
+
+| Gap | Detail |
+|-----|--------|
+| **Shared weights** | All models use the same 0.25/0.25/0.20/0.20/0.10 weight distribution |
+| **Shallow model checks** | Only 3 anti-pattern checks (one per model) in the entire scoring engine |
+| **Same output format** | All models return the exact same JSON structure and frontend rendering |
+| **Incomplete blueprints** | Anthropic missing: [analyze](file:///F:/PROMPTLAB/src/services/analyzerService.js#44-370), `list`, `instruct`, `brainstorm`. Gemini missing: `summarize`, [analyze](file:///F:/PROMPTLAB/src/services/analyzerService.js#44-370), `list`, `instruct`, `brainstorm` — all fall back to OpenAI copies |
+| **Minimal model elements** | [_getModelSpecificElements()](file:///F:/PROMPTLAB/src/services/analyzerService.js#680-686) returns only 3 hardcoded elements per model |
+
+## Proposed Changes
+
+### Scoring Configuration
+
+#### [MODIFY] [scoring.js](file:///F:/PROMPTLAB/src/config/scoring.js)
+- Add **model-specific weight profiles** — e.g., Anthropic emphasizes `constraint_completeness` and `ambiguity_risk`; Gemini emphasizes `model_alignment` for context-first patterns; OpenAI emphasizes `output_controllability`
+- Add **model-specific anti-pattern lists** with regex patterns and scoring penalties
+- Add **model-specific bonus patterns** (e.g., Claude XML tags, OpenAI system-role, Gemini context-first)
+- Add **model output format config** — defines which sections appear and in what order per model
+
+---
+
+### Blueprints
+
+#### [MODIFY] [blueprints.js](file:///F:/PROMPTLAB/src/config/blueprints.js)
+- Write **dedicated blueprints** for every missing (model × task) combination instead of copying from OpenAI
+- Add Anthropic-specific elements: XML tag detection, scratchpad/thinking sections, harmlessness framing
+- Add Gemini-specific elements: context-first ordering, grounding cues, multimodal references
+- Expand tips to 3–4 per task per model with real, actionable guidance aligned to official docs
+- Add a new structural element: `xml_tags` for Anthropic, `grounding` for Gemini
+
+---
+
+### Analyzer Engine
+
+#### [MODIFY] [analyzerService.js](file:///F:/PROMPTLAB/src/services/analyzerService.js)
+- **Load model-specific weights** from [scoring.js](file:///F:/PROMPTLAB/src/config/scoring.js) instead of hardcoded `WEIGHTS` constant
+- **Deep model alignment scoring**: 
+  - **OpenAI**: Check for system-role framing, chain-of-thought triggers, explicit output format, structured JSON/markdown requests, temperature/top-p hints
+  - **Anthropic**: Check for XML tag structure, thinking sections, scratchpad prompts, clear natural-language instructions, exclusion boundaries, safety-aligned phrasing
+  - **Gemini**: Check for context-before-task ordering, multimodal references, structured output requests, grounding cues, concise imperative tone
+- **Model-specific anti-pattern detection**: Each model gets 5–8 unique anti-patterns (not just 1 each)
+- **Differentiated output format** — the [analyze()](file:///F:/PROMPTLAB/src/services/analyzerService.js#44-370) function returns a model-specific response shape:
+
+  | Section | OpenAI | Anthropic | Gemini |
+  |---------|--------|-----------|--------|
+  | `model_profile` | ✅ (GPT-specific) | ✅ (Claude-specific) | ✅ (Gemini-specific) |
+  | `scoring_emphasis` | ✅ shows output_controllability first | ✅ shows constraint_completeness first | ✅ shows model_alignment first |
+  | `model_specific_issues` | Role framing, CoT, format | XML tags, boundaries, safety | Context order, grounding, multimodal |
+  | `prompt_rewrite_hint` | system+user framing style | XML-tagged structure style | context-first structure style |
+  | `optimization_checklist` | ✅ model-specific | ✅ model-specific | ✅ model-specific |
+
+---
+
+### Controller & Frontend
+
+#### [MODIFY] [promptController.js](file:///F:/PROMPTLAB/src/controllers/promptController.js)
+- Pass through new fields: `model_profile`, `scoring_emphasis`, `model_specific_issues`, `prompt_rewrite_hint`, `optimization_checklist`
+
+#### [MODIFY] [app.js](file:///F:/PROMPTLAB/public/js/app.js)
+- Render **model profile section** with model name, icon, and optimization focus
+- Render **model-specific issues** in a distinct card with model-colored border
+- Render **prompt rewrite hint** showing the model's preferred structure
+- Render **optimization checklist** as a visual checklist with ✅/❌
+- Different **accent colors** per model (OpenAI green, Anthropic orange, Gemini blue)
+
+---
+
+## Verification Plan
+
+### Automated Tests
+
+1. **Existing integration test** — confirms no regressions on API endpoints:
+   ```
+   node src/scripts/test-endpoints.js
+   ```
+   The server must be running first via `npm run dev`.
+
+2. **Standalone analyzer unit test** — will create `src/scripts/test-analyzer.js` that:
+   - Calls `analyzerService.analyze()` directly with the same prompt for all 3 models
+   - Asserts that output shapes differ per model (checks for `model_profile`, `scoring_emphasis` fields)
+   - Asserts that scoring weights differ per model (e.g., OpenAI weight for `output_controllability` ≠ Anthropic)
+   - Asserts model-specific issues are generated (e.g., Anthropic prompt without XML tags raises an issue)
+   - Run via: `node src/scripts/test-analyzer.js`
+
+### Browser Verification
+- Open `http://localhost:3000` in the browser
+- Submit the same prompt (e.g., "explain quantum computing") for OpenAI, Anthropic, and Gemini
+- Visually confirm each produces different output: different accent color, model profile card, model-specific issues, optimization checklist, and prompt rewrite hint

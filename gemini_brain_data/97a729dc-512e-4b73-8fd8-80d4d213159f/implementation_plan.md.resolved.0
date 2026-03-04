@@ -1,0 +1,97 @@
+# Optimize PromptLab Analyzer with Niche Prompt Structures & Universal Frameworks
+
+Enhance the analyzer engine so that it (a) recognises niche prompt categories, (b) applies universal prompt frameworks as evaluation criteria, and (c) produces **significantly more detailed, longer, and actionable** optimised output.
+
+## Proposed Changes
+
+### 1. Niche-Specific Task Categories
+
+Currently the engine detects 9 task intents: `explain`, `compare`, [generate](file:///f:/PROMPTLAB/public/js/promptlab-engine.js#2175-2178), `summarize`, [analyze](file:///f:/PROMPTLAB/public/js/promptlab-engine.js#1164-1549), [list](file:///f:/PROMPTLAB/public/js/promptlab-engine.js#1800-1817), `instruct`, `code`, `brainstorm`.
+
+**Add 4 new niche intents** drawn from the user's document:
+
+| New Intent | Trigger Keywords |
+|---|---|
+| [plan](file:///f:/PROMPTLAB/public/js/app.js#690-694) | plan, schedule, routine, milestone, workflow, productivity, habit, goal |
+| [story](file:///f:/PROMPTLAB/public/js/local-db.js#143-151) | story, fiction, narrative, character, plot, scene, arc, theme |
+| `content` | SEO, article, blog, content calendar, headline, draft, engagement |
+| `evaluate` | evaluate, diagnose, improve, critique, review, iterate, refine |
+
+#### Files Changed
+
+##### [MODIFY] [promptlab-engine.js](file:///f:/PROMPTLAB/public/js/promptlab-engine.js)
+
+**a) `TASK_PATTERNS` array** (~line 1148) — append the 4 new pattern objects.
+
+**b) Niche blueprints for every model** (~line 771–1110) — add [plan](file:///f:/PROMPTLAB/public/js/app.js#690-694), [story](file:///f:/PROMPTLAB/public/js/local-db.js#143-151), `content`, `evaluate` blueprints under each of `openai`, `anthropic`, `gemini` with tailored `required`, `recommended`, `optional`, and `tips` arrays derived from the reference document. Each `tips` array will have **4–6 entries** (currently 3–4) to provide richer feedback.
+
+**c) Niche-specific suggestions** — extend [_generateSuggestionForElement](file:///f:/PROMPTLAB/public/js/promptlab-engine.js#1691-1795) and [_suggestFormat](file:///f:/PROMPTLAB/public/js/promptlab-engine.js#1922-1965) / [_suggestScope](file:///f:/PROMPTLAB/public/js/promptlab-engine.js#1966-1980) / [_suggestTone](file:///f:/PROMPTLAB/public/js/promptlab-engine.js#1991-2000) helpers to cover the 4 new tasks.
+
+---
+
+### 2. Universal Framework Detection & Scoring
+
+Add a new structural element **`framework`** that checks whether the prompt uses any recognised universal framework pattern:
+
+| Framework | Detection Pattern |
+|---|---|
+| Role→Task→Context→Constraints→Output | role/persona keyword + task verb + context + constraint + format |
+| Clarify-first | "ask clarifying questions", "before responding" |
+| Evaluate→Diagnose→Improve | evaluate + diagnose/identify + improve/fix |
+| Compare-justify | "compare" + "justify" + "best" |
+| Iterative refinement | "v1", "critique", "improve to v2", "iterate" |
+| Step-by-step reasoning | "step by step" + "assumptions" |
+| Output-first | "output:" before main body |
+| Critic+Creator | "critic", "creator", "dual role" |
+| Teach-beginner | "explain as if teaching a beginner", "ELI5" |
+| Advise-expert | "advise an expert", "expert-level" |
+
+This will be added as:
+- A new `ELEMENTS.FRAMEWORK` entry
+- A new `DETECTION.framework` block with patterns + [qualityCheck](file:///f:/PROMPTLAB/public/js/promptlab-engine.js#594-601)
+- Listed as `recommended` in `general` blueprints across all models
+- A **bonus pattern** per model for framework usage (+0.4 model_alignment)
+
+---
+
+### 3. More Detailed & Longer Suggestions
+
+Currently [_buildSuggestions](file:///f:/PROMPTLAB/public/js/promptlab-engine.js#1674-1690) is capped at **max 3** suggestions. Changes:
+
+- Increase cap from 3 → **5** suggestions
+- Each suggestion's `improved` field will be much longer: instead of appending a single line, it will provide a **full rewritten prompt** incorporating the missing element naturally into the existing text
+- Add a new `detailedExplanation` field per suggestion explaining *why* this change matters for the target model
+- Enhance [_buildRewriteHint](file:///f:/PROMPTLAB/public/js/promptlab-engine.js#1818-1887) templates to be **3–4× longer**, embedding the user's reference structures (e.g., `Role → Task → Context → Constraints → Output Format`) with placeholder guidance
+
+---
+
+### 4. Enhanced Educational Summary
+
+Extend [_buildIntentExplanation](file:///f:/PROMPTLAB/public/js/promptlab-engine.js#1630-1669) to output **a multi-paragraph explanation** instead of the current 4–6 sentence summary. The new version will:
+
+- State detected intent + niche category (if applicable)
+- Identify which universal framework the prompt most closely resembles
+- Explain which elements are present/missing with **specific model-context reasoning**
+- Provide a **"Next Steps" paragraph** listing the top 3 improvements ranked by impact
+
+---
+
+## Verification Plan
+
+### Manual Verification (Browser)
+1. Start the local server: `npx http-server f:\PROMPTLAB\public -p 8080`
+2. Open `http://127.0.0.1:8080/login.html`, sign in
+3. Navigate to the Analyzer on [index.html](file:///f:/PROMPTLAB/public/index.html)
+4. Test with the following prompts and verify the output is longer, more detailed, and references the niche categories:
+
+| # | Test Prompt | Expected Intent | Key Expected Elements |
+|---|---|---|---|
+| 1 | `Create a daily schedule from 9am to 5pm, prioritizing tasks by urgency` | [plan](file:///f:/PROMPTLAB/public/js/app.js#690-694) | Detects planning niche, suggests milestones, risk points, habit stacking |
+| 2 | `Write a story outline using a three-act structure for a mystery` | [story](file:///f:/PROMPTLAB/public/js/local-db.js#143-151) | Detects story niche, suggests character arc, emotional beats, scene structure |
+| 3 | `Generate an SEO-optimized article outline for AI in healthcare` | `content` | Detects content niche, suggests headings, keywords, content calendar |
+| 4 | `Evaluate this prompt and suggest improvements iteratively` | `evaluate` | Detects evaluate niche, suggests Evaluate→Diagnose→Improve framework |
+| 5 | `Tell me about dogs` | `explain` (general) | Still works as before, but with longer suggestions |
+
+5. Verify the suggestion count is ≥ 4 (up from max 3)
+6. Verify the educational summary is multi-paragraph
+7. Verify the rewrite hint template is significantly longer

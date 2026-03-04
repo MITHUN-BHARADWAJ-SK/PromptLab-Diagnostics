@@ -1,0 +1,54 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+biotech
+PROMPT
+LAB
+Beta v4.0.2
+[0] (369,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Analyzer />
+	[1] (347,44)<span >analytics />
+[2] (448,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2 active'>Generator />
+	[3] (422,44)<span >auto_awesome />
+[4] (531,44)<button class='nav-btn text-slate-500 hover:text-primary transition-colors flex items-center gap-2'>Dashboard />
+	[5] (503,44)<span >dashboard />
+Test User
+[6] (725,44)<button class='text-xs text-primary hover:text-white transition-colors' title='Sign Out'>Sign Out />
+[7] (765,44)<button class='w-8 h-8 flex items-center justify-center rounded-full bg-neutral-800 shadow-sm' />
+	[8] (765,44)<span >dark_mode />
+[9] (791,44)<button class='w-8 h-8 flex items-center justify-center rounded-full text-slate-400' />
+	[10] (791,44)<span >light_mode />
+[11] (858,44)<button class='bg-primary hover:bg-accent text-white px-4 py-2 rounded text-sm font-bold transition-all transform hover:scale-105'>UPGRADE PRO />
+INTENT & BLUEPRINT ANALYSIS
+LAYER 1 & 2
+psychology
+Inferred Intent
+Task Type
+plan
+Domain
+Planning & Productivity
+Format
+step-by-step plan
+Control Level
+medium
+architecture
+Prompt Blueprint
+System Role
+Contextual Base
+You are a productivity and planning expert specializing in structured goal-setting, time management, and workflow optimization.
+Core Task
+Instruction
+Create a comprehensive, actionable plan for daily study plan
+rule
+2 Constraints
+smart_toy
+Target: OpenAI GPT
+tune
+Respond as a structured timeline with numbered phases, each containing specific action items, deadlines, and priority levels
+[12] (500,804)<button class='w-full px-8 py-5 flex justify-between items-center bg-gradient-to-r from-emerald-500/10 to-transparent cursor-pointer hover:bg-emerald-500/10 transition-colors' />
+	[13] (252,804)<div  />
+		[14] (191,804)<div  />
+		[15] (258,804)<h3 >WHY THIS PROMPT WORKS />
+	[16] (807,804)<span >expand_more />
+
+</current_dom>

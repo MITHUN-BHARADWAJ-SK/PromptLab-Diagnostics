@@ -1,0 +1,66 @@
+# PromptLab — Blueprint-Based Analyzer Walkthrough
+
+## Architecture Rewrite
+
+The analyzer was completely rewritten from a word-scanning engine to a **blueprint-based structural comparison** engine.
+
+### 6-Step Architecture
+
+```
+User Prompt → Intent Extraction → Blueprint Lookup (model×task)
+           → Structural Comparison → Mechanical Scoring → Scoped Suggestions
+```
+
+## New Files
+
+| File | Purpose |
+|------|---------|
+| [blueprints.js](file:///f:/PROMPTLAB/src/config/blueprints.js) | 15 structural elements + model×task blueprints |
+| [analyzerService.js](file:///f:/PROMPTLAB/src/services/analyzerService.js) | 6-step engine |
+
+## Modified Files
+
+| File | Change |
+|------|--------|
+| [promptController.js](file:///f:/PROMPTLAB/src/controllers/promptController.js) | Added intent/structural_comparison/tips to response |
+| [app.js](file:///f:/PROMPTLAB/public/js/app.js) | New intent card, structural table, tips rendering |
+| [index.css](file:///f:/PROMPTLAB/public/css/index.css) | Intent grid, tier/quality badges, table styles |
+
+---
+
+## UI Sections (in render order)
+
+### 1. Score Ring + Intent-Aware Summary
+Shows overall score + "We detected your intent as: **explain** — educational explanation about photosynthesis"
+
+### 2. Intent Detection Card
+Displays extracted intent fields:
+
+![Intent detection and score ring for "explain photosynthesis"](file:///C:/Users/ASUS/.gemini/antigravity/brain/d315a452-c6f6-4f2d-b035-6c24689b2c19/score_and_intent_1772205927323.png)
+
+### 3. Structural Comparison Table
+Color-coded table showing each blueprint element's tier (Required/Recommended/Optional), presence (✅/❌), and quality (Strong/Partial/Missing):
+
+![Structural comparison table with tier and quality badges](file:///C:/Users/ASUS/.gemini/antigravity/brain/d315a452-c6f6-4f2d-b035-6c24689b2c19/structural_comparison_table_1772206201067.png)
+
+### 4. Issues + Suggestions
+Issues reference specific missing blueprint elements. Suggestions fill missing structural gaps with model-specific rewrites:
+
+![Issues and suggestions mapped to missing blueprint elements](file:///C:/Users/ASUS/.gemini/antigravity/brain/d315a452-c6f6-4f2d-b035-6c24689b2c19/issues_and_suggestions_1772205940878.png)
+
+---
+
+## Test: "explain photosynthesis" → OpenAI
+
+| Metric | Value |
+|--------|-------|
+| Overall Score | 2.4 / 5.0 |
+| Task Verb | ✅ Strong |
+| Subject | ✅ Strong |
+| Missing Required | Audience, Output Format, Scope |
+| Missing Recommended | Context, Tone, Examples, Reasoning |
+| Suggestions | 3 (Clarity, Constraints, Control) |
+
+## Recording
+
+![Blueprint analyzer test recording](file:///C:/Users/ASUS/.gemini/antigravity/brain/d315a452-c6f6-4f2d-b035-6c24689b2c19/blueprint_test_1772205827514.webp)

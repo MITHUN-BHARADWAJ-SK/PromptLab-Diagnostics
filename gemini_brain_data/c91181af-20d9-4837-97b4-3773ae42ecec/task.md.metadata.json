@@ -1,0 +1,6 @@
+{
+  "artifactType":  "ARTIFACT_TYPE_TASK",
+  "summary":  "Task checklist for PromptLab: landing page, Firebase login, Firestore migration, and hosting setup. Tracks progress across planning, frontend pages, Firebase integration, engine bundling, and verification.",
+  "updatedAt":  "2026-03-01T04:36:33.201973900Z",
+  "version":  "1"
+}

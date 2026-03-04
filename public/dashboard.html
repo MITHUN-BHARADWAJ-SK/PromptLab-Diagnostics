@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>PromptLab | Performance Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round|Material+Icons+Outlined"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#EF4444", // Vibrant Red from Screenshot
+                        "background-light": "#F9FAFB",
+                        "background-dark": "#0A0A0A", // Deep near-black
+                        "card-dark": "#121212",
+                        "border-dark": "#1F1F1F"
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        .radar-glow {
+            filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.4));
+        }
+
+        .technical-grid {
+            background-image: radial-gradient(circle at 2px 2px, rgba(239, 68, 68, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+
+        .glass-panel {
+            background: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans min-h-screen selection:bg-primary selection:text-white">
+    <div class="flex min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside
+            class="w-20 lg:w-24 border-r border-slate-200 dark:border-border-dark flex flex-col items-center py-8 gap-10 bg-white dark:bg-background-dark z-20">
+            <div class="p-3 bg-primary rounded-xl shadow-lg shadow-primary/20">
+                <span class="material-icons-round text-white text-3xl">biotech</span>
+            </div>
+            <nav class="flex flex-col gap-8">
+                <a class="group relative flex items-center justify-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-card-dark transition-all"
+                    href="#">
+                    <span
+                        class="material-icons-round text-slate-400 group-hover:text-primary transition-colors">dashboard</span>
+                    <div
+                        class="absolute left-full ml-4 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                        Dashboard</div>
+                </a>
+                <a class="group relative flex items-center justify-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-card-dark transition-all"
+                    href="#">
+                    <span
+                        class="material-icons-round text-slate-400 group-hover:text-primary transition-colors">history</span>
+                    <div
+                        class="absolute left-full ml-4 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                        History</div>
+                </a>
+                <a class="group relative flex items-center justify-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-card-dark transition-all"
+                    href="#">
+                    <span
+                        class="material-icons-round text-slate-400 group-hover:text-primary transition-colors">account_circle</span>
+                </a>
+                <a class="group relative flex items-center justify-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-card-dark transition-all"
+                    href="#">
+                    <span
+                        class="material-icons-round text-slate-400 group-hover:text-primary transition-colors">api</span>
+                </a>
+                <a class="group relative flex items-center justify-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-card-dark transition-all"
+                    href="#">
+                    <span
+                        class="material-icons-round text-slate-400 group-hover:text-primary transition-colors">settings</span>
+                </a>
+            </nav>
+            <div class="mt-auto">
+                <button class="p-3 text-slate-400 hover:text-primary transition-colors">
+                    <span class="material-icons-round">logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden technical-grid">
+            <!-- Header -->
+            <header
+                class="h-20 px-8 flex items-center justify-between border-b border-slate-200 dark:border-border-dark glass-panel sticky top-0 z-10 w-full">
+                <div class="flex items-center gap-6 w-1/3">
+                    <div class="relative w-full max-w-md">
+                        <span
+                            class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+                        <input
+                            class="w-full bg-slate-100 dark:bg-card-dark border-transparent dark:border-border-dark rounded-full pl-10 pr-4 py-2 focus:ring-1 focus:ring-primary focus:border-primary text-sm"
+                            placeholder="Search prompts or logs..." type="text" />
+                    </div>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
+                        <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                        <span class="text-xs font-bold text-primary tracking-wider uppercase">Live Analysis</span>
+                    </div>
+                    <button class="relative p-2 text-slate-400 hover:text-primary transition-colors">
+                        <span class="material-icons-round">notifications</span>
+                        <span
+                            class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
+                    </button>
+                    <div class="h-8 w-px bg-slate-200 dark:bg-border-dark"></div>
+                    <div
+                        class="flex items-center gap-3 bg-slate-100 dark:bg-card-dark p-1.5 pr-4 rounded-full border border-transparent dark:border-border-dark">
+                        <div
+                            class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-orange-400 flex items-center justify-center text-white font-bold text-xs">
+                            TU
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-semibold leading-none">Test User</span>
+                            <span class="text-[10px] text-primary font-mono font-bold uppercase tracking-tighter">Senior
+                                Engineer</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                <div class="flex flex-col gap-8 max-w-7xl mx-auto w-full">
+                    <div class="flex items-end justify-between w-full">
+                        <div>
+                            <h1 class="text-3xl font-bold tracking-tight">Performance Overview</h1>
+                            <p class="text-slate-500 dark:text-slate-400 mt-1">Diagnostic summary of your prompt
+                                engineering metrics.</p>
+                        </div>
+                        <button
+                            class="bg-primary hover:bg-red-600 text-white px-6 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-primary/20">
+                            UPGRADE PRO
+                            <span class="material-icons-round text-base">bolt</span>
+                        </button>
+                    </div>
+
+                    <!-- Main Stats Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
+                        <!-- Radar Chart Panel -->
+                        <div
+                            class="lg:col-span-2 bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-2xl p-8 relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 p-4">
+                                <span
+                                    class="text-[10px] font-mono text-primary/50 uppercase tracking-[0.2em]">Diagnostic_v4.2</span>
+                            </div>
+                            <div class="flex items-start justify-between mb-8">
+                                <div>
+                                    <h2 class="text-lg font-bold">Skill Radar</h2>
+                                    <p class="text-sm text-slate-500">Metric balance across core disciplines</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full bg-primary"></span>
+                                        <span class="text-xs text-slate-400 font-mono">Current</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 ml-2">
+                                        <span class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+                                        <span class="text-xs text-slate-400 font-mono">Baseline</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-center relative h-[320px]">
+                                <svg class="w-full h-full max-w-[300px] radar-glow overflow-visible"
+                                    viewBox="0 0 200 200">
+                                    <!-- Circles -->
+                                    <circle class="stroke-slate-100 dark:stroke-white/5" cx="100" cy="100" fill="none"
+                                        r="80" stroke-width="0.5"></circle>
+                                    <circle class="stroke-slate-100 dark:stroke-white/5" cx="100" cy="100" fill="none"
+                                        r="60" stroke-width="0.5"></circle>
+                                    <circle class="stroke-slate-100 dark:stroke-white/5" cx="100" cy="100" fill="none"
+                                        r="40" stroke-width="0.5"></circle>
+                                    <circle class="stroke-slate-100 dark:stroke-white/5" cx="100" cy="100" fill="none"
+                                        r="20" stroke-width="0.5"></circle>
+
+                                    <!-- Grid Lines -->
+                                    <line class="stroke-slate-100 dark:stroke-white/5" stroke-width="0.5" x1="100"
+                                        x2="100" y1="20" y2="180"></line>
+                                    <line class="stroke-slate-100 dark:stroke-white/5" stroke-width="0.5" x1="20"
+                                        x2="180" y1="100" y2="100"></line>
+                                    <line class="stroke-slate-100 dark:stroke-white/5" stroke-width="0.5" x1="43.4"
+                                        x2="156.6" y1="43.4" y2="156.6"></line>
+                                    <line class="stroke-slate-100 dark:stroke-white/5" stroke-width="0.5" x1="43.4"
+                                        x2="156.6" y1="156.6" y2="43.4"></line>
+
+                                    <!-- Data Polygon -->
+                                    <polygon class="stroke-primary" fill="rgba(239, 68, 68, 0.15)"
+                                        points="100,30 145,70 160,130 100,165 55,140 40,80" stroke-width="2"></polygon>
+
+                                    <!-- Labels -->
+                                    <text
+                                        class="text-[8px] fill-slate-500 font-mono font-bold uppercase tracking-tighter"
+                                        text-anchor="middle" x="100" y="15">Clarity</text>
+                                    <text
+                                        class="text-[8px] fill-slate-500 font-mono font-bold uppercase tracking-tighter"
+                                        text-anchor="start" x="175" y="100">Constraints</text>
+                                    <text
+                                        class="text-[8px] fill-slate-500 font-mono font-bold uppercase tracking-tighter"
+                                        text-anchor="middle" x="100" y="195">Tone</text>
+                                    <text
+                                        class="text-[8px] fill-slate-500 font-mono font-bold uppercase tracking-tighter"
+                                        text-anchor="end" x="25" y="100">Logic</text>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Side Stats Panel -->
+                        <div class="flex flex-col gap-4">
+                            <!-- Stat Card 1 -->
+                            <div
+                                class="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark p-6 rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-colors hidden-scroll">
+                                <div class="flex items-center gap-4">
+                                    <div class="p-3 bg-red-500/10 rounded-xl">
+                                        <span class="material-icons-round text-primary">analytics</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-2xl font-bold font-mono">148</div>
+                                        <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Total
+                                            Analyses</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div
+                                        class="text-green-500 text-xs font-bold font-mono flex items-center gap-1 justify-end">
+                                        <span class="material-icons-round text-sm">trending_up</span>
+                                        +12%
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">from last week</div>
+                                </div>
+                            </div>
+
+                            <!-- Stat Card 2 -->
+                            <div
+                                class="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark p-6 rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <div class="p-3 bg-blue-500/10 rounded-xl">
+                                        <span class="material-icons-round text-blue-500">speed</span>
+                                    </div>
+                                    <div>
+                                        <div class="text-2xl font-bold font-mono">2.84s</div>
+                                        <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold">Avg
+                                            Latency</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div
+                                        class="text-red-500 text-xs font-bold font-mono flex items-center gap-1 justify-end">
+                                        <span class="material-icons-round text-sm">trending_down</span>
+                                        +0.4s
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">degradation</div>
+                                </div>
+                            </div>
+
+                            <!-- Streak Card -->
+                            <div
+                                class="flex-1 bg-gradient-to-br from-primary to-orange-600 p-6 rounded-2xl text-white relative overflow-hidden">
+                                <div class="relative z-10 flex flex-col h-full justify-between">
+                                    <div>
+                                        <h3 class="text-sm font-bold opacity-80 uppercase tracking-widest">Active Streak
+                                        </h3>
+                                        <div class="text-4xl font-black mt-2">12 DAYS</div>
+                                    </div>
+                                    <div
+                                        class="flex items-center gap-2 text-xs font-bold bg-white/20 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
+                                        TOP 5% OF USERS
+                                    </div>
+                                </div>
+                                <span
+                                    class="material-icons-round absolute -bottom-4 -right-4 text-white/10 text-9xl">local_fire_department</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity Section -->
+                    <div class="flex flex-col gap-4 w-full">
+                        <div class="flex items-center justify-between px-2">
+                            <h2 class="text-lg font-bold">Recent Activity Log</h2>
+                            <button class="text-xs text-primary font-bold flex items-center gap-1 hover:underline">
+                                VIEW FULL ARCHIVE <span class="material-icons-round text-sm">chevron_right</span>
+                            </button>
+                        </div>
+
+                        <!-- Activity List -->
+                        <div class="flex flex-col gap-2">
+                            <!-- Item 1 -->
+                            <div
+                                class="group bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark hover:border-primary/40 rounded-xl p-4 flex items-center gap-6 transition-all">
+                                <div class="w-12 text-center border-r border-slate-100 dark:border-border-dark pr-4">
+                                    <span class="text-[10px] font-mono text-slate-400 block">ID</span>
+                                    <span
+                                        class="font-mono text-sm font-bold text-slate-600 dark:text-slate-300">#92A</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <span
+                                        class="text-[10px] font-mono text-primary uppercase tracking-widest font-bold">OpenAI
+                                        GPT-4o</span>
+                                    <h4 class="font-mono text-sm truncate mt-1">"Create a complex workout plan for an
+                                        advanced athlete with..."</h4>
+                                </div>
+                                <div class="w-24">
+                                    <div class="flex items-end gap-1 h-8 items-center">
+                                        <div class="w-1.5 h-4 bg-primary/20 rounded-full"></div>
+                                        <div class="w-1.5 h-6 bg-primary/40 rounded-full"></div>
+                                        <div class="w-1.5 h-5 bg-primary/30 rounded-full"></div>
+                                        <div class="w-1.5 h-8 bg-primary rounded-full"></div>
+                                        <div class="w-1.5 h-7 bg-primary rounded-full"></div>
+                                    </div>
+                                    <span class="text-[9px] font-mono text-slate-400 mt-1 block uppercase">Trend</span>
+                                </div>
+                                <div class="w-16 text-center">
+                                    <span class="text-[10px] font-mono text-slate-400 block uppercase">Score</span>
+                                    <span class="font-mono text-sm font-bold text-green-500">9.2</span>
+                                </div>
+                                <div class="w-20 text-right">
+                                    <span class="text-[10px] font-mono text-slate-400 block uppercase">Ver</span>
+                                    <span class="font-mono text-xs">v1.2.4</span>
+                                </div>
+                            </div>
+
+                            <!-- Item 2 -->
+                            <div
+                                class="group bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark hover:border-primary/40 rounded-xl p-4 flex items-center gap-6 transition-all">
+                                <div class="w-12 text-center border-r border-slate-100 dark:border-border-dark pr-4">
+                                    <span class="text-[10px] font-mono text-slate-400 block">ID</span>
+                                    <span
+                                        class="font-mono text-sm font-bold text-slate-600 dark:text-slate-300">#92B</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <span
+                                        class="text-[10px] font-mono text-blue-500 uppercase tracking-widest font-bold">Claude
+                                        3.5 Sonnet</span>
+                                    <h4 class="font-mono text-sm truncate mt-1">"Analyze the following financial report
+                                        for anomalies and..."</h4>
+                                </div>
+                                <div class="w-24">
+                                    <div class="flex items-end gap-1 h-8 items-center">
+                                        <div class="w-1.5 h-8 bg-primary rounded-full"></div>
+                                        <div class="w-1.5 h-7 bg-primary rounded-full"></div>
+                                        <div class="w-1.5 h-8 bg-primary rounded-full"></div>
+                                        <div class="w-1.5 h-4 bg-primary/20 rounded-full"></div>
+                                        <div class="w-1.5 h-3 bg-primary/10 rounded-full"></div>
+                                    </div>
+                                    <span class="text-[9px] font-mono text-slate-400 mt-1 block uppercase">Trend</span>
+                                </div>
+                                <div class="w-16 text-center">
+                                    <span class="text-[10px] font-mono text-slate-400 block uppercase">Score</span>
+                                    <span class="font-mono text-sm font-bold text-red-500">4.1</span>
+                                </div>
+                                <div class="w-20 text-right">
+                                    <span class="text-[10px] font-mono text-slate-400 block uppercase">Ver</span>
+                                    <span class="font-mono text-xs">v2.0.1</span>
+                                </div>
+                            </div>
+
+                            <!-- Item 3 -->
+                            <div
+                                class="group bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark hover:border-primary/40 rounded-xl p-4 flex items-center gap-6 transition-all opacity-80">
+                                <div class="w-12 text-center border-r border-slate-100 dark:border-border-dark pr-4">
+                                    <span class="text-[10px] font-mono text-slate-400 block">ID</span>
+                                    <span
+                                        class="font-mono text-sm font-bold text-slate-600 dark:text-slate-300">#91Z</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <span
+                                        class="text-[10px] font-mono text-primary uppercase tracking-widest font-bold">OpenAI
+                                        GPT-3.5</span>
+                                    <h4 class="font-mono text-sm truncate mt-1">"Summarize this email thread into three
+                                        actionable bullet points"</h4>
+                                </div>
+                                <div class="w-24">
+                                    <div class="flex items-end gap-1 h-8 items-center">
+                                        <div class="w-1.5 h-4 bg-slate-300 rounded-full"></div>
+                                        <div class="w-1.5 h-4 bg-slate-300 rounded-full"></div>
+                                        <div class="w-1.5 h-4 bg-slate-300 rounded-full"></div>
+                                        <div class="w-1.5 h-4 bg-slate-300 rounded-full"></div>
+                                        <div class="w-1.5 h-4 bg-slate-300 rounded-full"></div>
+                                    </div>
+                                    <span class="text-[9px] font-mono text-slate-400 mt-1 block uppercase">Trend</span>
+                                </div>
+                                <div class="w-16 text-center">
+                                    <span class="text-[10px] font-mono text-slate-400 block uppercase">Score</span>
+                                    <span class="font-mono text-sm font-bold text-slate-500">7.0</span>
+                                </div>
+                                <div class="w-20 text-right">
+                                    <span class="text-[10px] font-mono text-slate-400 block uppercase">Ver</span>
+                                    <span class="font-mono text-xs">v0.9.8</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+# PromptLab — Deep Analyzer Walkthrough
+
+## What Changed
+
+Completely rewrote the [analyzerService.js](file:///f:/PROMPTLAB/src/services/analyzerService.js) with a deep, word-level analysis engine.
+
+---
+
+## Key Improvements
+
+### 1. Word-Level Analysis
+Every word is tokenized and checked against linguistic dictionaries:
+- **Vague nouns**: stuff, things, something, whatever, etc.
+- **Filler words**: basically, actually, really, just, very, etc.
+- **Hedge words/phrases**: maybe, perhaps, "I think", "could you", "sort of", etc.
+- **Weak verbs**: do → perform, tell → explain, show → demonstrate, etc.
+- **Passive voice**: "is analyzed" → "Analyze X"
+- **Run-on sentences**: flags sentences > 40 words
+- **Ambiguous quantifiers**: some → 5, various → 5–6, several → 4–5
+
+### 2. Intent Detection (12 Categories)
+The engine detects what the user is trying to accomplish:
+`explanation` · `comparison` · `generation` · `summarization` · `analysis` · `list` · `instruction` · `code` · `translation` · `brainstorm` · `data`
+
+All scoring and suggestions adapt to the detected intent.
+
+### 3. Context-Aware Suggestions
+Suggestions extract real domain terms from the prompt (e.g., "machine learning") and use them in rewrites. They also diversify across dimensions:
+
+![Suggestions spanning Clarity, Constraints, and Ambiguity dimensions](file:///C:/Users/ASUS/.gemini/antigravity/brain/d315a452-c6f6-4f2d-b035-6c24689b2c19/analysis_suggestions_final_1772203234886.png)
+
+### 4. Educational Summary
+Intent-aware summary that identifies priority improvement areas:
+
+![Learning summary showing intent detection and priority dimensions](file:///C:/Users/ASUS/.gemini/antigravity/brain/d315a452-c6f6-4f2d-b035-6c24689b2c19/analysis_learning_summary_final_1772203242097.png)
+
+---
+
+## Test Results
+
+**Test prompt**: *"could you maybe tell me about some stuff related to machine learning and give me various examples, I think it would be nice if you basically just do something with it or whatever"*
+
+| Metric | Result |
+|--------|--------|
+| Overall Score | 1.5 / 5.0 |
+| Issues Found | 15 |
+| Detected Intent | list |
+| Suggestion Diversity | ✅ Clarity + Constraints + Ambiguity |
+
+## Files Modified
+- [analyzerService.js](file:///f:/PROMPTLAB/src/services/analyzerService.js) — deep word-level engine
+- [PromptAnalysis.js](file:///f:/PROMPTLAB/src/models/PromptAnalysis.js) — strict schema model
+- [promptController.js](file:///f:/PROMPTLAB/src/controllers/promptController.js) — snake_case fields
+- [learningStatsService.js](file:///f:/PROMPTLAB/src/services/learningStatsService.js) — new schema
+- [app.js](file:///f:/PROMPTLAB/public/js/app.js) — frontend rendering

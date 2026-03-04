@@ -1,0 +1,44 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (23,16)<span >biotech />
+Prompt
+[1] (69,64)<span >Lab />
+[2] (18,108)<button aria-label='Toggle menu' class='md:hidden text-slate-800 dark:text-white p-2' id='mobileMenuBtn'>menu />
+	menu
+[3] (21,147)<a class='text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline' href='#features'>Features />
+[4] (66,147)<a class='text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline' href='#models'>Models />
+[5] (121,147)<a class='text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline' href='#how-it-works'>How it works />
+[6] (179,147)<a class='text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline' href='#testimonials'>Reviews />
+[7] (221,147)<a class='text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline' href='/login.html'>Sign In />
+[8] (28,182)<span >Get Started />
+System Protocol: Active Analysis
+LEARN PROMPTING
+NOT A TRICK
+Understand why prompts fail. Fix them systematically.
+Improve across models with precision diagnostic telemetry.
+Diagnostic_Terminal_v4.0.2
+[9] (54,602)<textarea class='w-full h-full bg-transparent border-none text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-700 focus:ring-0 text-xl p-8 font-mono resize-none leading-relaxed transition-colors duration-500' placeholder='TYPE_YOUR_PROMPT >_' />
+ln: 01
+col: 00
+utf-8
+Buffer Load
+[10] (17,734)<button class='mt-8 w-full group relative overflow-hidden bg-primary px-6 py-4 rounded-xl transition-all hover:scale-[0.98] active:scale-95 shadow-[0_10px_20px_-5px_rgba(220,38,38,0.25)] dark:shadow-[0_0_30px_rgba(220,38,38,0.3)] hover:shadow-[0_15px_30px_-5px_rgba(220,38,38,0.4)] dark:hover:shadow-[0_0_50px_rgba(220,38,38,0.5)]'>Analyze />
+	Analyze
+[11] (42,771)<select class='bg-white dark:bg-transparent border border-slate-200 dark:border-white/10 text-[10px] font-mono text-primary font-bold py-1.5 dark:py-1 pl-3 dark:pl-2 pr-8 dark:pr-6 rounded-sm dark:rounded focus:ring-0 focus:border-primary/30 dark:focus:border-primary/50 appearance-none cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-500' />
+expand_more
+[12] (32,808)<select class='bg-white dark:bg-transparent border border-slate-200 dark:border-white/10 text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold py-1.5 dark:py-1 pl-3 dark:pl-2 pr-8 dark:pr-6 rounded-sm dark:rounded focus:ring-0 focus:border-primary/30 dark:focus:border-primary/50 appearance-none cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-500' />
+expand_more
+memory
+14MS
+0x2F4A
+MODEL_A_SYNC
+[13] (498,896)<div  />
+	[14] (79,896)<span >center_focus_strong />
+	[15] (171,896)<span >Clarity />
+[16] (498,964)<div  />
+	[17] (47,964)<span >straighten />
+	[18] (119,964)<span >Constraints />
+
+</current_dom>

@@ -1,0 +1,25 @@
+# Prompt Generator — Three-Layer System Overhaul
+
+## 1. Engine: Rewrite Generator Service
+- [ ] Build Intent Inference Layer (task type, domain, output format, control level, model awareness)
+- [ ] Build Prompt Blueprint Layer (role, task, context, constraints, output_format, control_level, model)
+- [ ] Build Prompt Generation Layer (blueprint → model-aware final prompt)
+- [ ] Integrate Analyzer scoring loop (generate v1 → score → if < threshold → revise → v2)
+- [ ] Export new [generate()](file:///F:/PROMPTLAB/public/js/promptlab-engine.js#2264-2270) API with full result (intent, blueprint, v1, v2, scores, improvements)
+
+## 2. UI: Redesign Generator View in index.html
+- [ ] Redesign input section matching analyzer quality (hero, textarea, model select, single "Generate" button)
+- [ ] Build rich results renderer with generated prompt display, score ring, version history, "Why this works" section
+
+## 3. Frontend: Update app.js
+- [ ] Rewrite [generatePrompt()](file:///F:/PROMPTLAB/public/js/app.js#179-226) to use new engine API
+- [ ] Rewrite [renderGeneratorResults()](file:///F:/PROMPTLAB/public/js/app.js#566-583) with premium Analyzer-quality UI
+- [ ] Wire single "Generate" button (no "Generate & Score")
+
+## 4. CSS: Generator-specific styles
+- [ ] Add generator results styling (prompt card, version diff, score display)
+
+## 5. Build & Test
+- [ ] Run `node build-engine.js` to rebuild bundled engine
+- [ ] Start dev server and test full flow in browser
+- [ ] Verify generator produces quality prompts for all 3 models

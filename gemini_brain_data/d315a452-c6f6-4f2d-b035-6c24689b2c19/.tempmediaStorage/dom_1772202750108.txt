@@ -1,0 +1,52 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+[0] (177,44)<a class='logo' href='#' />
+	[1] (121,44)<div >P />
+	[2] (174,44)<span >PromptLab />
+	[3] (230,44)<span >Beta />
+[4] (421,44)<button class='nav-btn active'>✨ Analyzer />
+[5] (501,44)<button class='nav-btn'>🔧 Generator />
+[6] (585,44)<button class='nav-btn'>📊 Dashboard />
+D
+Deep Tester
+free
+Target Model
+[7] (198,124)<select class='select-input' id='analyzerModel' />
+Example Output (optional)
+[8] (325,124)<input class='text-input' id='analyzerExample' placeholder='What ideal output looks like…' />
+[9] (814,110)<button class='btn btn-primary' id='analyzeBtn'>Analyze />
+	[10] (794,110)<span >⚡ />
+Daily analyses
+9 / 10
+1.5
+/ 5.0
+Weak
+This prompt is too vague for reliable AI output. The intent (list) can be inferred, but the AI has almost no guidance on scope, format, or style. Priority improvements: Clarity, Constraint Completeness, Model Alignment. For OpenAI (GPT): system-role framing.
+Clarity
+0
+Constraints
+1
+Model Align
+2
+Ambiguity
+3
+Control
+2
+⚠️
+Issues Found
+Clarity
+stuff
+— 
+            "stuff" is non-specific. In a list prompt, replace it with the exact subject you want the AI to list.
+Clarity
+something
+— 
+            "something" is non-specific. In a list prompt, replace it with the exact subject you want the AI to list.
+Clarity
+whatever
+— 
+            "whatever" is non-specific. In a list prompt, replace it with the exact subject you want the AI to list.
+
+</current_dom>

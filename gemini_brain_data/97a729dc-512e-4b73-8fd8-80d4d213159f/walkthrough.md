@@ -1,0 +1,96 @@
+# Analyzer Engine Optimization — Walkthrough
+
+## Changes Made
+
+All changes are in [promptlab-engine.js](file:///f:/PROMPTLAB/public/js/promptlab-engine.js).
+
+### 1. Four Niche Task Categories
+Added `plan`, `story`, `content`, `evaluate` with 12 model-specific blueprints (4 niches × 3 models), each with 6 detailed tips.
+
+### 2. Universal Framework Detection
+New `framework` element detects 10 prompting patterns (Role→Task→Context, Evaluate→Diagnose→Improve, iterative refinement, etc.)
+
+### 3. More Suggestions (3 → 5) + Framework Suggestion
+Increased cap and added a full model-specific framework template suggestion.
+
+### 4. Multi-Paragraph Educational Summary
+4 paragraphs: intent + niche label, framework analysis, structural comparison, and ranked next-steps.
+
+### 5. Personalized Optimized Structure ← **Latest**
+Rewrote `_buildRewriteHint` with two new helper functions:
+- **`_parsePromptContent`** — extracts real topic, context, constraints, goals, and audience from the user's actual prompt text
+- **`_getNicheFraming`** — generates niche-specific role and instruction framing for all 13 task types
+
+**Before:** Generic placeholders like `[your topic]`
+**After:** Fully filled-in, personalized prompt with real extracted content
+
+## Verification
+
+Tested with: *"Create a daily schedule from 9am to 5pm, prioritizing tasks by urgency and energy levels"*
+
+````carousel
+![Prompt Blueprint + GPT-Optimized Structure showing personalized content](C:/Users/ASUS/.gemini/antigravity/brain/97a729dc-512e-4b73-8fd8-80d4d213159f/optimized_structure_verify.png)
+<!-- slide -->
+![GPT-Optimized Structure close-up + OpenAI GPT Tips (6 planning-specific tips)](C:/Users/ASUS/.gemini/antigravity/brain/97a729dc-512e-4b73-8fd8-80d4d213159f/optimized_structure_bottom.png)
+````
+
+**Confirmed:**
+- ✅ System role: *"productivity and planning expert specializing in structured goal-setting, time management, and workflow optimization"*
+- ✅ User instruction: original prompt + milestone breakdown + bottleneck identification + habit stacking
+- ✅ Context, Constraints, Format, Scope, Tone all filled with real extracted content
+- ✅ "Think step by step before answering" appended
+- ✅ 6 niche-specific OpenAI GPT Tips rendered correctly
+- ✅ No `[your topic]` placeholders anywhere
+
+## Phase 4: Vertical Diagnostic Dashboard Redesign
+
+### 1. Tailwind UI Overhaul
+- Converted `index.html` structure to Tailwind.
+- Injected custom glow effects and standard design variables matching the primary design goals.
+- Built a modernized navigation header with dark mode support.
+
+### 2. Interactive SVG Diagnostics
+- Rewrote the entire `app.js` `renderAnalysisResults` logic.
+- Implemented a live SVG mathematical generation sequence that automatically traces the `radar-area` of the **Metric Pentagon Diagnostic** based on real `PromptLabEngine` results.
+- Added visual elements mapping scores directly to lengths, colors, and specific icon feedback criteria.
+
+### 3. Redesigned Checklists and Blueprints
+- Designed an **Optimization Checklist** summarizing critical elements found/missing.
+- Converted the **Prompt Blueprint** element status into a horizontal visual readout mapping individual constraints to their presence and completion status.
+- Designed a distinct container for the **AI-Optimized Structure** to prioritize copy-and-paste capabilities alongside structural metadata.
+
+## Redesign Verification
+
+Tested with: *"Create a workout plan for a beginner"* against the OpenAI GPT target model.
+
+````carousel
+![Top Section & Overall Score](C:/Users/ASUS/.gemini/antigravity/brain/97a729dc-512e-4b73-8fd8-80d4d213159f/top_section_results_1772539036989.png)
+<!-- slide -->
+![Metric Pentagon Diagnostic & Metric Breakdown](C:/Users/ASUS/.gemini/antigravity/brain/97a729dc-512e-4b73-8fd8-80d4d213159f/pentagon_and_checklist_1772539072068.png)
+<!-- slide -->
+![Optimization Checklist](C:/Users/ASUS/.gemini/antigravity/brain/97a729dc-512e-4b73-8fd8-80d4d213159f/optimization_checklist_full_1772539100031.png)
+<!-- slide -->
+![Prompt Blueprint & GPT-Optimized Structure](C:/Users/ASUS/.gemini/antigravity/brain/97a729dc-512e-4b73-8fd8-80d4d213159f/blueprint_and_structure_1772539085398.png)
+````
+
+**Confirmed:**
+- ✅ The overall score calculation formats neatly into a responsive radial ring.
+- ✅ The radar bounds dynamically wrap based on trigonometric scaling across the five dimensions.
+- ✅ The optimization checklist processes missing tasks precisely as intended.
+- ✅ Tailwind applies responsive flex-wrapping effectively without breaking core `index.css` global traits.
+
+## Phase 5: UI Polish & Adjustments
+
+### 1. Ambiguity Risk Visual Inversion
+- Inverted the standard conditional success threshold strictly for **Ambiguity Risk**. High ambiguity risk effectively means poor clarity, therefore higher values (e.g. 80%) natively map to **red warning elements** (`border-primary`, `bg-primary`, `priority_high` icon). Conversely, low ambiguity maps to green success elements.
+
+### 2. SVG Trigonometric Text Labeling
+- Superimposed `font-mono` text tags spanning all 5 vertex bounds into the live SVG rendering stream (`app.js`). Applied `font-mono font-bold uppercase` typography to match dashboard styling.
+- Enabled `overflow-visible` on the main chart SVG element preventing bounding box cutoff for expanded text labels spanning beyond numeric domains (`R = 92 vs 80 max`).
+
+### 3. Optimization Checklist Typography
+- Standardized the checklist items to use `font-mono font-bold uppercase` typography to match the Metric Pentagon.
+- Added a `truncate` class to keep text brief and prevent overflow.
+
+**Verification Image**:
+`C:/Users/ASUS/.gemini/antigravity/brain/97a729dc-512e-4b73-8fd8-80d4d213159f/optimization_checklist_verification_1772592417725.png`
