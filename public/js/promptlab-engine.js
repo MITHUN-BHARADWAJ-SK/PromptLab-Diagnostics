@@ -2160,8 +2160,8 @@ function _detectAmbiguity(text, modelTarget) {
 
     // A. Multiple task verbs (each additional verb adds 0.15)
     let verbMatches = 0;
-    for (const { patterns } of TASK_VERB_PATTERNS) {
-        if (patterns[0].test(lower)) verbMatches++;
+    for (const pattern of TASK_VERB_PATTERNS) {
+        if (pattern.test(lower)) verbMatches++;
     }
     if (verbMatches > 1) {
         const penalty = Math.min((verbMatches - 1) * 0.15, 0.45);
