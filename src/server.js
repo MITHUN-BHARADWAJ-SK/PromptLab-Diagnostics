@@ -35,6 +35,7 @@ app.use(helmet({
             'font-src': ["'self'", 'https://fonts.gstatic.com'],
             'connect-src': ["'self'", 'https://*.googleapis.com', 'https://*.firebaseio.com', 'https://securetoken.googleapis.com'],
             'frame-src': ["'self'", 'https://promptlab-abaed.firebaseapp.com'],
+            'img-src': ["'self'", 'data:', 'https://cdn.jsdelivr.net', 'https://ui-avatars.com', 'https://randomuser.me'],
         },
     },
 }));
