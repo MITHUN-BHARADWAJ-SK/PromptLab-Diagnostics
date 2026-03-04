@@ -66,6 +66,7 @@ const TASK_PATTERNS = [
     { task: 'code', patterns: [/\b(code|program|function|script|implement|algorithm|debug|api|python|javascript|html|css|sql|build a|write a script)\b/i] },
     { task: 'brainstorm', patterns: [/\b(brainstorm|suggest|recommend|ideas?|options?|alternatives?|creative)\b/i] },
     { task: 'optimize', patterns: [/\b(optimize|improve|enhance|refine|upgrade|boost|maximize|streamline)\b/i] },
+    { task: 'poem', patterns: [/\b(poem|poetry|rhyme|verse|sonnet|haiku|lyrics|limerick)\b/i] },
 ];
 
 // Domain detection
@@ -445,16 +446,32 @@ function _generateForOpenAI(c) {
     instructions.forEach(inst => parts.push(`- ${inst}`));
     parts.push('');
 
-    // Constraints
+    // Core Behaviors
+    const behaviors = _buildBehaviors(c, 'openai');
+    if (behaviors.length > 0) {
+        parts.push(`**Core Behaviors:**`);
+        behaviors.forEach(b => parts.push(`- ${b}`));
+        parts.push('');
+    }
+
+    // Boundaries & Constraints
     const constraints = _buildConstraintLines(c, 'openai');
     if (constraints.length > 0) {
-        parts.push(`# Constraints`);
+        parts.push(`**Boundaries:**`);
         constraints.forEach(con => parts.push(`- ${con}`));
         parts.push('');
     }
 
+    // Edge Case Handling
+    const edgeCases = _buildEdgeCases(c);
+    if (edgeCases.length > 0) {
+        parts.push(`**Edge Case Handling:**`);
+        edgeCases.forEach(ec => parts.push(`- ${ec}`));
+        parts.push('');
+    }
+
     // Output format
-    parts.push(`# Output`);
+    parts.push(`**Output Format:**`);
     parts.push(_buildOutputSpec(c, 'openai'));
 
     return parts.join('\n').trim();
@@ -488,11 +505,20 @@ function _generateForClaude(c) {
 
     // Instructions with thinking step
     parts.push(`<instructions>`);
-    parts.push('Think through this carefully before responding.');
+    parts.push('Think through this carefully before responding. Identify the core intent and any subtle constraints.');
     const instructions = _buildInstructions(c, 'anthropic');
     instructions.forEach(inst => parts.push(`- ${inst}`));
     parts.push(`</instructions>`);
     parts.push('');
+
+    // Behaviors
+    const behaviors = _buildBehaviors(c, 'anthropic');
+    if (behaviors.length > 0) {
+        parts.push(`<behaviors>`);
+        behaviors.forEach(b => parts.push(`- ${b}`));
+        parts.push(`</behaviors>`);
+        parts.push('');
+    }
 
     // Constraints (explicit scope boundaries)
     const constraints = _buildConstraintLines(c, 'anthropic');
@@ -500,6 +526,15 @@ function _generateForClaude(c) {
         parts.push(`<constraints>`);
         constraints.forEach(con => parts.push(`- ${con}`));
         parts.push(`</constraints>`);
+        parts.push('');
+    }
+
+    // Edge Cases
+    const edgeCases = _buildEdgeCases(c);
+    if (edgeCases.length > 0) {
+        parts.push(`<edge_cases>`);
+        edgeCases.forEach(ec => parts.push(`- ${ec}`));
+        parts.push(`</edge_cases>`);
         parts.push('');
     }
 
@@ -538,11 +573,27 @@ function _generateForGemini(c) {
     instructions.forEach(inst => parts.push(`- ${inst}`));
     parts.push('');
 
+    // Behaviors
+    const behaviors = _buildBehaviors(c, 'gemini');
+    if (behaviors.length > 0) {
+        parts.push(`**Core Behaviors:**`);
+        behaviors.forEach(b => parts.push(`- ${b}`));
+        parts.push('');
+    }
+
     // Constraints
     const constraints = _buildConstraintLines(c, 'gemini');
     if (constraints.length > 0) {
         parts.push(`**Constraints:**`);
         constraints.forEach(con => parts.push(`- ${con}`));
+        parts.push('');
+    }
+
+    // Edge Cases
+    const edgeCases = _buildEdgeCases(c);
+    if (edgeCases.length > 0) {
+        parts.push(`**Edge Case Handling:**`);
+        edgeCases.forEach(ec => parts.push(`- ${ec}`));
         parts.push('');
     }
 
@@ -626,17 +677,22 @@ function _buildRole(contract, model) {
             anthropic: `You are a systematic compiler who produces accurate, well-categorized lists for ${goal}.`,
             gemini: `You are a fact-based list curator who identifies and organizes the most relevant items for ${goal}.`,
         },
+        poem: {
+            openai: `You are an expert poet and literary architect specializing in evocative, structurally sound verse.`,
+            anthropic: `You are a master of literary craft with deep knowledge of poetic form, rhythm, and metaphorical resonance.`,
+            gemini: `You are a scholarly poet who creates meaningful, well-structured verse grounded in literary tradition.`,
+        },
         generate: {
-            openai: `You are a skilled content creator with expertise in ${goal}, known for producing engaging, well-structured output.`,
-            anthropic: `You are a creative professional who produces high-quality, thoughtfully crafted content about ${goal}.`,
-            gemini: `You are a content generation specialist who creates well-organized, audience-appropriate material on ${goal}.`,
+            openai: `You are a senior content creator with expertise in ${goal}, known for producing high-density, professional-grade output.`,
+            anthropic: `You are a senior creative professional who produces high-quality, thoughtfully crafted content about ${goal}.`,
+            gemini: `You are a senior content generation specialist who creates well-organized, audience-appropriate material on ${goal}.`,
         },
     };
 
     const defaults = {
-        openai: `You are a highly capable expert assistant specialized in ${goal}.`,
-        anthropic: `You are a knowledgeable assistant with deep expertise in ${goal}, focused on accuracy and clarity.`,
-        gemini: `You are an expert assistant who provides well-structured, evidence-based responses about ${goal}.`,
+        openai: `You are an expert AI prompt engineer specializing in ${goal}.`,
+        anthropic: `You are an expert prompt designer with deep knowledge of ${goal}, focused on precision and clarity.`,
+        gemini: `You are a leading expert who provides high-density, evidence-based responses about ${goal}.`,
     };
 
     const templates = roleTemplates[contract.task_type] || defaults;
@@ -761,9 +817,14 @@ function _buildInstructions(contract, model) {
             instructions.push('Order items by relevance or priority, not arbitrarily');
             instructions.push('Include a brief explanation for why each item is included');
             break;
+        case 'poem':
+            instructions.push('Employ vivid sensory imagery and evocative metaphorical language');
+            instructions.push('Maintain strict adherence to the requested poetic form and meter');
+            instructions.push('Ensure a poignantly consistent emotional resonance throughout');
+            break;
         default:
-            instructions.push(`Address ${goal} directly and completely`);
-            instructions.push('Organize the response with clear logical structure');
+            instructions.push(`Address ${goal} directly and completely using expert-level reasoning`);
+            instructions.push('Organize the response with clear logical structure and professional density');
             break;
     }
 
@@ -855,9 +916,14 @@ function _buildOutputSpec(contract, model) {
             gemini: 'Respond as a structured plan with phases, tasks, and milestones in a clear hierarchical format.',
         },
         story: {
-            openai: 'Respond as a flowing narrative with clear paragraph breaks and engaging language.',
-            anthropic: 'Write in clear, engaging prose with logical flow and precise language.',
-            gemini: 'Write a well-organized narrative with clear structure and vivid detail.',
+            openai: 'Respond with a flowing narrative using engaging, evocative language. Avoid structural meta-commentary.',
+            anthropic: 'Write in clear, engaging prose with logical flow and precise literary language.',
+            gemini: 'Write a well-organized narrative with clear structure and vivid sensory detail.',
+        },
+        poem: {
+            openai: 'Respond with the poem directly. Use line breaks and stanzas appropriate to the form. Do not use markdown headers unless specified.',
+            anthropic: 'Provide the full poem in its proper literary form. Maintain consistent meter and rhythm.',
+            gemini: 'Respond with the verse clearly formatted. Ensure structural integrity and thematic resonance.',
         },
         content: {
             openai: 'Respond in structured markdown with H2 headings, bullet points, and bold key terms.',
@@ -1019,6 +1085,43 @@ function _refinePrompt(prompt, contract, modelTarget) {
     }
 
     return changed ? refined : null; // Return null if no refinement was needed
+}
+
+function _buildBehaviors(contract, model) {
+    const behaviors = [];
+
+    // Core prompt engineering behaviors based on user example
+    behaviors.push('Identify the single job to be done beneath the user\'s words—extract their true intent.');
+    behaviors.push('Define success concretely: what does the ideal outcome look like for this specific task?');
+    behaviors.push('Preserve every explicit requirement, constraint, preference, tone, and format detail.');
+
+    if (contract.task_type === 'code') {
+        behaviors.push('Write instructions addressed directly to the AI, assuming expert-level proficiency.');
+        behaviors.push('Follow idiomatic conventions and best practices for the specific language/framework.');
+    } else if (contract.task_type === 'poem') {
+        behaviors.push('Prioritize evocative language, rhythm, and structural integrity over literal explanation.');
+        behaviors.push('Match the sophistication of the request with appropriate stylistic choices.');
+    } else {
+        behaviors.push('Match the sophistication of your prompt to the effort level of their request.');
+        behaviors.push('Use concrete language; replace vague terms with specific descriptions of success.');
+    }
+
+    return behaviors;
+}
+
+function _buildEdgeCases(contract) {
+    const edgeCases = [];
+
+    edgeCases.push('Minimal context provided → Create a clear prompt using inference and professional judgment.');
+    edgeCases.push('Conflicting instructions → Prioritize explicit user requirements while maintaining coherence.');
+
+    if (contract.task_type === 'code') {
+        edgeCases.push('Ambiguous APIs → Use the most stable, well-documented version by default.');
+    } else if (contract.task_type === 'poem') {
+        edgeCases.push('Vague theme → Infer a poignant or traditional interpretation unless specified otherwise.');
+    }
+
+    return edgeCases;
 }
 
 // ════════════════════════════════════════════════════════════════
