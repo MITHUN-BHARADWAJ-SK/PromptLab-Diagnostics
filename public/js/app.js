@@ -249,7 +249,7 @@ async function optimizePrompt() {
     await PromptLabDB.consumeCredits(state.uid, 3);
 
     // Replace the text in the analyzer input with the new text
-    document.getElementById('analyzerPrompt').value = genResult.v2 || genResult.v1 || promptText;
+    document.getElementById('analyzerPrompt').value = genResult.finalPrompt || genResult.v1 || promptText;
 
     showToast('Prompt optimized successfully!', 'success');
     refreshCredits();
@@ -298,8 +298,8 @@ async function generatePrompt() {
       return;
     }
 
-    // Run the three-layer generation pipeline
-    setStatus('LAYER 1: INFERRING INTENT...');
+    // Run the two-stage generation pipeline
+    setStatus('DETECTING AMBIGUITY...');
     await new Promise(r => setTimeout(r, 120)); // Let UI repaint
 
     const genResult = PromptLabEngine.generate({ promptText, modelTarget });
@@ -310,13 +310,15 @@ async function generatePrompt() {
       return;
     }
 
-    setStatus('LAYER 2: BUILDING BLUEPRINT...');
-    await new Promise(r => setTimeout(r, 100));
-
-    setStatus('LAYER 3: GENERATING PROMPT...');
-    await new Promise(r => setTimeout(r, 100));
-
-    setStatus(genResult.v2 ? 'AUTO-IMPROVING V1 → V2...' : 'SCORING PROMPT...');
+    if (genResult.route === 'analyze_first') {
+      setStatus('ANALYZING INTENT...');
+      await new Promise(r => setTimeout(r, 100));
+      setStatus('GENERATING MODEL-SPECIFIC PROMPT...');
+    } else {
+      setStatus('GENERATING PROMPT...');
+      await new Promise(r => setTimeout(r, 100));
+      setStatus(genResult.v2 ? 'REFINING PROMPT...' : 'FINALIZING...');
+    }
     await new Promise(r => setTimeout(r, 100));
 
     await PromptLabDB.consumeCredits(state.uid, 3);
@@ -697,17 +699,17 @@ function renderAnalysisResults(containerId, data, modelTarget) {
 
 function renderGeneratorResults(containerId, data, modelTarget) {
   const panel = document.getElementById(containerId);
-  const intent = data.intent || {};
-  const blueprint = data.blueprint || {};
-  const v1 = data.v1 || {};
+  const intent = data._intent || {};
+  const v1 = data.v1 || '';
   const v2 = data.v2 || null;
-  const improvements = data.improvements || [];
-  const whyItWorks = data.whyItWorks || '';
-  const finalPrompt = data.finalPrompt || v1.prompt || '';
-  const finalScore = data.finalScore || v1.score || null;
+  const finalPrompt = data.finalPrompt || v1 || '';
+  const route = data.route || 'generate_first';
+  const ambiguityScore = data.ambiguityScore || 0;
 
   const modelNames = { openai: 'OpenAI GPT', anthropic: 'Anthropic Claude', gemini: 'Google Gemini' };
   const modelName = modelNames[modelTarget] || modelTarget;
+  const routeLabel = route === 'analyze_first' ? 'Analyzed → Generated' : 'Generated → Refined';
+  const routeColor = route === 'analyze_first' ? 'text-amber-500' : 'text-emerald-500';
   let html = '';
 
   // ── 1. FINAL GENERATED PROMPT ──────────────────────────────
@@ -731,220 +733,133 @@ function renderGeneratorResults(containerId, data, modelTarget) {
     </section>
   `;
 
-  // ── 2. AUTO-SCORE ──────────────────────────────────────────
-  if (finalScore) {
-    const overallPct = ((finalScore.overall / 5) * 100).toFixed(0);
-    const scoreLabel = finalScore.overall >= 4 ? 'Excellent' : finalScore.overall >= 3 ? 'Good' : finalScore.overall >= 2 ? 'Needs Work' : 'Weak';
-    const scoreColor = finalScore.overall >= 4 ? 'text-emerald-500' : finalScore.overall >= 3 ? 'text-amber-500' : 'text-primary';
-    const dims = finalScore.dimensions || {};
-    const dimLabels = ['Controllability', 'Clarity', 'Completeness', 'Ambiguity Risk', 'Model Alignment'];
-    const dimKeys = ['output_controllability', 'clarity', 'constraint_completeness', 'ambiguity_risk', 'model_alignment'];
-
-    html += `
+  // ── 2. PIPELINE INFO ──────────────────────────────────────
+  html += `
     <section class="max-w-5xl mx-auto mb-8">
       <div class="bg-surface border border-neutral-800 rounded-xl overflow-hidden">
         <div class="px-6 py-3 border-b border-neutral-800 bg-neutral-900/50 flex items-center gap-3">
-          <span class="material-icons-outlined text-primary text-sm">speed</span>
-          <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-500">Auto-Score — Analyzed by PromptLab Engine</span>
+          <span class="material-icons-outlined text-primary text-sm">route</span>
+          <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-500">Pipeline Analysis</span>
         </div>
         <div class="p-6">
-          <div class="flex items-center gap-6 mb-6">
-            <div class="text-4xl font-black ${scoreColor}">${finalScore.overall.toFixed(1)}<span class="text-lg text-neutral-600">/5.0</span></div>
-            <div>
-              <div class="text-sm font-bold text-white">${scoreLabel}</div>
-              <div class="text-[10px] font-mono text-neutral-500 uppercase">${v2 ? 'V2 — AUTO-IMPROVED' : 'V1 — FIRST PASS'}</div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="p-4 bg-neutral-900/50 border border-neutral-800 rounded-lg">
+              <div class="text-[9px] font-mono font-bold text-neutral-500 uppercase mb-2">Ambiguity Score</div>
+              <div class="text-2xl font-black ${ambiguityScore >= 0.5 ? 'text-amber-500' : 'text-emerald-500'}">${(ambiguityScore * 100).toFixed(0)}%</div>
+              <div class="text-[10px] font-mono text-neutral-500 mt-1">${ambiguityScore >= 0.5 ? 'High — analyzed first' : 'Low — direct generation'}</div>
             </div>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-    `;
-
-    dimKeys.forEach((key, i) => {
-      const val = dims[key] || 0;
-
-      // For Ambiguity Risk: raw score 5 = "no risk", 0 = "high risk"
-      // So risk percentage = (5 - val) / 5 * 100
-      const pct = key === 'ambiguity_risk' ? (((5 - val) / 5) * 100).toFixed(0) : ((val / 5) * 100).toFixed(0);
-
-      // Val >= 3.5 is good for ALL metrics (meaning 5 = best)
-      const isGood = val >= 3.5;
-
-      // For ambiguity risk, if it's NOT good (high risk), use red instead of primary color
-      const colorGood = 'emerald-500';
-      const colorBad = key === 'ambiguity_risk' ? 'red-500' : 'primary';
-
-      const barColor = isGood ? `bg-${colorGood}` : `bg-${colorBad}`;
-      const textColor = isGood ? `text-${colorGood}` : `text-${colorBad}`;
-
-      html += `
-        <div class="p-3 bg-neutral-900/50 border border-neutral-800 rounded-lg">
-          <div class="text-[9px] font-mono font-bold text-neutral-500 uppercase mb-2">${dimLabels[i]}</div>
-          <div class="flex items-center gap-2">
-            <div class="flex-1 bg-neutral-800 h-1.5 rounded-full overflow-hidden">
-              <div class="${barColor} h-full rounded-full transition-all duration-700" style="width: ${pct}%"></div>
+            <div class="p-4 bg-neutral-900/50 border border-neutral-800 rounded-lg">
+              <div class="text-[9px] font-mono font-bold text-neutral-500 uppercase mb-2">Route Taken</div>
+              <div class="text-sm font-bold ${routeColor}">${routeLabel}</div>
+              <div class="text-[10px] font-mono text-neutral-500 mt-1">${v2 ? 'V1 → Refined to V2' : 'Single-pass generation'}</div>
             </div>
-            <span class="text-xs font-mono font-bold ${textColor}">${pct}%</span>
-          </div>
-        </div>
-      `;
-    });
-
-    html += `
+            <div class="p-4 bg-neutral-900/50 border border-neutral-800 rounded-lg">
+              <div class="text-[9px] font-mono font-bold text-neutral-500 uppercase mb-2">Target Model</div>
+              <div class="text-sm font-bold text-white">${escapeHtml(modelName)}</div>
+              <div class="text-[10px] font-mono text-neutral-500 mt-1">Model-native syntax applied</div>
+            </div>
           </div>
         </div>
       </div>
     </section>
-    `;
-  }
+  `;
 
-  // ── 3. V1 → V2 COMPARISON (if auto-improvement triggered) ──
-  if (v2 && v1.score) {
-    const v1Score = (v1.score.overall || 0).toFixed(1);
-    const v2Score = (v2.score.overall || 0).toFixed(1);
-    const delta = (v2.score.overall - v1.score.overall).toFixed(1);
-
+  // ── 3. V1 → V2 COMPARISON (if refiner ran) ────────────────
+  if (v2 && v1) {
     html += `
     <section class="max-w-5xl mx-auto mb-8">
       <div class="bg-surface border border-neutral-800 rounded-xl overflow-hidden">
         <div class="px-6 py-3 border-b border-neutral-800 bg-neutral-900/50 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <span class="material-icons-outlined text-emerald-500 text-sm">trending_up</span>
-            <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-500">Auto-Improvement Loop</span>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-500">Refiner Output — V1 → V2</span>
           </div>
-          <span class="text-xs font-mono font-bold text-emerald-500">+${delta} improvement</span>
+          <span class="text-xs font-mono font-bold text-emerald-500">REFINED</span>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-neutral-800">
           <div class="p-6 bg-surface">
             <div class="flex items-center gap-2 mb-3">
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-neutral-800 text-neutral-400">V1</span>
-              <span class="text-[10px] font-mono text-primary">${v1Score}/5.0</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-neutral-800 text-neutral-400">V1 — RAW</span>
             </div>
-            <div class="bg-black/60 rounded-lg p-4 font-mono text-xs text-neutral-500 leading-relaxed border border-neutral-800 max-h-48 overflow-y-auto whitespace-pre-wrap">${escapeHtml(v1.prompt || '')}</div>
+            <div class="bg-black/60 rounded-lg p-4 font-mono text-xs text-neutral-500 leading-relaxed border border-neutral-800 max-h-48 overflow-y-auto whitespace-pre-wrap">${escapeHtml(v1)}</div>
           </div>
           <div class="p-6 bg-surface">
             <div class="flex items-center gap-2 mb-3">
-              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500">V2</span>
-              <span class="text-[10px] font-mono text-emerald-500">${v2Score}/5.0</span>
+              <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-500">V2 — REFINED</span>
             </div>
-            <div class="bg-black/60 rounded-lg p-4 font-mono text-xs text-neutral-300 leading-relaxed border border-emerald-500/20 max-h-48 overflow-y-auto whitespace-pre-wrap">${escapeHtml(v2.prompt || '')}</div>
+            <div class="bg-black/60 rounded-lg p-4 font-mono text-xs text-neutral-300 leading-relaxed border border-emerald-500/20 max-h-48 overflow-y-auto whitespace-pre-wrap">${escapeHtml(v2)}</div>
           </div>
-        </div>
-    `;
-
-    // Show improvements list
-    if (improvements.length > 0) {
-      html += '<div class="px-6 pb-6"><div class="text-[10px] font-mono font-bold uppercase text-neutral-500 mb-2">CHANGES APPLIED</div>';
-      improvements.forEach(imp => {
-        html += '<div class="flex items-center gap-2 mb-1"><span class="material-icons-outlined text-xs text-emerald-500">check</span><span class="text-xs text-neutral-400">' + escapeHtml(imp) + '</span></div>';
-      });
-      html += '</div>';
-    }
-
-    html += '</div></section>';
-  }
-
-  // ── 4. INTENT & BLUEPRINT ─────────────────────────────────
-  html += `
-    <section class="max-w-5xl mx-auto mb-8">
-      <div class="bg-black/40 border border-primary/20 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl shadow-primary/5">
-        <div class="px-8 py-5 border-b border-primary/10 flex justify-between items-center bg-gradient-to-r from-primary/10 to-transparent">
-          <div class="flex items-center gap-3">
-             <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-             <h3 class="text-xs font-mono font-bold uppercase tracking-widest text-primary/90">
-               INTENT & BLUEPRINT ANALYSIS
-             </h3>
-          </div>
-          <span class="text-[9px] font-mono font-bold text-neutral-500 uppercase tracking-widest">LAYER 1 & 2</span>
-        </div>
-        
-        <div class="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-primary/10">
-          
-          <!-- Intent side -->
-          <div class="flex-1 p-8 bg-black/20">
-            <h4 class="text-white font-bold mb-6 flex items-center gap-2"><span class="material-icons-outlined text-primary text-sm">psychology</span> Inferred Intent</h4>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="group p-4 bg-surface/50 border border-neutral-800/50 hover:border-primary/30 rounded-xl transition-all hover:bg-primary/5">
-                <div class="text-[9px] font-mono text-neutral-500 uppercase mb-1 group-hover:text-primary/70 transition-colors">Task Type</div>
-                <div class="text-sm font-semibold text-white capitalize">${escapeHtml(intent.taskType || 'general')}</div>
-              </div>
-              <div class="group p-4 bg-surface/50 border border-neutral-800/50 hover:border-primary/30 rounded-xl transition-all hover:bg-primary/5">
-                <div class="text-[9px] font-mono text-neutral-500 uppercase mb-1 group-hover:text-primary/70 transition-colors">Domain</div>
-                <div class="text-sm font-semibold text-white capitalize">${escapeHtml(intent.domain || 'General')}</div>
-              </div>
-              <div class="group p-4 bg-surface/50 border border-neutral-800/50 hover:border-primary/30 rounded-xl transition-all hover:bg-primary/5">
-                <div class="text-[9px] font-mono text-neutral-500 uppercase mb-1 group-hover:text-primary/70 transition-colors">Format</div>
-                <div class="text-sm font-semibold text-white capitalize">${escapeHtml(intent.outputFormat || 'auto')}</div>
-              </div>
-              <div class="group p-4 bg-surface/50 border border-neutral-800/50 hover:border-primary/30 rounded-xl transition-all hover:bg-primary/5">
-                <div class="text-[9px] font-mono text-neutral-500 uppercase mb-1 group-hover:text-primary/70 transition-colors">Control Level</div>
-                <div class="text-sm font-semibold text-white capitalize flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full ${(intent.controlLevel || '') === 'high' ? 'bg-primary' : (intent.controlLevel || '') === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'}"></span>
-                    ${escapeHtml(intent.controlLevel || 'medium')}
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Blueprint side -->
-          <div class="flex-1 p-8 bg-gradient-to-br from-surface/20 to-black/40">
-            <h4 class="text-white font-bold mb-6 flex items-center gap-2"><span class="material-icons-outlined text-primary text-sm">architecture</span> Prompt Blueprint</h4>
-            
-            <div class="space-y-4">
-               <div>
-                  <div class="text-[10px] uppercase font-mono text-primary/70 mb-1 flex justify-between"><span>System Role</span><span class="text-neutral-600">Contextual Base</span></div>
-                  <div class="text-xs text-neutral-300 font-mono leading-relaxed bg-black/40 p-3 border border-neutral-800/50 rounded-lg whitespace-pre-wrap">${escapeHtml((blueprint.role || '').substring(0, 200))}${(blueprint.role || '').length > 200 ? '…' : ''}</div>
-               </div>
-               
-               <div>
-                  <div class="text-[10px] uppercase font-mono text-primary/70 mb-1 flex justify-between"><span>Core Task</span><span class="text-neutral-600">Instruction</span></div>
-                  <div class="text-xs text-neutral-300 font-mono leading-relaxed bg-black/40 p-3 border border-neutral-800/50 rounded-lg whitespace-pre-wrap">${escapeHtml(blueprint.task || '')}</div>
-               </div>
-               
-               <div class="flex flex-wrap gap-2 pt-2">
-                  <div class="px-2 py-1 bg-primary/10 border border-primary/20 rounded text-[10px] font-mono text-primary flex items-center gap-1">
-                      <span class="material-icons-outlined" style="font-size: 10px;">rule</span> ${(blueprint.constraints || []).length} Constraints
-                  </div>
-                  <div class="px-2 py-1 bg-primary/10 border border-primary/20 rounded text-[10px] font-mono text-primary flex items-center gap-1">
-                      <span class="material-icons-outlined" style="font-size: 10px;">smart_toy</span> Target: ${escapeHtml(modelName)}
-                  </div>
-                  <div class="px-2 py-1 bg-primary/10 border border-primary/20 rounded text-[10px] font-mono text-primary flex items-center gap-1">
-                      <span class="material-icons-outlined" style="font-size: 10px;">tune</span> ${escapeHtml(blueprint.output_format || 'auto')}
-                  </div>
-               </div>
-            </div>
-            
-          </div>
-          
         </div>
       </div>
     </section>
-  `;
+    `;
+  }
 
-  // ── 5. WHY THIS PROMPT WORKS ───────────────────────────────
-  if (whyItWorks) {
-    html += `
-    <section class="max-w-5xl mx-auto mb-12">
-      <div class="bg-black/40 border border-emerald-500/20 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl shadow-emerald-500/5">
-        <button class="w-full px-8 py-5 flex justify-between items-center bg-gradient-to-r from-emerald-500/10 to-transparent cursor-pointer hover:bg-emerald-500/10 transition-colors" onclick="this.parentElement.querySelector('.gen-why-body').classList.toggle('hidden'); this.querySelector('.gen-chevron').classList.toggle('rotate-180')">
+  // ── 4. INTENT CONTRACT ────────────────────────────────────
+  html += `
+    <section class="max-w-5xl mx-auto mb-8">
+      <div class="bg-black/40 border border-primary/20 backdrop-blur-xl rounded-2xl overflow-hidden shadow-2xl shadow-primary/5">
+        <button class="w-full px-8 py-5 flex justify-between items-center bg-gradient-to-r from-primary/10 to-transparent cursor-pointer hover:bg-primary/10 transition-colors" onclick="this.parentElement.querySelector('.gen-intent-body').classList.toggle('hidden'); this.querySelector('.gen-chevron').classList.toggle('rotate-180')">
           <div class="flex items-center gap-3">
-             <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-             <h3 class="text-xs font-mono font-bold uppercase tracking-widest text-emerald-500/90">
-               WHY THIS PROMPT WORKS
+             <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+             <h3 class="text-xs font-mono font-bold uppercase tracking-widest text-primary/90">
+               INTENT CONTRACT
              </h3>
           </div>
           <span class="material-icons-outlined text-sm text-neutral-500 gen-chevron transition-transform">expand_more</span>
         </button>
-        <div class="gen-why-body hidden p-8">
-          <div class="text-sm text-neutral-300 leading-relaxed space-y-5">
-            ${whyItWorks.split('\n\n').map(p => {
-      let formatted = formatExplanation(p);
-      return '<p class="flex gap-4 items-start"><span class="material-icons-outlined text-emerald-500/50 text-base mt-0.5 shrink-0">auto_awesome</span><span>' + formatted + '</span></p>';
-    }).join('')}
+        <div class="gen-intent-body hidden p-8 bg-black/20">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div class="group p-4 bg-surface/50 border border-neutral-800/50 hover:border-primary/30 rounded-xl transition-all hover:bg-primary/5">
+              <div class="text-[9px] font-mono text-neutral-500 uppercase mb-1">Task Type</div>
+              <div class="text-sm font-semibold text-white capitalize">${escapeHtml(intent.task_type || 'general')}</div>
+            </div>
+            <div class="group p-4 bg-surface/50 border border-neutral-800/50 hover:border-primary/30 rounded-xl transition-all hover:bg-primary/5">
+              <div class="text-[9px] font-mono text-neutral-500 uppercase mb-1">Domain</div>
+              <div class="text-sm font-semibold text-white capitalize">${escapeHtml(intent.domain || 'General')}</div>
+            </div>
+            <div class="group p-4 bg-surface/50 border border-neutral-800/50 hover:border-primary/30 rounded-xl transition-all hover:bg-primary/5">
+              <div class="text-[9px] font-mono text-neutral-500 uppercase mb-1">Audience</div>
+              <div class="text-sm font-semibold text-white capitalize">${escapeHtml(intent.audience || 'general')}</div>
+            </div>
+            <div class="group p-4 bg-surface/50 border border-neutral-800/50 hover:border-primary/30 rounded-xl transition-all hover:bg-primary/5">
+              <div class="text-[9px] font-mono text-neutral-500 uppercase mb-1">Depth</div>
+              <div class="text-sm font-semibold text-white capitalize">${escapeHtml(intent.depth || 'moderate')}</div>
+            </div>
+            <div class="group p-4 bg-surface/50 border border-neutral-800/50 hover:border-primary/30 rounded-xl transition-all hover:bg-primary/5">
+              <div class="text-[9px] font-mono text-neutral-500 uppercase mb-1">Tone</div>
+              <div class="text-sm font-semibold text-white capitalize">${escapeHtml(intent.tone || 'professional')}</div>
+            </div>
+            <div class="group p-4 bg-surface/50 border border-neutral-800/50 hover:border-primary/30 rounded-xl transition-all hover:bg-primary/5">
+              <div class="text-[9px] font-mono text-neutral-500 uppercase mb-1">Primary Goal</div>
+              <div class="text-sm font-semibold text-white">${escapeHtml((intent.primary_goal || '').substring(0, 60))}${(intent.primary_goal || '').length > 60 ? '…' : ''}</div>
+            </div>
           </div>
+          ${(intent.must_include && intent.must_include.length > 0) ? `
+          <div class="mt-4">
+            <div class="text-[9px] font-mono text-emerald-500 uppercase mb-2">Must Include</div>
+            <div class="flex flex-wrap gap-2">
+              ${intent.must_include.map(i => '<span class="px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-[10px] font-mono text-emerald-400">' + escapeHtml(i) + '</span>').join('')}
+            </div>
+          </div>` : ''}
+          ${(intent.must_exclude && intent.must_exclude.length > 0) ? `
+          <div class="mt-4">
+            <div class="text-[9px] font-mono text-primary uppercase mb-2">Must Exclude</div>
+            <div class="flex flex-wrap gap-2">
+              ${intent.must_exclude.map(i => '<span class="px-2 py-1 bg-primary/10 border border-primary/20 rounded text-[10px] font-mono text-primary">' + escapeHtml(i) + '</span>').join('')}
+            </div>
+          </div>` : ''}
+          ${(intent.assumptions && intent.assumptions.length > 0) ? `
+          <div class="mt-4">
+            <div class="text-[9px] font-mono text-amber-500 uppercase mb-2">Assumptions Made</div>
+            <div class="flex flex-wrap gap-2">
+              ${intent.assumptions.map(a => '<span class="px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded text-[10px] font-mono text-amber-400">' + escapeHtml(a) + '</span>').join('')}
+            </div>
+          </div>` : ''}
         </div>
       </div>
     </section>
-    `;
-  }
+  `;
 
   panel.innerHTML = html;
   panel.classList.add('visible');

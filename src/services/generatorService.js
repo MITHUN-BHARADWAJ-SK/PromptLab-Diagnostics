@@ -1,25 +1,56 @@
 /**
- * PromptLab — Prompt Generator Service (v2 — Three-Layer Architecture)
+ * PromptLab — Prompt Generator Service (v3 — Two-Stage Pipeline)
  *
- * Architecture:
- *   Layer 1: INTENT INFERENCE   — infer task type, domain, output format, control level
- *   Layer 2: PROMPT BLUEPRINT   — build structured, inspectable blueprint
- *   Layer 3: PROMPT GENERATION  — transform blueprint into model-aware prompt
- *   + ANALYZER LOOP             — score v1, auto-improve if below threshold
+ * Architecture (per PRD):
+ *   Stage 0: AMBIGUITY DETECTOR  — score input 0–1, route decision
+ *   Route A: Low Ambiguity  → Generator → Refiner → Final Prompt
+ *   Route B: High Ambiguity → Analyzer (intent contract) → Generator → Final Prompt
  *
- * The generator NEVER produces a prompt directly from raw user input.
- * It always goes: raw input → intent → blueprint → prompt.
+ * Strict role isolation:
+ *   - Analyzer: resolves ambiguity, produces intent contract. Never generates prompts.
+ *   - Generator: translates intent contract into model-specific prompt. Never infers intent.
+ *   - Refiner: hardens an existing prompt. Never reinterprets or expands scope.
+ *
+ * Output rules:
+ *   - Final output is ONLY the paste-ready prompt
+ *   - No explanations, no metadata, no confidence scores
+ *   - No markdown unless required by target model
  */
 
-const { MODEL_PROFILES, MODEL_OUTPUT_SECTIONS } = require('../config/scoring');
-
-// ── Score threshold for auto-improvement ────────────────────────
-const IMPROVEMENT_THRESHOLD = 3.5;
+const { MODEL_PROFILES } = require('../config/scoring');
 
 // ════════════════════════════════════════════════════════════════
-//  TASK PATTERNS (extended from analyzer)
+//  CONSTANTS & PATTERNS
 // ════════════════════════════════════════════════════════════════
 
+const AMBIGUITY_THRESHOLD = 0.5;
+
+// Multiple task verbs increase ambiguity
+const TASK_VERB_PATTERNS = [
+    /\b(explain|describe|define|clarify|elaborate|break down|teach)\b/i,
+    /\b(write|create|generate|compose|draft|produce|make)\b/i,
+    /\b(analyze|analyse|evaluate|assess|review|examine|critique)\b/i,
+    /\b(compare|contrast|versus|vs\.?|difference)\b/i,
+    /\b(summarize|summary|overview|recap|condense)\b/i,
+    /\b(plan|schedule|roadmap|timeline|organize)\b/i,
+    /\b(list|enumerate|name|identify|top \d+)\b/i,
+    /\b(code|program|function|script|implement|debug)\b/i,
+    /\b(brainstorm|suggest|recommend|ideas?|options?)\b/i,
+    /\b(optimize|improve|enhance|refine|upgrade|boost)\b/i,
+    /\b(instruct|how to|steps to|guide|tutorial|walk me through)\b/i,
+];
+
+// Hedge / soft language signals ambiguity
+const HEDGE_PATTERNS = /\b(maybe|perhaps|possibly|might|could|something like|sort of|kind of|i guess|not sure|i think|whatever|anything|somehow|some kind of)\b/i;
+
+// Conflicting constraint signals
+const CONFLICT_SIGNALS = [
+    { a: /\b(brief|short|concise)\b/i, b: /\b(detailed|comprehensive|thorough|exhaustive|in-depth)\b/i },
+    { a: /\b(formal|professional)\b/i, b: /\b(casual|informal|friendly|fun)\b/i },
+    { a: /\b(simple|basic)\b/i, b: /\b(advanced|complex|expert)\b/i },
+];
+
+// Task type detection patterns (single canonical task)
 const TASK_PATTERNS = [
     { task: 'plan', patterns: [/\b(plan|schedule|roadmap|timeline|milestone|daily routine|weekly plan|organize my|time management)\b/i] },
     { task: 'story', patterns: [/\b(story|narrative|fiction|tale|novel|short story|creative writing|plot|character)\b/i] },
@@ -37,7 +68,7 @@ const TASK_PATTERNS = [
     { task: 'optimize', patterns: [/\b(optimize|improve|enhance|refine|upgrade|boost|maximize|streamline)\b/i] },
 ];
 
-// ── Domain/Niche patterns ───────────────────────────────────────
+// Domain detection
 const DOMAIN_PATTERNS = [
     { domain: 'Planning & Productivity', patterns: [/\b(plan|schedule|routine|productivity|time management|goal|habit|workflow|organize)\b/i] },
     { domain: 'Storytelling & Fiction', patterns: [/\b(story|fiction|narrative|novel|plot|character|creative writing|screenplay)\b/i] },
@@ -51,33 +82,18 @@ const DOMAIN_PATTERNS = [
     { domain: 'Communication', patterns: [/\b(email|message|letter|speech|presentation|pitch|negotiate)\b/i] },
 ];
 
-// ── Output Format inference ─────────────────────────────────────
-const FORMAT_PATTERNS = [
-    { format: 'step-by-step plan', patterns: [/\b(step.by.step|steps|how to|guide|tutorial|instructions|walk.through)\b/i] },
-    { format: 'checklist', patterns: [/\b(checklist|check.list|to.do|task list)\b/i] },
-    { format: 'table', patterns: [/\b(table|comparison table|grid|matrix|spreadsheet|columns)\b/i] },
-    { format: 'narrative', patterns: [/\b(story|essay|narrative|paragraph|write about|creative)\b/i] },
-    { format: 'structured bullets', patterns: [/\b(bullet|bullets|points|key points|list|enumerat)\b/i] },
-    { format: 'explanation + example', patterns: [/\b(explain|example|illustrat|demonstrate|show me)\b/i] },
-    { format: 'code block', patterns: [/\b(code|function|script|implement|program|snippet)\b/i] },
-];
-
-// ── Control Level inference ─────────────────────────────────────
-const HIGH_CONTROL_SIGNALS = /\b(exact|exactly|precise|strict|must|required|structured|formatted|step-by-step|specific|explicit|constraint|follow this format|no more than|at least|between \d+ and \d+)\b/i;
-const LOW_CONTROL_SIGNALS = /\b(help|suggest|any|open-ended|whatever|creative|flexible|freestyle|anything|general)\b/i;
-
 // ════════════════════════════════════════════════════════════════
 //  PUBLIC API
 // ════════════════════════════════════════════════════════════════
 
 /**
- * Generate a high-quality, model-aware prompt using the three-layer system.
+ * Generate a paste-ready, model-specific prompt using the two-stage pipeline.
  *
  * @param {Object} params
  * @param {string} params.promptText       Raw user input
  * @param {string} params.modelTarget      'openai' | 'anthropic' | 'gemini'
- * @param {Function} [params.analyzerFn]   Optional: PromptLabEngine.analyze function for scoring loop
- * @returns {Object} Full generation result with intent, blueprint, versions, scores
+ * @param {Function} [params.analyzerFn]   Optional: PromptLabEngine.analyze (used for scoring, not routing)
+ * @returns {Object} { finalPrompt, v1, v2, route, ambiguityScore }
  */
 function generate({ promptText, modelTarget, analyzerFn = null }) {
     if (!promptText || typeof promptText !== 'string' || promptText.trim().length === 0) {
@@ -85,143 +101,929 @@ function generate({ promptText, modelTarget, analyzerFn = null }) {
     }
 
     const text = promptText.trim();
-    const lower = text.toLowerCase();
+    const model = modelTarget || 'openai';
 
     // ═══════════════════════════════════════════════════════════
-    //  LAYER 1: INTENT INFERENCE
+    //  STAGE 0: AMBIGUITY DETECTION
     // ═══════════════════════════════════════════════════════════
-    const intent = _inferIntent(text, lower);
+    const ambiguity = _detectAmbiguity(text, model);
 
-    // ═══════════════════════════════════════════════════════════
-    //  LAYER 2: PROMPT BLUEPRINT
-    // ═══════════════════════════════════════════════════════════
-    const blueprint = _buildBlueprint(text, intent, modelTarget);
+    let intentContract;
+    let v1Prompt;
+    let v2Prompt = null;
 
-    // ═══════════════════════════════════════════════════════════
-    //  LAYER 3: PROMPT GENERATION (v1)
-    // ═══════════════════════════════════════════════════════════
-    const v1Prompt = _generateFromBlueprint(blueprint, modelTarget);
+    if (ambiguity.route === 'analyze_first') {
+        // ═══════════════════════════════════════════════════════
+        //  ROUTE B: HIGH AMBIGUITY → Analyzer → Generator
+        // ═══════════════════════════════════════════════════════
+        intentContract = _analyzeIntent(text, model);
+        v1Prompt = _generatePrompt(intentContract, model);
 
-    // ═══════════════════════════════════════════════════════════
-    //  ANALYZER LOOP: Score v1, improve if needed
-    // ═══════════════════════════════════════════════════════════
-    let v1Score = null;
-    let v2 = null;
-    let improvements = [];
-
-    if (analyzerFn) {
-        // Score the generated prompt
-        const v1Analysis = analyzerFn({
-            promptText: v1Prompt,
-            modelTarget,
-        });
-
-        v1Score = {
-            overall: v1Analysis.overall_score || 0,
-            dimensions: v1Analysis.dimension_scores || {},
-        };
-
-        // If score below threshold, auto-improve
-        if (v1Score.overall < IMPROVEMENT_THRESHOLD) {
-            const { prompt: v2Prompt, changes } = _improvePrompt(v1Prompt, blueprint, v1Analysis, modelTarget);
-            improvements = changes;
-
-            // Re-score v2
-            const v2Analysis = analyzerFn({
-                promptText: v2Prompt,
-                modelTarget,
-            });
-
-            v2 = {
-                prompt: v2Prompt,
-                score: {
-                    overall: v2Analysis.overall_score || 0,
-                    dimensions: v2Analysis.dimension_scores || {},
-                },
-            };
-        }
+    } else {
+        // ═══════════════════════════════════════════════════════
+        //  ROUTE A: LOW AMBIGUITY → Generator → Refiner
+        // ═══════════════════════════════════════════════════════
+        intentContract = _buildDirectContract(text, model);
+        v1Prompt = _generatePrompt(intentContract, model);
+        v2Prompt = _refinePrompt(v1Prompt, intentContract, model);
     }
 
-    // Build "Why this prompt works" explanation
-    const whyItWorks = _buildExplanation(intent, blueprint, v1Score, v2, modelTarget);
+    const finalPrompt = v2Prompt || v1Prompt;
 
     return {
-        intent,
-        blueprint,
-        v1: {
-            prompt: v1Prompt,
-            score: v1Score,
-        },
-        v2,
-        improvements,
-        whyItWorks,
-        finalPrompt: v2 ? v2.prompt : v1Prompt,
-        finalScore: v2 ? v2.score : v1Score,
+        finalPrompt,
+        v1: v1Prompt,
+        v2: v2Prompt,
+        route: ambiguity.route,
+        ambiguityScore: ambiguity.score,
+        // Keep intent for internal debugging (not shown to user)
+        _intent: intentContract,
     };
 }
 
 // ════════════════════════════════════════════════════════════════
-//  LAYER 1: INTENT INFERENCE
+//  STAGE 0: AMBIGUITY DETECTOR
 // ════════════════════════════════════════════════════════════════
 
-function _inferIntent(text, lower) {
-    // A. Task Type
-    let taskType = 'general';
-    for (const { task, patterns } of TASK_PATTERNS) {
-        if (patterns.some(p => p.test(lower))) {
-            taskType = task;
-            break;
+function _detectAmbiguity(text, modelTarget) {
+    const lower = text.toLowerCase();
+    let score = 0;
+    const signals = [];
+
+    // A. Multiple task verbs (each additional verb adds 0.15)
+    let verbMatches = 0;
+    for (const { patterns } of TASK_VERB_PATTERNS) {
+        if (patterns[0].test(lower)) verbMatches++;
+    }
+    if (verbMatches > 1) {
+        const penalty = Math.min((verbMatches - 1) * 0.15, 0.45);
+        score += penalty;
+        signals.push(`${verbMatches} competing task verbs detected`);
+    }
+
+    // B. Hedge / soft language (0.2)
+    if (HEDGE_PATTERNS.test(lower)) {
+        score += 0.2;
+        signals.push('Hedge/soft language detected');
+    }
+
+    // C. Very short input — likely incomplete (0.15)
+    const wordCount = text.split(/\s+/).length;
+    if (wordCount < 5) {
+        score += 0.15;
+        signals.push('Very short input (< 5 words)');
+    }
+
+    // D. No clear subject or object (0.1)
+    const hasSubject = /\b(about|for|on|regarding|of)\s+\w+/i.test(text) ||
+        /\b(write|create|build|make|explain|analyze|plan|code)\s+\w+/i.test(text);
+    if (!hasSubject && wordCount < 10) {
+        score += 0.1;
+        signals.push('No clear subject identified');
+    }
+
+    // E. Conflicting constraints (0.2 per conflict)
+    for (const { a, b } of CONFLICT_SIGNALS) {
+        if (a.test(lower) && b.test(lower)) {
+            score += 0.2;
+            signals.push('Conflicting constraints detected');
         }
     }
 
-    // B. Domain / Niche
+    // F. Vague quantifiers without specifics (0.1)
+    if (/\b(some|a few|many|several|a lot of|various)\b/i.test(lower) &&
+        !/\b\d+\b/.test(text)) {
+        score += 0.1;
+        signals.push('Vague quantifiers without specifics');
+    }
+
+    score = Math.min(score, 1.0);
+
+    return {
+        score: Math.round(score * 100) / 100,
+        route: score >= AMBIGUITY_THRESHOLD ? 'analyze_first' : 'generate_first',
+        signals,
+    };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  STAGE 1A: INTENT ANALYZER (high ambiguity path)
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * Resolve ambiguity into a clean intent contract.
+ * Rules:
+ *   - May infer missing details
+ *   - May resolve conflicts (choose dominant interpretation)
+ *   - Must NOT ask questions
+ *   - Must NOT generate prompts
+ */
+function _analyzeIntent(text, modelTarget) {
+    const lower = text.toLowerCase();
+    const wordCount = text.split(/\s+/).length;
+
+    // 1. Determine the SINGLE dominant task type
+    let taskType = 'general';
+    let maxPatternLength = 0;
+    for (const { task, patterns } of TASK_PATTERNS) {
+        for (const p of patterns) {
+            const match = lower.match(p);
+            if (match && match[0].length > maxPatternLength) {
+                taskType = task;
+                maxPatternLength = match[0].length;
+            }
+        }
+    }
+
+    // 2. Extract primary goal
+    const goalPatterns = [
+        /\b(?:i want|i need|i'd like|goal is|trying to|hoping to|looking to|help me)\s+(.{5,120}?)(?:\.|$|,|\?)/i,
+        /\b(?:create|write|build|make|generate|produce)\s+(.{3,100}?)(?:\.|$|,|\?)/i,
+    ];
+    let primaryGoal = '';
+    for (const p of goalPatterns) {
+        const match = text.match(p);
+        if (match) {
+            primaryGoal = match[1].trim();
+            break;
+        }
+    }
+    if (!primaryGoal) {
+        primaryGoal = _extractSubject(text, lower);
+    }
+
+    // 3. Extract must_include signals
+    const mustInclude = [];
+    const includePatterns = [
+        /\b(?:include|must have|should have|with|containing|featuring|make sure|ensure)\s+(.{3,80}?)(?:\.|$|,|and\b)/gi,
+    ];
+    for (const p of includePatterns) {
+        let match;
+        while ((match = p.exec(text)) !== null) {
+            const item = match[1].trim();
+            if (item.length > 2 && item.length < 80) mustInclude.push(item);
+        }
+    }
+
+    // 4. Extract must_exclude signals
+    const mustExclude = [];
+    const excludePatterns = [
+        /\b(?:don't|do not|avoid|without|no\s|exclude|skip|never)\s+(.{3,60}?)(?:\.|$|,)/gi,
+    ];
+    for (const p of excludePatterns) {
+        let match;
+        while ((match = p.exec(text)) !== null) {
+            const item = match[1].trim();
+            if (item.length > 2 && item.length < 60) mustExclude.push(item);
+        }
+    }
+
+    // 5. Build assumptions for anything that was inferred
+    const assumptions = [];
+
+    // Infer audience
+    let audience = 'general';
+    if (/\b(beginner|simple|basic|eli5)\b/i.test(lower)) { audience = 'beginner'; }
+    else if (/\b(expert|advanced|senior|specialist|professional)\b/i.test(lower)) { audience = 'expert'; }
+    else if (/\b(student|learner|undergrad)\b/i.test(lower)) { audience = 'student'; }
+    else if (/\b(developer|programmer|engineer)\b/i.test(lower)) { audience = 'developer'; }
+
+    if (audience === 'general') {
+        assumptions.push('Audience: assumed general/moderate knowledge level');
+    }
+
+    // Infer depth
+    let depth = 'moderate';
+    if (/\b(brief|quick|short|concise|overview|tldr)\b/i.test(lower)) depth = 'surface';
+    else if (/\b(detailed|comprehensive|thorough|deep dive|exhaustive)\b/i.test(lower)) depth = 'deep';
+    else if (wordCount < 8) { depth = 'moderate'; assumptions.push('Depth: assumed moderate (short input)'); }
+
+    // Infer tone
+    let tone = 'professional';
+    if (/\b(casual|friendly|fun|conversational)\b/i.test(lower)) tone = 'casual';
+    else if (/\b(academic|scholarly|formal)\b/i.test(lower)) tone = 'academic';
+    else if (/\b(technical)\b/i.test(lower)) tone = 'technical';
+    else { assumptions.push('Tone: assumed professional'); }
+
+    // Infer domain
     let domain = 'General';
     for (const { domain: d, patterns } of DOMAIN_PATTERNS) {
-        if (patterns.some(p => p.test(lower))) {
-            domain = d;
-            break;
-        }
+        if (patterns.some(p => p.test(lower))) { domain = d; break; }
     }
 
-    // C. Desired Output Format
-    let outputFormat = _getDefaultFormat(taskType);
-    for (const { format, patterns } of FORMAT_PATTERNS) {
-        if (patterns.some(p => p.test(lower))) {
-            outputFormat = format;
-            break;
-        }
+    // Resolve conflicts: if both "brief" and "detailed", choose explicit over hedge
+    if (/\b(brief|concise)\b/i.test(lower) && /\b(detailed|comprehensive)\b/i.test(lower)) {
+        depth = 'moderate';
+        assumptions.push('Conflict resolved: mixed depth signals, chose moderate');
     }
-
-    // D. Control Level
-    let controlLevel = 'medium';
-    if (HIGH_CONTROL_SIGNALS.test(lower)) {
-        controlLevel = 'high';
-    } else if (LOW_CONTROL_SIGNALS.test(lower)) {
-        controlLevel = 'low';
-    }
-    // Long, detailed prompts suggest high control
-    const wordCount = text.split(/\s+/).length;
-    if (wordCount > 40) controlLevel = 'high';
-
-    // E. Subject extraction
-    const subject = _extractSubject(text, lower);
-
-    // F. Audience
-    const audience = _inferAudience(lower);
-
-    // G. Depth
-    const depth = _inferDepth(lower, wordCount);
 
     return {
-        taskType,
+        task_type: taskType,
+        target_model: modelTarget,
+        primary_goal: primaryGoal,
         domain,
-        outputFormat,
-        controlLevel,
-        subject,
         audience,
         depth,
+        tone,
+        must_include: mustInclude,
+        must_exclude: mustExclude,
+        assumptions,
+        output_expectation: 'single paste-ready prompt',
     };
 }
+
+// ════════════════════════════════════════════════════════════════
+//  DIRECT CONTRACT BUILDER (low ambiguity — no full analysis)
+// ════════════════════════════════════════════════════════════════
+
+function _buildDirectContract(text, modelTarget) {
+    const lower = text.toLowerCase();
+    const wordCount = text.split(/\s+/).length;
+
+    let taskType = 'general';
+    for (const { task, patterns } of TASK_PATTERNS) {
+        if (patterns.some(p => p.test(lower))) { taskType = task; break; }
+    }
+
+    let domain = 'General';
+    for (const { domain: d, patterns } of DOMAIN_PATTERNS) {
+        if (patterns.some(p => p.test(lower))) { domain = d; break; }
+    }
+
+    let audience = 'general';
+    if (/\b(beginner|simple|basic|eli5)\b/i.test(lower)) audience = 'beginner';
+    else if (/\b(expert|advanced|senior|professional)\b/i.test(lower)) audience = 'expert';
+    else if (/\b(developer|programmer|engineer)\b/i.test(lower)) audience = 'developer';
+
+    let depth = 'moderate';
+    if (/\b(brief|quick|short|concise)\b/i.test(lower)) depth = 'surface';
+    else if (/\b(detailed|comprehensive|thorough)\b/i.test(lower)) depth = 'deep';
+    else if (wordCount > 30) depth = 'deep';
+
+    const mustInclude = [];
+    const includeMatch = text.match(/\b(?:include|must have|with|featuring|ensure)\s+(.{3,80}?)(?:\.|$|,)/gi);
+    if (includeMatch) {
+        includeMatch.forEach(m => {
+            const cleaned = m.replace(/^(include|must have|with|featuring|ensure)\s+/i, '').trim();
+            if (cleaned.length > 2) mustInclude.push(cleaned);
+        });
+    }
+
+    const mustExclude = [];
+    const excludeMatch = text.match(/\b(?:don't|do not|avoid|without|no\s|exclude)\s+(.{3,60}?)(?:\.|$|,)/gi);
+    if (excludeMatch) {
+        excludeMatch.forEach(m => {
+            const cleaned = m.replace(/^(don't|do not|avoid|without|no|exclude)\s+/i, '').trim();
+            if (cleaned.length > 2) mustExclude.push(cleaned);
+        });
+    }
+
+    return {
+        task_type: taskType,
+        target_model: modelTarget,
+        primary_goal: _extractSubject(text, lower),
+        domain,
+        audience,
+        depth,
+        tone: 'professional',
+        must_include: mustInclude,
+        must_exclude: mustExclude,
+        assumptions: [],
+        output_expectation: 'single paste-ready prompt',
+        _originalText: text,
+    };
+}
+
+// ════════════════════════════════════════════════════════════════
+//  STAGE 1B: PROMPT GENERATOR (model-specific)
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * Translate a clean intent contract into a model-accurate, optimized prompt.
+ * Rules:
+ *   - No intent inference
+ *   - No ambiguity resolution
+ *   - No explanation
+ *   - No reviewer tone
+ *   - No optionality
+ */
+function _generatePrompt(contract, modelTarget) {
+    switch (modelTarget) {
+        case 'openai': return _generateForOpenAI(contract);
+        case 'anthropic': return _generateForClaude(contract);
+        case 'gemini': return _generateForGemini(contract);
+        default: return _generateForOpenAI(contract);
+    }
+}
+
+// ── OpenAI GPT: System-role framing ─────────────────────────────
+
+function _generateForOpenAI(c) {
+    const parts = [];
+
+    // Role
+    parts.push(`# Role`);
+    parts.push(_buildRole(c, 'openai'));
+    parts.push('');
+
+    // Task
+    parts.push(`# Task`);
+    parts.push(_buildTaskLine(c));
+    parts.push('');
+
+    // Context
+    const context = _buildContext(c);
+    if (context) {
+        parts.push(`# Context`);
+        parts.push(context);
+        parts.push('');
+    }
+
+    // Instructions
+    parts.push(`# Instructions`);
+    const instructions = _buildInstructions(c, 'openai');
+    instructions.forEach(inst => parts.push(`- ${inst}`));
+    parts.push('');
+
+    // Constraints
+    const constraints = _buildConstraintLines(c, 'openai');
+    if (constraints.length > 0) {
+        parts.push(`# Constraints`);
+        constraints.forEach(con => parts.push(`- ${con}`));
+        parts.push('');
+    }
+
+    // Output format
+    parts.push(`# Output`);
+    parts.push(_buildOutputSpec(c, 'openai'));
+
+    return parts.join('\n').trim();
+}
+
+// ── Anthropic Claude: XML-tagged sections ───────────────────────
+
+function _generateForClaude(c) {
+    const parts = [];
+
+    // Role
+    parts.push(`<role>`);
+    parts.push(_buildRole(c, 'anthropic'));
+    parts.push(`</role>`);
+    parts.push('');
+
+    // Task
+    parts.push(`<task>`);
+    parts.push(_buildTaskLine(c));
+    parts.push(`</task>`);
+    parts.push('');
+
+    // Context
+    const context = _buildContext(c);
+    if (context) {
+        parts.push(`<context>`);
+        parts.push(context);
+        parts.push(`</context>`);
+        parts.push('');
+    }
+
+    // Instructions with thinking step
+    parts.push(`<instructions>`);
+    parts.push('Think through this carefully before responding.');
+    const instructions = _buildInstructions(c, 'anthropic');
+    instructions.forEach(inst => parts.push(`- ${inst}`));
+    parts.push(`</instructions>`);
+    parts.push('');
+
+    // Constraints (explicit scope boundaries)
+    const constraints = _buildConstraintLines(c, 'anthropic');
+    if (constraints.length > 0) {
+        parts.push(`<constraints>`);
+        constraints.forEach(con => parts.push(`- ${con}`));
+        parts.push(`</constraints>`);
+        parts.push('');
+    }
+
+    // Output
+    parts.push(`<output>`);
+    parts.push(_buildOutputSpec(c, 'anthropic'));
+    parts.push(`</output>`);
+
+    return parts.join('\n').trim();
+}
+
+// ── Google Gemini: Context-first, direct commands ───────────────
+
+function _generateForGemini(c) {
+    const parts = [];
+
+    // Context FIRST (Gemini best practice)
+    const context = _buildContext(c);
+    if (context) {
+        parts.push(`**Context:**`);
+        parts.push(context);
+        parts.push('');
+    }
+
+    // Role
+    parts.push(`**Role:** ${_buildRole(c, 'gemini')}`);
+    parts.push('');
+
+    // Direct task command
+    parts.push(`**Task:** ${_buildTaskLine(c)}`);
+    parts.push('');
+
+    // Instructions with grounding
+    parts.push(`**Instructions:**`);
+    const instructions = _buildInstructions(c, 'gemini');
+    instructions.forEach(inst => parts.push(`- ${inst}`));
+    parts.push('');
+
+    // Constraints
+    const constraints = _buildConstraintLines(c, 'gemini');
+    if (constraints.length > 0) {
+        parts.push(`**Constraints:**`);
+        constraints.forEach(con => parts.push(`- ${con}`));
+        parts.push('');
+    }
+
+    // Output
+    parts.push(`**Output:** ${_buildOutputSpec(c, 'gemini')}`);
+
+    return parts.join('\n').trim();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  PROMPT COMPONENT BUILDERS
+// ════════════════════════════════════════════════════════════════
+
+function _buildRole(contract, model) {
+    const goal = contract.primary_goal || 'this domain';
+    const domain = contract.domain !== 'General' ? contract.domain : null;
+
+    const roleTemplates = {
+        plan: {
+            openai: `You are a strategic planning expert specializing in structured, time-bound action plans${domain ? ` for ${domain}` : ''}.`,
+            anthropic: `You are a methodical planning strategist who breaks complex goals into actionable, prioritized milestones${domain ? ` within ${domain}` : ''}.`,
+            gemini: `You are a planning specialist who creates evidence-based, execution-ready action plans${domain ? ` in ${domain}` : ''}.`,
+        },
+        story: {
+            openai: `You are a master storyteller and narrative architect with deep expertise in structure, pacing, and character development.`,
+            anthropic: `You are an experienced creative writing mentor who crafts compelling narratives with rich character arcs and emotional resonance.`,
+            gemini: `You are a narrative design expert who creates engaging stories with clear structure, vivid characters, and meaningful themes.`,
+        },
+        content: {
+            openai: `You are a senior content strategist and copywriter with 10+ years of experience in audience-targeted, SEO-optimized content creation.`,
+            anthropic: `You are a content strategy expert who creates compelling, well-researched content optimized for both readers and search engines.`,
+            gemini: `You are a content marketing specialist who produces data-driven, audience-aware content with strong SEO foundations.`,
+        },
+        code: {
+            openai: `You are a senior software engineer who writes clean, well-documented, production-ready code with comprehensive error handling.`,
+            anthropic: `You are an experienced developer who writes robust, well-tested code with clear documentation and thoughtful design.`,
+            gemini: `You are a software engineering expert who produces clean, efficient, well-commented code following current best practices.`,
+        },
+        explain: {
+            openai: `You are an expert educator in ${goal} who excels at making complex topics accessible through clear structure and practical examples.`,
+            anthropic: `You are a knowledgeable instructor who explains ${goal} with clarity, precision, and well-chosen illustrative examples.`,
+            gemini: `You are a subject matter expert in ${goal} who provides clear, structured explanations grounded in current knowledge.`,
+        },
+        analyze: {
+            openai: `You are a senior analyst with deep expertise in ${goal}, skilled at multi-dimensional analysis and evidence-based conclusions.`,
+            anthropic: `You are a thorough analyst who examines ${goal} from multiple perspectives with balanced, well-supported findings.`,
+            gemini: `You are an analytical expert in ${goal} who provides structured, evidence-based analysis with actionable insights.`,
+        },
+        compare: {
+            openai: `You are a research analyst specializing in objective, criteria-driven comparisons with expertise in ${goal}.`,
+            anthropic: `You are an analytical comparator who provides balanced, evidence-based assessments of ${goal}.`,
+            gemini: `You are a comparative analyst who evaluates ${goal} across well-defined criteria with supporting evidence.`,
+        },
+        brainstorm: {
+            openai: `You are a creative strategist and innovation consultant skilled at generating diverse, unconventional ideas for ${goal}.`,
+            anthropic: `You are an ideation specialist who generates creative, practical solutions for ${goal} across multiple dimensions.`,
+            gemini: `You are a creative problem solver who brainstorms diverse, feasible approaches to ${goal}.`,
+        },
+        optimize: {
+            openai: `You are an optimization specialist focused on identifying inefficiencies in ${goal} and implementing measurable improvements.`,
+            anthropic: `You are a systematic improvement consultant who identifies weaknesses in ${goal} and proposes evidence-based optimizations.`,
+            gemini: `You are an efficiency expert who analyzes ${goal} to find optimization opportunities with clear implementation steps.`,
+        },
+        evaluate: {
+            openai: `You are a critical analyst who systematically evaluates ${goal} using structured criteria to identify strengths and weaknesses.`,
+            anthropic: `You are a systematic evaluator who provides balanced, evidence-based assessments with clear improvement pathways.`,
+            gemini: `You are an analytical reviewer who applies structured evaluation frameworks to produce measurable improvements.`,
+        },
+        summarize: {
+            openai: `You are a precision summarizer who distills complex information about ${goal} into clear, essential takeaways.`,
+            anthropic: `You are a skilled synthesizer who condenses ${goal} into accurate, well-organized summaries without losing critical nuance.`,
+            gemini: `You are a concise summarizer who extracts and organizes the key points from ${goal} with factual accuracy.`,
+        },
+        instruct: {
+            openai: `You are a clear, step-by-step instructor who creates actionable guides for ${goal} that anyone can follow.`,
+            anthropic: `You are an expert tutor who delivers precise, sequenced instructions for ${goal} with clear success criteria.`,
+            gemini: `You are a practical instructor who creates evidence-based, executable guides for ${goal}.`,
+        },
+        list: {
+            openai: `You are a research-backed curator who creates prioritized, well-organized lists relevant to ${goal}.`,
+            anthropic: `You are a systematic compiler who produces accurate, well-categorized lists for ${goal}.`,
+            gemini: `You are a fact-based list curator who identifies and organizes the most relevant items for ${goal}.`,
+        },
+        generate: {
+            openai: `You are a skilled content creator with expertise in ${goal}, known for producing engaging, well-structured output.`,
+            anthropic: `You are a creative professional who produces high-quality, thoughtfully crafted content about ${goal}.`,
+            gemini: `You are a content generation specialist who creates well-organized, audience-appropriate material on ${goal}.`,
+        },
+    };
+
+    const defaults = {
+        openai: `You are a highly capable expert assistant specialized in ${goal}.`,
+        anthropic: `You are a knowledgeable assistant with deep expertise in ${goal}, focused on accuracy and clarity.`,
+        gemini: `You are an expert assistant who provides well-structured, evidence-based responses about ${goal}.`,
+    };
+
+    const templates = roleTemplates[contract.task_type] || defaults;
+    return templates[model] || templates.openai;
+}
+
+function _buildTaskLine(contract) {
+    const taskVerbs = {
+        plan: 'Create a comprehensive, actionable plan for',
+        story: 'Write a compelling',
+        content: 'Create optimized content for',
+        evaluate: 'Evaluate and systematically improve',
+        explain: 'Provide a clear, structured explanation of',
+        compare: 'Create a detailed, criteria-driven comparison of',
+        generate: 'Write',
+        summarize: 'Provide a concise, structured summary of',
+        analyze: 'Conduct a thorough, multi-dimensional analysis of',
+        list: 'Create a curated, prioritized list of',
+        instruct: 'Provide clear, step-by-step instructions for',
+        code: 'Implement',
+        brainstorm: 'Generate diverse, actionable ideas for',
+        optimize: 'Analyze and optimize',
+        general: 'Provide a precise, well-structured response about',
+    };
+
+    const verb = taskVerbs[contract.task_type] || taskVerbs.general;
+    const goal = contract.primary_goal || contract._originalText || 'the specified topic';
+    return `${verb} ${goal}.`;
+}
+
+function _buildContext(contract) {
+    const parts = [];
+
+    if (contract.domain && contract.domain !== 'General') {
+        parts.push(`Domain: ${contract.domain}.`);
+    }
+
+    if (contract.audience && contract.audience !== 'general') {
+        const audienceDesc = {
+            beginner: 'The target audience is beginners with limited prior knowledge.',
+            student: 'The target audience is students with foundational knowledge.',
+            expert: 'The target audience is experts who expect depth and technical precision.',
+            developer: 'The target audience is developers who expect code examples and technical details.',
+        };
+        parts.push(audienceDesc[contract.audience] || '');
+    }
+
+    if (contract.assumptions && contract.assumptions.length > 0) {
+        parts.push(`Working assumptions: ${contract.assumptions.join('; ')}.`);
+    }
+
+    return parts.length > 0 ? parts.join(' ') : null;
+}
+
+function _buildInstructions(contract, model) {
+    const instructions = [];
+    const goal = contract.primary_goal || 'the request';
+
+    // Core task instructions
+    switch (contract.task_type) {
+        case 'plan':
+            instructions.push('Break the plan into numbered phases with specific action items and deadlines');
+            instructions.push('Assign priority levels (high/medium/low) to each action item');
+            instructions.push('Include measurable success criteria for each milestone');
+            break;
+        case 'story':
+            instructions.push('Establish setting, characters, and central conflict immediately');
+            instructions.push('Maintain consistent narrative voice and emotional pacing');
+            instructions.push('Resolve with a satisfying conclusion that ties back to the central theme');
+            break;
+        case 'content':
+            instructions.push('Open with a compelling hook that captures reader attention');
+            instructions.push('Structure with clear headings and scannable sections');
+            instructions.push('Include specific data points, examples, or quotes to support claims');
+            break;
+        case 'code':
+            instructions.push('Write clean, production-ready code with inline comments');
+            instructions.push('Include error handling and edge case coverage');
+            instructions.push('Follow the language\'s idiomatic conventions and best practices');
+            break;
+        case 'explain':
+            instructions.push(`Define core concepts clearly before building complexity`);
+            instructions.push('Use concrete examples to illustrate abstract ideas');
+            instructions.push('Connect new concepts to familiar knowledge when possible');
+            break;
+        case 'compare':
+            instructions.push('Define comparison criteria explicitly before comparing');
+            instructions.push('Present balanced evidence for each option across all criteria');
+            instructions.push('Conclude with a clear synthesis or recommendation');
+            break;
+        case 'analyze':
+            instructions.push('Examine the subject across multiple relevant dimensions');
+            instructions.push('Support each finding with specific evidence or data');
+            instructions.push('Distinguish between facts, inferences, and opinions');
+            break;
+        case 'brainstorm':
+            instructions.push('Generate ideas across multiple categories and perspectives');
+            instructions.push('Include both conventional and unconventional approaches');
+            instructions.push('For each idea, note feasibility and potential impact');
+            break;
+        case 'optimize':
+            instructions.push('Identify the top inefficiencies or bottlenecks first');
+            instructions.push('Provide specific, implementable improvement steps for each');
+            instructions.push('Estimate the expected impact of each optimization');
+            break;
+        case 'summarize':
+            instructions.push('Capture the core thesis and key supporting points');
+            instructions.push('Preserve critical nuance without unnecessary detail');
+            instructions.push('Organize the summary in logical order, not source order');
+            break;
+        case 'evaluate':
+            instructions.push('Apply consistent evaluation criteria across all items');
+            instructions.push('Provide specific evidence for each rating or judgment');
+            instructions.push('Include actionable improvement recommendations');
+            break;
+        case 'instruct':
+            instructions.push('Number each step sequentially with clear action verbs');
+            instructions.push('Include expected outcomes or checkpoints at key stages');
+            instructions.push('Anticipate common mistakes and include warnings');
+            break;
+        case 'list':
+            instructions.push('Order items by relevance or priority, not arbitrarily');
+            instructions.push('Include a brief explanation for why each item is included');
+            break;
+        default:
+            instructions.push(`Address ${goal} directly and completely`);
+            instructions.push('Organize the response with clear logical structure');
+            break;
+    }
+
+    // Must-include items
+    if (contract.must_include && contract.must_include.length > 0) {
+        contract.must_include.forEach(item => {
+            instructions.push(`Include: ${item}`);
+        });
+    }
+
+    // Model-specific instruction enhancements
+    if (model === 'openai') {
+        instructions.push('Follow all stated constraints precisely with no deviation');
+    } else if (model === 'anthropic') {
+        instructions.push('Maintain accuracy, balance, and factual correctness throughout');
+    } else if (model === 'gemini') {
+        instructions.push('Ground your response in current best practices and verified information');
+    }
+
+    return instructions;
+}
+
+function _buildConstraintLines(contract, model) {
+    const constraints = [];
+
+    // Must-exclude items
+    if (contract.must_exclude && contract.must_exclude.length > 0) {
+        contract.must_exclude.forEach(item => {
+            constraints.push(`Do not ${item}`);
+        });
+    }
+
+    // Depth constraints
+    if (contract.depth === 'surface') {
+        constraints.push('Keep the response brief and focused on essentials only');
+    } else if (contract.depth === 'deep') {
+        constraints.push('Provide comprehensive, in-depth coverage with thorough explanations');
+    }
+
+    // Tone constraints
+    if (contract.tone && contract.tone !== 'professional') {
+        constraints.push(`Tone: ${contract.tone}`);
+    }
+
+    // Audience-adaptive language
+    if (contract.audience === 'beginner') {
+        constraints.push('Use simple language, avoid jargon, explain any technical terms');
+    } else if (contract.audience === 'expert') {
+        constraints.push('Use technical terminology freely, focus on depth over breadth');
+    }
+
+    // Scope constraints based on task type
+    const scopeMap = {
+        plan: 'Organize into 3–5 phases with actionable sub-tasks',
+        story: 'Structure into beginning, middle, and end with clear narrative arc',
+        content: 'Structure with 5–7 scannable sections',
+        evaluate: 'Evaluate across 4–6 distinct criteria',
+        explain: 'Keep between 150–300 words unless deeper coverage is requested',
+        compare: 'Compare across 3–5 key criteria in a structured format',
+        summarize: 'Limit to 100–150 words unless specified otherwise',
+        list: 'Provide exactly 5–7 items unless a specific count is requested',
+        instruct: 'Use 5–10 clear, numbered steps',
+        code: 'Keep code under 50 lines with inline comments',
+        brainstorm: 'Generate 5–8 distinct ideas',
+        optimize: 'Identify top 3–5 improvements with implementation steps',
+    };
+    if (scopeMap[contract.task_type]) {
+        constraints.push(scopeMap[contract.task_type]);
+    }
+
+    // Model-specific structural constraints
+    if (model === 'openai') {
+        constraints.push('Strictly follow all formatting rules and output structure');
+    } else if (model === 'anthropic') {
+        constraints.push('Maintain high-level structural integrity; avoid excessive nesting');
+        constraints.push('Ensure accuracy and balanced perspective');
+    } else if (model === 'gemini') {
+        constraints.push('Lead with the most important information first');
+    }
+
+    return constraints;
+}
+
+function _buildOutputSpec(contract, model) {
+    const formatMap = {
+        plan: {
+            openai: 'Respond as a structured timeline with numbered phases, each containing specific action items, deadlines, and priority levels.',
+            anthropic: 'Present as clearly numbered phases, each starting with an action verb and including expected outcomes.',
+            gemini: 'Respond as a structured plan with phases, tasks, and milestones in a clear hierarchical format.',
+        },
+        story: {
+            openai: 'Respond as a flowing narrative with clear paragraph breaks and engaging language.',
+            anthropic: 'Write in clear, engaging prose with logical flow and precise language.',
+            gemini: 'Write a well-organized narrative with clear structure and vivid detail.',
+        },
+        content: {
+            openai: 'Respond in structured markdown with H2 headings, bullet points, and bold key terms.',
+            anthropic: 'Respond with concise sections organized under clear headings with actionable content.',
+            gemini: 'Respond with organized sections, headers, and bullet points using clear formatting.',
+        },
+        code: {
+            openai: 'Respond with clean, well-commented code in a fenced code block. Add a brief usage example.',
+            anthropic: 'Provide well-documented code with error handling. Include design rationale in code comments.',
+            gemini: 'Provide clean, efficient code with inline comments and a structured explanation of key logic.',
+        },
+        compare: {
+            openai: 'Respond as a well-formatted markdown comparison table with clear column headers and data rows.',
+            anthropic: 'Present as a structured comparison with clear dimensions and balanced assessment.',
+            gemini: 'Present as a well-structured table with clear criteria columns and supporting evidence.',
+        },
+        explain: {
+            openai: 'Respond with a clear explanation followed by a concrete, practical example.',
+            anthropic: 'Provide a clear explanation with a well-chosen illustrative example.',
+            gemini: 'Provide a structured explanation with practical examples and supporting evidence.',
+        },
+        summarize: {
+            openai: 'Respond as a concise summary with key takeaways in bullet points.',
+            anthropic: 'Provide a clean, concise summary preserving all critical nuance.',
+            gemini: 'Respond with a structured summary highlighting the most important findings.',
+        },
+        list: {
+            openai: 'Respond as a numbered list with a one-line description per item.',
+            anthropic: 'Provide a clean, prioritized list with concise explanations.',
+            gemini: 'Respond as an organized, fact-based list with brief supporting context per item.',
+        },
+        analyze: {
+            openai: 'Respond in structured sections covering each dimension of analysis with evidence.',
+            anthropic: 'Present findings in organized sections with balanced assessment and supporting data.',
+            gemini: 'Respond with structured analysis covering key dimensions with evidence-based conclusions.',
+        },
+        brainstorm: {
+            openai: 'Respond as a numbered list of distinct ideas, each with a one-sentence rationale.',
+            anthropic: 'Provide categorized ideas with brief feasibility notes for each.',
+            gemini: 'Respond as a structured list of ideas organized by category with impact estimates.',
+        },
+        instruct: {
+            openai: 'Respond as numbered steps, each beginning with an action verb.',
+            anthropic: 'Present as clearly numbered steps with expected outcomes at key checkpoints.',
+            gemini: 'Respond as a structured guide with numbered steps and practical tips.',
+        },
+        optimize: {
+            openai: 'Respond with prioritized improvements, each with specific implementation steps.',
+            anthropic: 'Present improvements in order of impact with evidence-based rationale.',
+            gemini: 'Respond with a ranked list of optimizations, each with clear implementation actions.',
+        },
+        evaluate: {
+            openai: 'Respond with a structured evaluation covering each criterion with specific evidence.',
+            anthropic: 'Present balanced evaluations per criterion with improvement recommendations.',
+            gemini: 'Respond with a criteria-based evaluation matrix with supporting evidence.',
+        },
+    };
+
+    const defaults = {
+        openai: 'Respond in structured, well-organized markdown.',
+        anthropic: 'Respond with clear organization and precise language.',
+        gemini: 'Respond with well-structured formatting grounded in evidence.',
+    };
+
+    const templates = formatMap[contract.task_type] || defaults;
+    return templates[model] || templates.openai;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  STAGE 2: PROMPT REFINER (low ambiguity path only)
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * Tighten and harden an already generated prompt.
+ * Allowed: remove ambiguity, harden constraints, improve formatting, enforce model syntax
+ * Forbidden: reinterpret intent, add features, expand scope, change task type
+ */
+function _refinePrompt(prompt, contract, modelTarget) {
+    let refined = prompt;
+    let changed = false;
+
+    // 1. Replace vague quantifiers with precise ones
+    const vagueReplacements = {
+        'some': '3–5',
+        'many': '5–7',
+        'few': '2–3',
+        'several': '4–6',
+        'a lot of': 'a comprehensive set of',
+        'stuff': 'specific details',
+        'things': 'key elements',
+        'something': 'a concrete example',
+        'anything': 'any relevant information',
+        'whatever': 'the most effective approach',
+    };
+    for (const [vague, precise] of Object.entries(vagueReplacements)) {
+        const regex = new RegExp(`\\b${vague}\\b`, 'gi');
+        if (regex.test(refined)) {
+            refined = refined.replace(regex, precise);
+            changed = true;
+        }
+    }
+
+    // 2. Ensure prompt ends cleanly (no trailing whitespace or incomplete sentences)
+    refined = refined.trim();
+    if (refined.endsWith(',') || refined.endsWith(' and') || refined.endsWith(' or')) {
+        refined = refined.replace(/[,]\s*$/, '.').replace(/\s+(and|or)\s*$/, '.');
+        changed = true;
+    }
+
+    // 3. Model-specific syntax enforcement
+    if (modelTarget === 'openai') {
+        // Ensure # headers are used consistently
+        if (!refined.includes('# ')) {
+            // Convert bold markers to headers if present
+            refined = refined.replace(/^\*\*([^*]+)\*\*:?\s*$/gm, '# $1');
+            changed = true;
+        }
+    } else if (modelTarget === 'anthropic') {
+        // Ensure XML tags are properly closed
+        const openTags = refined.match(/<(\w+)>/g) || [];
+        const closeTags = refined.match(/<\/(\w+)>/g) || [];
+        if (openTags.length !== closeTags.length) {
+            // Find unclosed tags and close them
+            for (const tag of openTags) {
+                const tagName = tag.replace(/[<>]/g, '');
+                const closeTag = `</${tagName}>`;
+                if (!refined.includes(closeTag)) {
+                    refined += `\n${closeTag}`;
+                    changed = true;
+                }
+            }
+        }
+    } else if (modelTarget === 'gemini') {
+        // Ensure context appears before task (Gemini best practice)
+        const contextIdx = refined.indexOf('**Context:**');
+        const taskIdx = refined.indexOf('**Task:**');
+        if (contextIdx > -1 && taskIdx > -1 && contextIdx > taskIdx) {
+            // Context should come before task — already enforced in generation
+            // but double-check here
+            const contextBlock = refined.match(/\*\*Context:\*\*[\s\S]*?(?=\*\*\w+:\*\*|$)/);
+            if (contextBlock) {
+                refined = refined.replace(contextBlock[0], '');
+                refined = contextBlock[0].trim() + '\n\n' + refined.trim();
+                changed = true;
+            }
+        }
+    }
+
+    // 4. Remove any accidental explanation leakage
+    const leakagePatterns = [
+        /\b(Note:|NB:|Explanation:|Here's why|The reason|I chose|This works because)\b.*$/gm,
+        /\b(Let me know|Feel free to|Hope this helps|If you need)\b.*$/gm,
+    ];
+    for (const pattern of leakagePatterns) {
+        if (pattern.test(refined)) {
+            refined = refined.replace(pattern, '').trim();
+            changed = true;
+        }
+    }
+
+    return changed ? refined : null; // Return null if no refinement was needed
+}
+
+// ════════════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════════════
 
 function _extractSubject(text, lower) {
     const verbSubject = text.match(/\b(?:explain|describe|summarize|compare|analyze|write|create|list|review|evaluate|implement|build|define|discuss|teach|outline|critique|plan|schedule|generate|optimize|improve)\s+(?:a\s+|an\s+|the\s+)?(?:concept\s+of\s+|basics\s+of\s+|fundamentals\s+of\s+|principles\s+of\s+)?(.{3,80}?)(?:\.|,|\?|$|\bfor\b|\bin\b|\bto\b|\busing\b|\bwith\b|\bkeeping\b)/i);
@@ -234,549 +1036,13 @@ function _extractSubject(text, lower) {
         return aboutMatch[1].trim().replace(/\b(some|the|a|an)\b/gi, '').trim();
     }
 
-    // Fallback: use first meaningful phrase
+    // Fallback: first meaningful phrase
     const words = text.split(/\s+/).filter(w => w.length > 3);
     const stopWords = new Set(['this', 'that', 'with', 'from', 'have', 'been', 'will', 'would', 'could', 'should', 'about', 'into', 'them', 'then', 'than', 'also', 'just', 'like', 'make', 'more', 'most', 'only', 'very', 'when', 'what', 'your', 'help']);
     const candidates = words.filter(w => !stopWords.has(w.toLowerCase()));
     if (candidates.length > 0) return candidates.slice(0, 5).join(' ');
 
     return text.substring(0, 40).trim();
-}
-
-function _inferAudience(lower) {
-    if (/\b(beginner|simple|basic|eli5|elementary|for kids|for children)\b/.test(lower)) return 'beginner';
-    if (/\b(expert|advanced|PhD|graduate|specialist|professional|senior)\b/.test(lower)) return 'expert';
-    if (/\b(student|undergraduate|college|university|learner)\b/.test(lower)) return 'student';
-    if (/\b(developer|programmer|engineer|coder)\b/.test(lower)) return 'developer';
-    return 'general';
-}
-
-function _inferDepth(lower, wordCount) {
-    if (/\b(brief|quick|short|concise|overview|high-level|tldr)\b/.test(lower)) return 'surface';
-    if (/\b(detailed|in-depth|comprehensive|thorough|exhaustive|deep dive)\b/.test(lower)) return 'deep';
-    if (wordCount < 8) return 'surface';
-    return 'moderate';
-}
-
-function _getDefaultFormat(taskType) {
-    return {
-        plan: 'step-by-step plan',
-        story: 'narrative',
-        content: 'structured bullets',
-        evaluate: 'explanation + example',
-        explain: 'explanation + example',
-        compare: 'table',
-        generate: 'structured bullets',
-        summarize: 'structured bullets',
-        analyze: 'structured bullets',
-        list: 'structured bullets',
-        instruct: 'step-by-step plan',
-        code: 'code block',
-        brainstorm: 'structured bullets',
-        optimize: 'structured bullets',
-        general: 'structured bullets',
-    }[taskType] || 'structured bullets';
-}
-
-// ════════════════════════════════════════════════════════════════
-//  LAYER 2: PROMPT BLUEPRINT
-// ════════════════════════════════════════════════════════════════
-
-function _buildBlueprint(text, intent, modelTarget) {
-    const parsed = _parsePromptContent(text, intent);
-
-    // Role assignment based on task type and model
-    const role = _assignRole(intent, modelTarget);
-
-    // Task instruction — enriched from original text
-    const task = _buildTaskInstruction(text, intent, parsed);
-
-    // Context — extracted or inferred
-    const context = parsed.context;
-
-    // Constraints — from text analysis + defaults
-    const constraints = _buildConstraints(text, intent, parsed, modelTarget);
-
-    // Output format — map to model-appropriate format
-    const outputFormat = _mapOutputFormat(intent.outputFormat, intent.taskType, modelTarget);
-
-    return {
-        role,
-        task,
-        context,
-        constraints,
-        output_format: outputFormat,
-        control_level: intent.controlLevel,
-        model: modelTarget,
-        // Keep parsed data for generation
-        _parsed: parsed,
-        _intent: intent,
-    };
-}
-
-function _parsePromptContent(text, intent) {
-    const lower = text.toLowerCase();
-    const subject = intent.subject || text.trim().split(/[.,!?]/)[0].trim();
-
-    // Extract explicit signals from prompt
-    const contextMatch = text.match(/\b(?:i am|i'm|we are|we're|my|our|currently|working on|i need|i want|i have|given)\b[^.!?]*/i);
-    const goalMatch = text.match(/\b(?:goal|objective|aim|want to|need to|trying to|hoping to|looking to)\b[^.!?]*/i);
-    const constraintMatch = text.match(/\b(?:constraint|limit|within|between|from|must|should|only|under|maximum|minimum|at least|no more|prioriti)\b[^.!?]*/i);
-    const audienceMatch = text.match(/\b(?:for|targeting|aimed at|audience)\s+(?:a\s+)?(\w+(?:\s+\w+)?)/i);
-    const toneMatch = text.match(/\b(?:tone|style|voice)\s*[:=]?\s*(\w+)/i);
-
-    // Build context
-    let context;
-    if (contextMatch) {
-        context = contextMatch[0].trim();
-        if (context.split(/\s+/).length < 6) {
-            context += `. The task involves ${subject}.`;
-        }
-    } else {
-        context = `I need assistance with ${subject}. ${goalMatch ? goalMatch[0].trim() + '.' : `The goal is to get a high-quality ${intent.outputFormat} on this topic.`}`;
-    }
-
-    // Build constraints
-    let constraintText;
-    if (constraintMatch) {
-        constraintText = constraintMatch[0].trim();
-        if (!constraintText.match(/^[A-Z]/)) {
-            constraintText = constraintText.charAt(0).toUpperCase() + constraintText.slice(1);
-        }
-    } else {
-        constraintText = `Focus specifically on ${subject}. Avoid tangential information or overly generic responses.`;
-    }
-
-    return {
-        subject,
-        context,
-        constraints: constraintText,
-        goal: goalMatch ? goalMatch[0].trim() : null,
-        audience: audienceMatch ? audienceMatch[1] : intent.audience,
-        tone: toneMatch ? toneMatch[1] : null,
-        originalText: text.trim(),
-    };
-}
-
-function _assignRole(intent, modelTarget) {
-    const sub = intent.subject || 'this domain';
-
-    const roleMap = {
-        plan: {
-            openai: `You are a productivity and planning expert specializing in structured goal-setting, time management, and workflow optimization.`,
-            anthropic: `You are a methodical planning strategist with expertise in breaking complex goals into actionable, time-bound milestones.`,
-            gemini: `You are a planning and productivity specialist who creates evidence-based, structured action plans.`,
-        },
-        story: {
-            openai: `You are a bestselling novelist and story architect with deep expertise in narrative structure, character development, and emotional pacing.`,
-            anthropic: `You are an experienced creative writing mentor who excels at crafting compelling narratives with rich character arcs and emotional depth.`,
-            gemini: `You are a narrative design expert who creates engaging stories with clear structure, vivid characters, and meaningful themes.`,
-        },
-        content: {
-            openai: `You are a senior SEO content strategist and copywriter with 10+ years of experience in audience-targeted content creation.`,
-            anthropic: `You are a content strategy expert who creates compelling, well-researched content optimized for both readers and search engines.`,
-            gemini: `You are a content marketing specialist who produces data-driven, audience-aware content with strong SEO foundations.`,
-        },
-        evaluate: {
-            openai: `You are a critical analyst who uses the Evaluate → Diagnose → Improve framework to systematically identify weaknesses and produce better iterations.`,
-            anthropic: `You are a systematic evaluator who provides balanced, evidence-based assessments with clear improvement pathways.`,
-            gemini: `You are an analytical reviewer who applies structured evaluation frameworks to produce measurable improvements.`,
-        },
-        explain: {
-            openai: `You are an expert educator and ${sub} specialist who excels at making complex topics accessible through clear structure and practical examples.`,
-            anthropic: `You are a knowledgeable instructor who explains ${sub} with clarity, precision, and well-chosen examples.`,
-            gemini: `You are a subject matter expert in ${sub} who provides clear, structured explanations grounded in current knowledge.`,
-        },
-        compare: {
-            openai: `You are a research analyst specializing in objective, data-driven comparisons with deep expertise in ${sub}.`,
-            anthropic: `You are an analytical comparator who provides balanced, evidence-based assessments of ${sub}.`,
-            gemini: `You are a comparative analyst who evaluates ${sub} across well-defined criteria with supporting evidence.`,
-        },
-        generate: {
-            openai: `You are a skilled content creator with expertise in ${sub}, known for producing engaging, well-structured content.`,
-            anthropic: `You are a creative professional who produces high-quality, thoughtfully crafted content about ${sub}.`,
-            gemini: `You are a content generation specialist who creates well-organized, audience-appropriate material on ${sub}.`,
-        },
-        code: {
-            openai: `You are a senior software engineer specializing in ${sub}, known for writing clean, well-documented, production-ready code.`,
-            anthropic: `You are an experienced developer who writes robust, well-tested code with clear documentation for ${sub}.`,
-            gemini: `You are a software engineering expert who produces clean, efficient, and well-commented code for ${sub}.`,
-        },
-        analyze: {
-            openai: `You are a senior analyst with deep expertise in ${sub}, skilled at multi-dimensional analysis and evidence-based conclusions.`,
-            anthropic: `You are a thorough analyst who examines ${sub} from multiple perspectives with balanced, well-supported findings.`,
-            gemini: `You are an analytical expert in ${sub} who provides structured, evidence-based analysis with actionable insights.`,
-        },
-        brainstorm: {
-            openai: `You are a creative strategist and innovation consultant with expertise in ${sub}, skilled at generating diverse, unconventional ideas.`,
-            anthropic: `You are an ideation specialist who generates creative, practical solutions for ${sub} across multiple dimensions.`,
-            gemini: `You are a creative problem solver who brainstorms diverse, feasible approaches to ${sub}.`,
-        },
-        optimize: {
-            openai: `You are an optimization specialist with expertise in ${sub}, focused on identifying inefficiencies and implementing measurable improvements.`,
-            anthropic: `You are a systematic improvement consultant who identifies weaknesses in ${sub} and proposes evidence-based optimizations.`,
-            gemini: `You are an efficiency expert who analyzes ${sub} to find optimization opportunities with clear implementation steps.`,
-        },
-    };
-
-    const defaultRole = {
-        openai: `You are a highly capable expert assistant specialized in ${sub}.`,
-        anthropic: `You are a knowledgeable assistant with expertise in ${sub}.`,
-        gemini: `You are an expert assistant who provides well-structured, evidence-based responses about ${sub}.`,
-    };
-
-    const roles = roleMap[intent.taskType] || defaultRole;
-    return roles[modelTarget] || roles.openai;
-}
-
-function _buildTaskInstruction(text, intent, parsed) {
-    const taskVerbs = {
-        plan: 'Create a comprehensive, actionable plan for',
-        story: 'Write a compelling narrative outline for',
-        content: 'Create optimized content for',
-        evaluate: 'Evaluate, diagnose, and improve',
-        explain: 'Provide a clear, structured explanation of',
-        compare: 'Create a detailed comparison of',
-        generate: 'Write',
-        summarize: 'Provide a concise, structured summary of',
-        analyze: 'Conduct a thorough analysis of',
-        list: 'Create a curated, prioritized list of',
-        instruct: 'Provide clear, step-by-step instructions for',
-        code: 'Implement',
-        brainstorm: 'Generate diverse, creative ideas for',
-        optimize: 'Analyze and optimize',
-        general: 'Provide a well-structured response about',
-    };
-
-    const verb = taskVerbs[intent.taskType] || taskVerbs.general;
-    return `${verb} ${parsed.subject || text.trim()}`;
-}
-
-function _buildConstraints(text, intent, parsed, modelTarget) {
-    const constraints = [];
-
-    // From text extraction
-    if (parsed.constraints && !parsed.constraints.includes('[')) {
-        constraints.push(parsed.constraints);
-    }
-
-    // Audience constraint
-    const audienceMap = {
-        beginner: 'Use simple language, avoid jargon, and explain any technical terms',
-        student: 'Assume foundational knowledge but explain advanced concepts clearly',
-        expert: 'Use technical terminology freely and focus on depth over breadth',
-        developer: 'Include code examples and technical details',
-        general: 'Write for a moderately knowledgeable audience with clear language',
-    };
-    constraints.push(audienceMap[intent.audience] || audienceMap.general);
-
-    // Depth constraint
-    if (intent.depth === 'surface') {
-        constraints.push('Keep the response brief and focused on key points');
-    } else if (intent.depth === 'deep') {
-        constraints.push('Provide comprehensive coverage with detailed explanations');
-    }
-
-    // Control level constraints
-    if (intent.controlLevel === 'high') {
-        constraints.push('Follow the exact structure and format specified');
-        constraints.push('Do not deviate from the requested scope');
-    }
-
-    // Model-specific constraints
-    if (modelTarget === 'anthropic') {
-        constraints.push('Ensure accuracy, balance, and factual correctness');
-    } else if (modelTarget === 'gemini') {
-        constraints.push('Ground your response in current best practices and evidence');
-    }
-
-    return constraints;
-}
-
-function _mapOutputFormat(format, taskType, modelTarget) {
-    // Model-specific format descriptions
-    const modelFormats = {
-        openai: {
-            'step-by-step plan': 'Respond as a structured timeline with numbered phases, each containing specific action items, deadlines, and priority levels',
-            'checklist': 'Respond as a numbered checklist with clear, actionable items that can be checked off',
-            'table': 'Respond as a well-formatted markdown comparison table with clear column headers and data rows',
-            'narrative': 'Respond as a flowing narrative with clear paragraph breaks, engaging language, and a logical arc',
-            'structured bullets': 'Respond in structured markdown with headers and bullet points for easy scanning',
-            'explanation + example': 'Respond with a clear explanation followed by a concrete, practical example',
-            'code block': 'Respond with clean, well-commented code in a fenced code block, followed by a brief explanation',
-        },
-        anthropic: {
-            'step-by-step plan': 'Present as clearly numbered steps, each starting with an action verb and including expected outcomes',
-            'checklist': 'Provide a clean checklist with concise, actionable items',
-            'table': 'Present as a structured comparison with clear dimensions and balanced assessment',
-            'narrative': 'Write in clear, engaging prose with logical flow and precise language',
-            'structured bullets': 'Respond with concise bullet points organized under clear headings',
-            'explanation + example': 'Provide a clear explanation with a well-chosen illustrative example',
-            'code block': 'Provide well-documented code with error handling and a brief explanation of design choices',
-        },
-        gemini: {
-            'step-by-step plan': 'Respond as a structured plan with phases, tasks, and milestones in a clear hierarchical format',
-            'checklist': 'Provide an organized checklist grounded in best practices',
-            'table': 'Present as a well-structured table with clear criteria columns and supporting evidence',
-            'narrative': 'Write a well-organized narrative with clear structure and evidence-based claims',
-            'structured bullets': 'Respond with organized sections, headers, and bullet points using clear formatting',
-            'explanation + example': 'Provide a structured explanation with practical examples and visual aids where appropriate',
-            'code block': 'Provide clean, efficient code with inline comments and a structured explanation',
-        },
-    };
-
-    return (modelFormats[modelTarget] || modelFormats.openai)[format] || 'Respond in structured markdown with clear organization';
-}
-
-// ════════════════════════════════════════════════════════════════
-//  LAYER 3: PROMPT GENERATION
-// ════════════════════════════════════════════════════════════════
-
-function _generateFromBlueprint(blueprint, modelTarget) {
-    const parts = [];
-
-    // 1. ROLE
-    if (blueprint.role) {
-        parts.push('ROLE:');
-        parts.push(blueprint.role);
-        parts.push('');
-    }
-
-    // 2. OBJECTIVE
-    if (blueprint.task) {
-        parts.push('OBJECTIVE:');
-        let objective = blueprint.task;
-        if (modelTarget === 'gemini' && !objective.toLowerCase().startsWith('execute')) {
-            // Task-oriented phrasing for Gemini
-            objective = `Execute the following task: ${objective}`;
-        }
-        parts.push(objective + (objective.endsWith('.') ? '' : '.'));
-        parts.push('');
-    }
-
-    // 3. CONTEXT
-    if (blueprint.context) {
-        parts.push('CONTEXT:');
-        parts.push(blueprint.context);
-        parts.push('');
-    }
-
-    // 4. CONSTRAINTS
-    if (blueprint.constraints && blueprint.constraints.length > 0) {
-        parts.push('CONSTRAINTS:');
-
-        let finalConstraints = [...blueprint.constraints];
-
-        if (modelTarget === 'openai') {
-            finalConstraints.push('Strictly follow all explicitly stated constraints and formatting rules.');
-        } else if (modelTarget === 'anthropic') {
-            finalConstraints.push('Maintain high-level structural integrity; avoid excessive bullet nesting.');
-        }
-
-        finalConstraints.forEach(c => {
-            parts.push(`- ${c}`);
-        });
-        parts.push('');
-    }
-
-    // 5. PROCESS
-    parts.push('PROCESS:');
-    if (modelTarget === 'anthropic') {
-        parts.push('1. Think carefully about the objective and available context.');
-        parts.push('2. Outline the reasoning steps required to fulfill the goal.');
-        parts.push('3. Provide the final response with a clean, high-level structure.');
-    } else if (modelTarget === 'openai') {
-        parts.push('1. Review constraints and ensure full compliance.');
-        parts.push('2. Process the request methodically and step-by-step.');
-        parts.push('3. Generate output that strictly adheres to the requested schema.');
-    } else if (modelTarget === 'gemini') {
-        parts.push('1. Analyze the practical execution steps needed.');
-        parts.push('2. Ground the response in best practices.');
-        parts.push('3. Output the final execution-focused result directly.');
-    } else {
-        parts.push('Think step by step before providing your answer.');
-    }
-    parts.push('');
-
-    // 6. OUTPUT FORMAT
-    if (blueprint.output_format) {
-        parts.push('OUTPUT FORMAT:');
-        parts.push(blueprint.output_format + (blueprint.output_format.endsWith('.') ? '' : '.'));
-        parts.push('');
-    }
-
-    return parts.join('\n').trim();
-}
-
-// ════════════════════════════════════════════════════════════════
-//  ANALYZER LOOP: AUTO-IMPROVEMENT
-// ════════════════════════════════════════════════════════════════
-
-function _improvePrompt(v1Prompt, blueprint, analysis, modelTarget) {
-    const changes = [];
-    let improved = v1Prompt;
-    const dims = analysis.dimension_scores || {};
-    const issues = [...(analysis.issues || []), ...(analysis.model_specific_issues || [])];
-
-    // Fix clarity issues
-    if (dims.clarity < 4) {
-        // Replace vague terms
-        const vagueReplacements = {
-            'stuff': 'specific details',
-            'things': 'key elements',
-            'something': 'a concrete example',
-            'anything': 'any relevant information',
-            'whatever': 'the most effective approach',
-        };
-        for (const [vague, replacement] of Object.entries(vagueReplacements)) {
-            const regex = new RegExp(`\\b${vague}\\b`, 'gi');
-            if (regex.test(improved)) {
-                improved = improved.replace(regex, replacement);
-                changes.push(`Replaced vague term "${vague}" with "${replacement}" for clarity`);
-            }
-        }
-    }
-
-    // Helper to safely append to a section if it exists, otherwise append to end
-    const appendToSection = (sectionName, textToAdd) => {
-        const regex = new RegExp(`(${sectionName}:\\n)`);
-        if (regex.test(improved)) {
-            improved = improved.replace(regex, `$1- ${textToAdd}\n`);
-        } else {
-            improved += `\n\n${sectionName}:\n- ${textToAdd}`;
-        }
-    };
-
-    // Fix constraint completeness
-    if (dims.constraint_completeness < 4) {
-        // Add scope if missing
-        if (!/\b(\d+\s*words?|\d+\s*sentences?|\d+\s*paragraphs?|brief|concise|keep it short|max\s+\d+|limit\s+to)\b/i.test(improved)) {
-            const scope = _getDefaultScope(blueprint._intent ? blueprint._intent.taskType : (blueprint.taskType || 'general'));
-            appendToSection('CONSTRAINTS', scope.replace('Scope: ', ''));
-            changes.push('Added explicit scope constraint');
-        }
-
-        // Add tone if missing
-        if (!/\b(tone|style|formal|informal|casual|professional)\b/i.test(improved)) {
-            appendToSection('CONSTRAINTS', 'Maintain a professional and informative tone.');
-            changes.push('Added explicit tone constraint');
-        }
-    }
-
-    // Fix output controllability
-    if (dims.output_controllability < 4) {
-        if (!/\b(format|structure|organize|present|respond as)\b/i.test(improved)) {
-            appendToSection('CONSTRAINTS', `Format strictly as requested: ${blueprint.output_format}.`);
-            changes.push('Reinforced output format specification');
-        }
-    }
-
-    // Fix ambiguity
-    if (dims.ambiguity_risk > 3) {
-        const quantReplacements = {
-            'some': '3-5',
-            'many': '5-7',
-            'few': '2-3',
-            'several': '4-6',
-            'a lot': 'a comprehensive set',
-        };
-        for (const [vague, exact] of Object.entries(quantReplacements)) {
-            const regex = new RegExp(`\\b${vague}\\b`, 'gi');
-            if (regex.test(improved)) {
-                improved = improved.replace(regex, exact);
-                changes.push(`Replaced ambiguous "${vague}" with precise "${exact}"`);
-            }
-        }
-    }
-
-    // Fix model alignment
-    if (dims.model_alignment < 4) {
-        if (modelTarget === 'openai' && !/\b(step by step|reasoning)\b/i.test(improved)) {
-            appendToSection('PROCESS', 'Ensure you work through this step by step.');
-            changes.push('Added step-by-step reasoning for OpenAI');
-        }
-        if (modelTarget === 'anthropic' && !/<\w+>/.test(improved)) {
-            appendToSection('CONSTRAINTS', 'Use clear high-level grouping and structure.');
-            changes.push('Strengthened structural alignment for Anthropic');
-        }
-        if (modelTarget === 'gemini' && !/\b(ground|evidence|best practices)\b/i.test(improved)) {
-            appendToSection('PROCESS', 'Base your response on current evidence and best practices.');
-            changes.push('Added grounding instruction for Gemini');
-        }
-    }
-
-    // If no changes were needed, add a general enhancement
-    if (changes.length === 0) {
-        appendToSection('CONSTRAINTS', 'Provide a clear, well-organized response that directly addresses the objective.');
-        changes.push('Added general quality reinforcement');
-    }
-
-    return { prompt: improved, changes };
-}
-
-function _getDefaultScope(taskType) {
-    return {
-        plan: 'Scope: Break into 3-5 milestones with actionable sub-tasks.',
-        story: 'Scope: Cover 3 acts with 3-5 scenes each.',
-        content: 'Scope: Generate a full outline with 5-7 sections.',
-        evaluate: 'Scope: Evaluate across 4-6 criteria, provide improved version.',
-        explain: 'Scope: Keep the response between 150-300 words.',
-        compare: 'Scope: Compare across 3-5 key criteria.',
-        generate: 'Scope: Target 200-500 words.',
-        summarize: 'Scope: Limit to 100-150 words.',
-        analyze: 'Scope: Cover 3-4 key dimensions of analysis.',
-        list: 'Scope: Provide exactly 5-7 items.',
-        instruct: 'Scope: Use 5-10 clear steps.',
-        code: 'Scope: Keep code under 50 lines with inline comments.',
-        brainstorm: 'Scope: Generate 5-8 distinct ideas.',
-        optimize: 'Scope: Identify top 3-5 improvements with implementation steps.',
-        general: 'Scope: Keep under 300 words.',
-    }[taskType] || 'Scope: Keep under 300 words.';
-}
-
-// ════════════════════════════════════════════════════════════════
-//  "WHY THIS PROMPT WORKS" EXPLANATION
-// ════════════════════════════════════════════════════════════════
-
-function _buildExplanation(intent, blueprint, v1Score, v2, modelTarget) {
-    const profile = MODEL_PROFILES ? (MODEL_PROFILES[modelTarget] || {}) : {};
-    const parts = [];
-
-    // Intent detection
-    parts.push(`**Intent detected:** ${intent.taskType} — ${intent.domain}. ` +
-        `${intent.subject ? `Subject: "${intent.subject}". ` : ''}` +
-        `Control level: ${intent.controlLevel}. Output format: ${intent.outputFormat}.`);
-
-    // Blueprint construction
-    parts.push(`**Blueprint built** with ${blueprint.constraints.length} constraints tailored for ${_modelLabel(modelTarget)}. ` +
-        `Role, context, task instruction, and output format were all inferred from your input and optimized for ${profile.name || modelTarget}.`);
-
-    // Model awareness
-    const modelNotes = {
-        openai: 'OpenAI GPT benefits from explicit system roles, structured constraints, and step-by-step reasoning instructions.',
-        anthropic: 'Claude excels with XML-tagged sections for clear boundaries, and responds well to thoughtful, well-organized instructions.',
-        gemini: 'Gemini performs best when context/background comes before the task instruction, with evidence-based grounding.',
-    };
-    parts.push(`**Model optimization:** ${modelNotes[modelTarget] || modelNotes.openai}`);
-
-    // Score improvement (if v2 exists)
-    if (v1Score && v2) {
-        const delta = (v2.score.overall - v1Score.overall).toFixed(1);
-        parts.push(`**Auto-improved:** v1 scored ${v1Score.overall.toFixed(1)}/5.0 (below ${IMPROVEMENT_THRESHOLD} threshold). ` +
-            `The system revised the prompt and v2 scored ${v2.score.overall.toFixed(1)}/5.0 (+${delta} improvement).`);
-    } else if (v1Score) {
-        parts.push(`**Quality verified:** The generated prompt scored ${v1Score.overall.toFixed(1)}/5.0, meeting the quality threshold.`);
-    }
-
-    return parts.join('\n\n');
-}
-
-function _modelLabel(model) {
-    return {
-        openai: 'OpenAI GPT',
-        anthropic: 'Anthropic Claude',
-        gemini: 'Google Gemini',
-    }[model] || model;
 }
 
 module.exports = { generate };
