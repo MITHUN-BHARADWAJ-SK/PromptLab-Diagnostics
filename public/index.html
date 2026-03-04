@@ -1,40 +1,56 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html class="light" lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
-        content="PromptLab — Learn prompting as a skill. Analyze, improve, and master AI prompts with real-time scoring and feedback.">
-    <title>PromptLab | Vertical Diagnostic Dashboard</title>
+        content="PromptLab — Learn prompting as a skill. Analyze, improve, and master AI prompts with real-time scoring and model-specific feedback for OpenAI, Anthropic, and Gemini.">
+    <title>PromptLab — Master AI Prompting</title>
 
-    <link href="https://fonts.googleapis.com" rel="preconnect" />
-    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
         rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round|Material+Icons+Outlined"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries,typography"></script>
-    <script>
+    <link rel="stylesheet" href="/css/landing.css?v=3">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23dc2626'/><text x='32' y='44' text-anchor='middle' fill='white' font-size='36' font-weight='800' font-family='sans-serif'>P</text></svg>">
+
+    <!-- Tailwind Config -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     colors: {
-                        primary: "#dc2626",
+                        "primary": "#dc2626",
+                        "crimson": "#8b0000",
+                        "vibrant-red": "#ff1a1a",
                         "background-light": "#fcfcfd",
                         "background-dark": "#050507",
-                        crimson: "#8b0000",
-                        accent: "#DC2626",
-                        surface: "#0A0A0A",
                     },
                     fontFamily: {
-                        display: ["Space Grotesk", "sans-serif"],
-                        sans: ["Space Grotesk", "sans-serif"],
-                        mono: ["JetBrains Mono", "monospace"],
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
                     },
                     keyframes: {
+                        'text-swap-out': {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '10%': { opacity: '1', transform: 'translateY(0)' },
+                            '40%': { opacity: '1', transform: 'translateY(0)' },
+                            '50%': { opacity: '0', transform: 'translateY(-10px)' },
+                            '100%': { opacity: '0', transform: 'translateY(-10px)' },
+                        },
+                        'text-swap-in': {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '50%': { opacity: '0', transform: 'translateY(10px)' },
+                            '60%': { opacity: '1', transform: 'translateY(0)' },
+                            '90%': { opacity: '1', transform: 'translateY(0)' },
+                            '100%': { opacity: '0', transform: 'translateY(-10px)' },
+                        },
                         'border-glow-light': {
                             '0%': { borderColor: 'rgba(220, 38, 38, 0.1)', boxShadow: '0 0 5px rgba(220, 38, 38, 0.05)' },
                             '25%': { borderColor: 'rgba(220, 38, 38, 0.2)', boxShadow: '2px 0 10px rgba(220, 38, 38, 0.08)' },
@@ -51,82 +67,43 @@
                         }
                     },
                     animation: {
+                        'swap-out': 'text-swap-out 6s infinite',
+                        'swap-in': 'text-swap-in 6s infinite',
                         'border-pulse-light': 'border-glow-light 3s linear infinite',
                         'border-pulse-dark': 'border-glow-dark 3s linear infinite',
-                    },
-                    borderRadius: {
-                        DEFAULT: "4px",
-                    },
+                    }
                 },
             },
-        };
+        }
     </script>
-    <style>
-        .glow-red {
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.1);
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .perspective-container {
+                perspective: 1000px;
+            }
+            .glow-text {
+                text-shadow: 0 2px 10px rgba(220, 38, 38, 0.1);
+            }
+            .dark .glow-text {
+                text-shadow: 0 0 20px rgba(220, 38, 38, 0.4);
+            }
+            .terminal-glass {
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(252, 252, 253, 0.95) 100%);
+                backdrop-filter: blur(16px);
+            }
+            .dark .terminal-glass {
+                background: linear-gradient(135deg, rgba(10, 0, 1, 0.9) 0%, rgba(5, 0, 0, 0.98) 100%);
+                backdrop-filter: blur(12px);
+            }
+            .glow-border {
+                box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            }
+            .dark .glow-border {
+                box-shadow: 0 0 15px rgba(220, 38, 38, 0.2), inset 0 0 10px rgba(220, 38, 38, 0.1);
+            }
         }
-
-        .text-glow {
-            text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
-        }
-
-        .border-glow {
-            border-color: rgba(239, 68, 68, 0.2);
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #000000;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #262626;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #404040;
-        }
-
-        .radar-grid {
-            stroke: rgba(255, 255, 255, 0.05);
-            stroke-width: 1;
-            fill: none;
-        }
-
-        .radar-axis {
-            stroke: rgba(255, 255, 255, 0.1);
-            stroke-width: 1;
-        }
-
-        .radar-area {
-            fill: rgba(239, 68, 68, 0.3);
-            stroke: #EF4444;
-            stroke-width: 2;
-            transition: all 0.5s ease;
-        }
-
-        .radar-glow {
-            filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.4));
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .glow-border {
-            box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.05);
-        }
-
-        .dark .glow-border {
-            box-shadow: 0 0 15px rgba(220, 38, 38, 0.2), inset 0 0 10px rgba(220, 38, 38, 0.1);
-        }
-
         .converging-lines {
-            background-image:
+            background-image: 
                 linear-gradient(to top, rgba(220, 38, 38, 0.03) 0%, transparent 80%),
                 repeating-linear-gradient(90deg, transparent 0, transparent 40px, rgba(0, 0, 0, 0.03) 41px),
                 repeating-linear-gradient(0deg, transparent 0, transparent 40px, rgba(0, 0, 0, 0.03) 41px);
@@ -134,605 +111,1256 @@
             transform: perspective(600px) rotateX(60deg) scale(2.5);
             transform-origin: center bottom;
         }
-
         .dark .converging-lines {
-            background-image:
+            background-image: 
                 linear-gradient(to top, rgba(139, 0, 0, 0.25) 0%, transparent 80%),
                 repeating-linear-gradient(90deg, transparent 0, transparent 40px, rgba(220, 38, 38, 0.08) 41px),
                 repeating-linear-gradient(0deg, transparent 0, transparent 40px, rgba(220, 38, 38, 0.08) 41px);
         }
-
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(16px);
-        }
-
-        .dark .glass-panel {
-            background: rgba(5, 5, 7, 0.6);
-        }
     </style>
 
-    <link rel="stylesheet" href="/css/index.css">
-
-    <!-- PromptLab Local Auth Engine -->
-    <!-- (Firebase removed per user request) -->
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 </head>
 
-<body
-    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans min-h-screen selection:bg-primary selection:text-white">
-    <div class="flex min-h-screen relative overflow-hidden">
-        <!-- ── Background Effects ──────────────────────────────── -->
+<body class="transition-colors duration-500">
+    <!-- ── Ambient particles ────────────────────────────────── -->
+    <div class="particles" id="particles"></div>
+
+    <div class="relative flex w-full flex-col overflow-hidden">
         <div class="absolute inset-0 z-0 pointer-events-none">
             <div
                 class="absolute bottom-0 left-0 right-0 h-[80%] converging-lines opacity-60 dark:opacity-50 transition-opacity duration-500">
             </div>
             <div
-                class="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary/5 dark:bg-primary/10 blur-[120px] rounded-full transition-all duration-500">
+                class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[2px] h-[90%] bg-gradient-to-t from-primary/20 dark:from-primary via-primary/5 dark:via-primary/40 to-transparent blur-[1px] opacity-30 dark:opacity-70 transition-all duration-500">
+            </div>
+            <div
+                class="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/5 dark:bg-primary/15 blur-[140px] rounded-full transition-all duration-500">
+            </div>
+            <div
+                class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-white dark:from-black via-transparent to-[var(--bg-primary)] dark:to-[var(--bg-primary)] transition-colors duration-500">
             </div>
         </div>
 
-        <!-- ── Sidebar ─────────────────────────────────────────── -->
-        <aside
-            class="w-20 lg:w-24 border-r border-slate-200 dark:border-white/5 flex flex-col items-center py-8 gap-10 glass-panel z-20">
-            <a href="/"
-                class="p-3 bg-primary rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform cursor-pointer">
-                <span class="material-icons-round text-white text-3xl">biotech</span>
+        <!-- ── Header ───────────────────────────────────────────── -->
+        <header
+            class="fixed top-0 left-0 w-full z-50 flex items-center justify-between border-b border-slate-100 dark:border-white/5 bg-white/60 dark:bg-black/40 backdrop-blur-xl px-4 md:px-6 py-4 lg:px-10 transition-colors duration-500">
+            <a href="#" class="flex items-center gap-3 group cursor-pointer no-underline">
+                <div
+                    class="flex items-center justify-center size-9 rounded-sm border border-primary/20 dark:border-primary/50 bg-primary/5 dark:bg-primary/10 text-primary shadow-[0_4px_12px_rgba(220,38,38,0.1)] dark:shadow-[0_0_15px_rgba(220,38,38,0.3)] group-hover:shadow-[0_4px_20px_rgba(220,38,38,0.15)] dark:group-hover:shadow-[0_0_25px_rgba(220,38,38,0.5)] transition-all">
+                    <span class="material-symbols-outlined !text-[22px]">biotech</span>
+                </div>
+                <h2
+                    class="text-slate-900 dark:text-white text-xl font-bold tracking-tighter uppercase transition-colors duration-500 m-0">
+                    Prompt<span class="text-primary">Lab</span></h2>
             </a>
-            <nav class="flex flex-col gap-8">
-                <button
-                    class="nav-btn group relative flex items-center justify-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-card-dark transition-all text-slate-400"
-                    data-view="dashboard" onclick="switchView('dashboard')">
-                    <span class="material-icons-round transition-colors nav-icon">dashboard</span>
-                    <div
-                        class="absolute left-full ml-4 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                        Dashboard</div>
-                </button>
-                <button
-                    class="nav-btn group relative flex items-center justify-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-card-dark transition-all text-primary active"
-                    data-view="analyzer" onclick="switchView('analyzer')">
-                    <span class="material-icons-round transition-colors nav-icon">analytics</span>
-                    <div
-                        class="absolute left-full ml-4 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                        Analyzer</div>
-                </button>
-                <button
-                    class="nav-btn group relative flex items-center justify-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-card-dark transition-all text-slate-400"
-                    data-view="generator" onclick="switchView('generator')">
-                    <span class="material-icons-round transition-colors nav-icon">auto_awesome</span>
-                    <div
-                        class="absolute left-full ml-4 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                        Generator</div>
-                </button>
-                <button
-                    class="nav-btn group relative flex items-center justify-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-card-dark transition-all text-slate-400"
-                    data-view="profile" onclick="switchView('profile')">
-                    <span class="material-icons-round transition-colors nav-icon">account_circle</span>
-                    <div
-                        class="absolute left-full ml-4 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                        Profile</div>
-                </button>
-            </nav>
-            <div class="mt-auto">
-                <button onclick="firebaseSignOut()"
-                    class="group relative flex items-center justify-center p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-card-dark transition-all text-slate-400">
-                    <span class="material-icons-round transition-colors group-hover:text-primary">logout</span>
-                    <div
-                        class="absolute left-full ml-4 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
-                        Sign Out</div>
-                </button>
+
+            <button class="md:hidden text-slate-800 dark:text-white p-2" id="mobileMenuBtn" aria-label="Toggle menu">
+                <span class="material-symbols-outlined">menu</span>
+            </button>
+
+            <div id="desktopNav" class="hidden md:flex flex-1 justify-end gap-6 lg:gap-10 items-center">
+                <nav class="flex items-center gap-6 lg:gap-8 landing-nav">
+                    <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline"
+                        href="#features">Features</a>
+                    <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline"
+                        href="#models">Models</a>
+                    <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline"
+                        href="#how-it-works">How it works</a>
+                    <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline"
+                        href="#testimonials">Reviews</a>
+                    <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline"
+                        href="/login.html">Sign In</a>
+                </nav>
+                <a href="/login.html?mode=signup" id="signupBtn"
+                    class="relative group flex items-center justify-center overflow-hidden rounded-sm px-6 py-2 bg-transparent border border-primary/20 dark:border-primary/40 text-slate-800 dark:text-white text-[10px] font-bold tracking-widest uppercase transition-all animate-border-pulse-light dark:animate-border-pulse-dark whitespace-nowrap no-underline">
+                    <div class="absolute inset-0 bg-primary/5 dark:group-hover:bg-primary/10 transition-all"></div>
+                    <span class="relative z-10">Get Started</span>
+                </a>
             </div>
-        </aside>
+        </header>
 
-        <!-- ── Main Area ───────────────────────────────────────── -->
-        <main class="flex-1 flex flex-col h-screen overflow-hidden relative z-10 pt-safe">
-
-            <!-- ── Top Header ──────────────────────────────────── -->
-            <header
-                class="h-20 px-8 flex items-center justify-between border-b border-slate-200 dark:border-white/5 glass-panel sticky top-0 z-30 transition-colors duration-500">
-                <div class="flex items-center gap-6 w-1/3">
-                    <div class="relative w-full max-w-md">
+        <!-- ── Hero Section ─────────────────────────────────────── -->
+        <section class="hero relative z-10 flex flex-col items-center justify-center px-4 py-16 pb-32"
+            style="min-height: calc(100vh - 68px); margin-top: 68px; padding-bottom: 120px;">
+            <div class="w-full max-w-5xl flex flex-col items-center">
+                <div class="flex flex-col gap-6 text-center items-center mb-16">
+                    <div
+                        class="inline-flex items-center gap-3 px-4 py-1.5 rounded-sm border border-primary/10 dark:border-primary/40 bg-primary/5 text-[9px] font-mono font-bold tracking-[0.3em] text-primary uppercase whitespace-nowrap transition-colors duration-500">
                         <span
-                            class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
-                        <input
-                            class="w-full bg-slate-100 dark:bg-card-dark border-transparent dark:border-border-dark rounded-full pl-10 pr-4 py-2 focus:ring-1 focus:ring-primary focus:border-primary text-sm"
-                            placeholder="Search prompts or logs..." type="text" />
+                            class="size-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.3)] dark:shadow-[0_0_8px_#dc2626]"></span>
+                        System Protocol: Active Analysis
                     </div>
+                    <h1
+                        class="text-slate-900 dark:text-white glow-text text-6xl md:text-[84px] font-bold leading-[0.9] tracking-tighter max-w-4xl uppercase transition-colors duration-500">
+                        LEARN PROMPTING <br />
+                        <span class="animated-word-container" id="animated-word-container">
+                            <!-- Words will be injected here by JS -->
+                        </span>
+                    </h1>
+                    <p class="text-slate-500 dark:text-slate-400 text-lg md:text-xl font-medium tracking-tight max-w-2xl mt-4 border-l-2 dark:border-l border-primary/10 dark:border-primary/40 pl-6 transition-colors duration-500 mx-auto text-center"
+                        style="border-left: none; padding-left: 0; max-width: 600px; margin: 0 auto;">
+                        Understand why prompts fail. Fix them systematically. <br class="hidden md:block" />
+                        Improve across models with precision diagnostic telemetry.
+                    </p>
                 </div>
-                <div class="flex items-center gap-6">
-                    <div class="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
-                        <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-                        <span class="text-xs font-bold text-primary tracking-wider uppercase">Live Analysis</span>
+
+                <div class="w-full max-w-3xl relative">
+                    <div
+                        class="absolute -inset-[1px] dark:-inset-[2px] bg-primary/5 dark:bg-primary/20 rounded-lg blur-xl opacity-30 transition-all duration-500">
                     </div>
-                    <button class="relative p-2 text-slate-400 hover:text-primary transition-colors">
-                        <span class="material-icons-round">notifications</span>
-                        <span
-                            class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
-                    </button>
-                    <div class="h-8 w-px bg-slate-200 dark:bg-border-dark"></div>
-                    <div class="flex items-center gap-3 bg-slate-100 dark:bg-card-dark p-1.5 pr-4 rounded-full border border-transparent dark:border-border-dark"
-                        id="headerProfilePill" style="display:none;">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-orange-400 flex items-center justify-center text-white font-bold text-xs"
-                            id="headerAvatar">
-                            ?
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="text-xs font-semibold leading-none" id="headerName">User</span>
-                            <span class="text-[10px] text-primary font-mono font-bold uppercase tracking-tighter"
-                                id="headerRole">Free Tier</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- ── Scrollable Content Area ─────────────────────── -->
-            <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
-
-                <!-- ═══════════ ANALYZER VIEW ═══════════ -->
-                <section class="view active" id="view-analyzer">
-                    <section class="max-w-5xl mx-auto mb-12 text-center mt-12">
+                    <div
+                        class="relative terminal-glass border border-slate-200/60 dark:border-primary/20 shadow-2xl overflow-hidden rounded-lg glow-border transition-all duration-500">
                         <div
-                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 dark:border-primary/30 bg-primary/5 text-[10px] font-mono font-bold tracking-[0.3em] text-primary uppercase whitespace-nowrap transition-colors duration-500 mb-6">
-                            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                            SYSTEM PROTOCOL: ACTIVE ANALYSIS
+                            class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/60 transition-colors duration-500">
+                            <div class="flex gap-2">
+                                <div
+                                    class="size-2.5 rounded-full bg-slate-200 dark:bg-primary/20 dark:border dark:border-primary/30">
+                                </div>
+                                <div
+                                    class="size-2.5 rounded-full bg-slate-200 dark:bg-primary/20 dark:border dark:border-primary/30">
+                                </div>
+                                <div
+                                    class="size-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(220,38,38,0.3)] dark:shadow-[0_0_10px_rgba(220,38,38,0.9)]">
+                                </div>
+                            </div>
+                            <div class="text-[10px] font-mono text-primary/70 tracking-[0.25em] uppercase font-bold">
+                                Diagnostic_Terminal_v4.0.2
+                            </div>
                         </div>
-                        <h1
-                            class="text-5xl md:text-6xl font-extrabold tracking-tighter mb-4 text-slate-900 dark:text-white uppercase transition-colors duration-500">
-                            Analyze <span class="text-primary text-glow italic">Your Prompt</span>
-                        </h1>
-                        <p
-                            class="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg leading-relaxed transition-colors duration-500">
-                            Paste any prompt and get instant, explainable feedback across five dimensions. Learn why
-                            prompts succeed or fail — then improve them.
-                        </p>
-                    </section>
 
-                    <section class="max-w-5xl mx-auto mb-12 relative">
-                        <div
-                            class="absolute -inset-[1px] dark:-inset-[2px] bg-primary/5 dark:bg-primary/20 rounded-lg blur-xl opacity-30 transition-all duration-500">
-                        </div>
-                        <div
-                            class="bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 rounded-lg overflow-hidden glow-border terminal-glass transition-all duration-500 relative z-10">
+                        <div class="flex flex-col md:flex-row items-stretch min-h-[140px]">
+                            <div class="flex-1 relative bg-white/40 dark:bg-transparent transition-colors duration-500">
+                                <textarea onfocus="window.location.href='/login.html'"
+                                    class="w-full h-full bg-transparent border-none text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-700 focus:ring-0 text-xl p-8 font-mono resize-none leading-relaxed transition-colors duration-500"
+                                    placeholder="TYPE_YOUR_PROMPT >_" rows="3" style="outline: none;"></textarea>
+                                <div
+                                    class="absolute bottom-4 right-6 flex gap-6 text-[10px] font-mono text-slate-400 dark:text-primary/20 pointer-events-none uppercase tracking-widest transition-colors duration-500">
+                                    <span>ln: 01</span>
+                                    <span>col: 00</span>
+                                    <span>utf-8</span>
+                                </div>
+                            </div>
 
                             <div
-                                class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/60 transition-colors duration-500">
-                                <div class="flex gap-2">
+                                class="md:w-56 border-l border-slate-100 dark:border-white/5 bg-slate-50/20 dark:bg-white/[0.02] flex flex-col p-6 justify-between transition-colors duration-500">
+                                <div class="space-y-3">
                                     <div
-                                        class="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-primary/20 dark:border dark:border-primary/30">
-                                    </div>
-                                    <div
-                                        class="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-primary/20 dark:border dark:border-primary/30">
-                                    </div>
-                                    <div
-                                        class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(220,38,38,0.3)] dark:shadow-[0_0_10px_rgba(220,38,38,0.9)]">
-                                    </div>
-                                </div>
-                                <div
-                                    class="text-[10px] font-mono text-primary/70 tracking-[0.25em] uppercase font-bold">
-                                    Diagnostic_Terminal_v4.0.2
-                                </div>
-                            </div>
-
-                            <div class="p-6">
-                                <textarea id="analyzerPrompt"
-                                    class="w-full h-32 bg-transparent border-none focus:ring-0 font-mono text-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-700 resize-none px-0 py-2 leading-relaxed transition-colors duration-500"
-                                    placeholder="TYPE_YOUR_PROMPT >_" style="outline: none;"></textarea>
-
-                                <div
-                                    class="flex flex-col md:flex-row gap-6 mt-8 p-4 bg-slate-50/70 dark:bg-black/80 rounded-xl border border-slate-100 dark:border-white/5 transition-colors duration-500">
-                                    <div class="flex-1 min-w-[200px]">
-                                        <label
-                                            class="block text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500 mb-2">Target
-                                            Model</label>
-                                        <div class="relative group">
-                                            <select id="analyzerModel"
-                                                class="w-full bg-white dark:bg-transparent border border-slate-200 dark:border-white/10 text-xs font-mono text-primary font-bold py-2 pl-3 pr-8 rounded-sm dark:rounded focus:ring-1 focus:ring-primary/50 focus:border-primary/50 appearance-none cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-500">
-                                                <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
-                                                    value="openai">OpenAI (GPT)</option>
-                                                <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
-                                                    value="anthropic">Anthropic (Claude)</option>
-                                                <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
-                                                    value="gemini">Google (Gemini)</option>
-                                            </select>
-                                            <span
-                                                class="material-icons-outlined absolute right-2 top-1/2 -translate-y-1/2 text-sm text-primary pointer-events-none">expand_more</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex-1 min-w-[200px]">
-                                        <label
-                                            class="block text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500 mb-2">Example
-                                            Output (Optional)</label>
-                                        <input id="analyzerExample"
-                                            class="w-full bg-white dark:bg-transparent border border-slate-200 dark:border-white/10 text-xs font-mono text-slate-800 dark:text-white font-bold py-2 px-3 rounded-sm dark:rounded focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors duration-500"
-                                            placeholder="What ideal output looks like..." type="text" />
-                                    </div>
-                                    <div class="flex items-end mt-4 md:mt-0">
-                                        <button id="analyzeBtn" onclick="analyzePrompt()"
-                                            class="group relative overflow-hidden bg-primary px-8 h-10 rounded-sm dark:rounded-xl transition-all hover:scale-[0.98] active:scale-95 shadow-[0_10px_20px_-5px_rgba(220,38,38,0.25)] dark:shadow-[0_0_30px_rgba(220,38,38,0.3)] hover:shadow-[0_15px_30px_-5px_rgba(220,38,38,0.4)] dark:hover:shadow-[0_0_50px_rgba(220,38,38,0.5)] w-full md:w-auto flex items-center justify-center gap-2">
-                                            <div
-                                                class="absolute inset-0 bg-gradient-to-tr from-black/5 dark:from-black/30 to-transparent transition-colors duration-500">
-                                            </div>
-                                            <span
-                                                class="relative z-10 text-white text-xs font-bold tracking-[0.3em] uppercase">Analyze</span>
-                                            <span
-                                                class="material-icons-outlined relative z-10 text-[16px] text-white">bolt</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="mt-4" id="quotaBar" style="display:none;">
-                                    <div
-                                        class="flex justify-between text-[10px] font-mono font-bold text-slate-500 mb-1 tracking-widest uppercase">
-                                        <span id="quotaLabel">DAILY QUOTA</span>
-                                        <span id="quotaCount">—</span>
-                                    </div>
-                                    <div
-                                        class="w-full bg-slate-100 dark:bg-primary/10 h-1.5 rounded-full overflow-hidden transition-colors duration-500">
-                                        <div id="quotaFill"
-                                            class="bg-primary h-full w-full shadow-[0_0_10px_rgba(220,38,38,0.2)] dark:shadow-[0_0_12px_rgba(220,38,38,0.6)] transition-all duration-500">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            class="absolute -bottom-12 left-1/2 -translate-x-1/2 w-[90%] h-8 bg-black/5 dark:bg-primary/20 blur-3xl rounded-full opacity-20 dark:opacity-100 transition-all duration-500 pointer-events-none">
-                        </div>
-                    </section>
-
-                    <div class="results-panel" id="analyzerResults"></div>
-                </section>
-
-                <!-- ═══════════ GENERATOR VIEW ═══════════ -->
-                <section class="view" id="view-generator">
-                    <section class="max-w-5xl mx-auto mb-12 text-center mt-12">
-                        <div
-                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/20 dark:border-primary/30 bg-primary/5 text-[10px] font-mono font-bold tracking-[0.3em] text-primary uppercase whitespace-nowrap transition-colors duration-500 mb-6">
-                            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                            THREE-LAYER GENERATION ENGINE
-                        </div>
-                        <h1
-                            class="text-5xl md:text-6xl font-extrabold tracking-tighter mb-4 text-slate-900 dark:text-white uppercase transition-colors duration-500">
-                            Generate <span class="text-primary text-glow italic">Your Prompt</span>
-                        </h1>
-                        <p
-                            class="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg leading-relaxed transition-colors duration-500">
-                            Enter what you need and select your target model. PromptLab infers your intent, builds a
-                            structured blueprint, and generates an optimized prompt — then auto-scores and improves it.
-                        </p>
-                    </section>
-
-                    <section class="max-w-5xl mx-auto mb-12 relative">
-                        <div
-                            class="absolute -inset-[1px] dark:-inset-[2px] bg-primary/5 dark:bg-primary/20 rounded-lg blur-xl opacity-30 transition-all duration-500">
-                        </div>
-                        <div
-                            class="bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 rounded-lg overflow-hidden glow-border terminal-glass transition-all duration-500 relative z-10">
-
-                            <div
-                                class="flex items-center justify-between px-5 py-3 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-black/60 transition-colors duration-500">
-                                <div class="flex gap-2">
-                                    <div
-                                        class="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-primary/20 dark:border dark:border-primary/30">
-                                    </div>
-                                    <div
-                                        class="w-2.5 h-2.5 rounded-full bg-slate-200 dark:bg-primary/20 dark:border dark:border-primary/30">
-                                    </div>
-                                    <div
-                                        class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_8px_rgba(220,38,38,0.3)] dark:shadow-[0_0_10px_rgba(220,38,38,0.9)]">
-                                    </div>
-                                </div>
-                                <div
-                                    class="text-[10px] font-mono text-primary/70 tracking-[0.25em] uppercase font-bold">
-                                    Generative_Terminal_v2.1
-                                </div>
-                            </div>
-
-                            <div class="p-6">
-                                <textarea id="generatorPrompt"
-                                    class="w-full h-32 bg-transparent border-none focus:ring-0 font-mono text-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-700 resize-none px-0 py-2 leading-relaxed transition-colors duration-500"
-                                    placeholder="TYPE_REQUIREMENTS >_" style="outline: none;"></textarea>
-
-                                <div
-                                    class="flex flex-col md:flex-row gap-6 mt-8 p-4 bg-slate-50/70 dark:bg-black/80 rounded-xl border border-slate-100 dark:border-white/5 transition-colors duration-500">
-                                    <div class="flex-1 min-w-[200px]">
-                                        <label
-                                            class="block text-[10px] font-mono font-bold uppercase tracking-widest text-slate-500 mb-2">Target
-                                            Model</label>
-                                        <div class="relative group">
-                                            <select id="generatorModel"
-                                                class="w-full bg-white dark:bg-transparent border border-slate-200 dark:border-white/10 text-xs font-mono text-primary font-bold py-2 pl-3 pr-8 rounded-sm dark:rounded focus:ring-1 focus:ring-primary/50 focus:border-primary/50 appearance-none cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-500">
-                                                <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
-                                                    value="openai">OpenAI (GPT)</option>
-                                                <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
-                                                    value="anthropic">Anthropic (Claude)</option>
-                                                <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
-                                                    value="gemini">Google (Gemini)</option>
-                                            </select>
-                                            <span
-                                                class="material-icons-outlined absolute right-2 top-1/2 -translate-y-1/2 text-sm text-primary pointer-events-none">expand_more</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-end mt-4 md:mt-0">
-                                        <button id="generateBtn" onclick="generatePrompt()"
-                                            class="group relative overflow-hidden bg-primary px-8 h-10 rounded-sm dark:rounded-xl transition-all hover:scale-[0.98] active:scale-95 shadow-[0_10px_20px_-5px_rgba(220,38,38,0.25)] dark:shadow-[0_0_30px_rgba(220,38,38,0.3)] hover:shadow-[0_15px_30px_-5px_rgba(220,38,38,0.4)] dark:hover:shadow-[0_0_50px_rgba(220,38,38,0.5)] w-full md:w-auto flex items-center justify-center gap-2">
-                                            <div
-                                                class="absolute inset-0 bg-gradient-to-tr from-black/5 dark:from-black/30 to-transparent transition-colors duration-500">
-                                            </div>
-                                            <span
-                                                class="relative z-10 text-white text-xs font-bold tracking-[0.3em] uppercase">Generate</span>
-                                            <span
-                                                class="material-icons-outlined relative z-10 text-[16px] text-white">auto_awesome</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="mt-4" id="genQuotaBar" style="display:none;">
-                                    <div
-                                        class="flex justify-between text-[10px] font-mono font-bold text-slate-500 mb-1 tracking-widest uppercase">
-                                        <span>DAILY QUOTA</span>
-                                        <span id="genQuotaCount">—</span>
-                                    </div>
-                                    <div
-                                        class="w-full bg-slate-100 dark:bg-primary/10 h-1.5 rounded-full overflow-hidden transition-colors duration-500">
-                                        <div id="genQuotaFill"
-                                            class="bg-primary h-full w-full shadow-[0_0_10px_rgba(220,38,38,0.2)] dark:shadow-[0_0_12px_rgba(220,38,38,0.6)] transition-all duration-500">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div
-                            class="absolute -bottom-12 left-1/2 -translate-x-1/2 w-[90%] h-8 bg-black/5 dark:bg-primary/20 blur-3xl rounded-full opacity-20 dark:opacity-100 transition-all duration-500 pointer-events-none">
-                        </div>
-                    </section>
-
-                    <div class="results-panel" id="generatorResults"></div>
-                </section>
-
-                <!-- ═══════════ DASHBOARD VIEW ═══════════ -->
-                <section class="view" id="view-dashboard">
-                    <div class="flex flex-col gap-8 max-w-7xl mx-auto w-full mt-12 mb-12">
-                        <div class="flex items-end justify-between w-full">
-                            <div>
-                                <h1
-                                    class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white transition-colors duration-500">
-                                    Performance Overview</h1>
-                                <p class="text-slate-500 dark:text-slate-400 mt-1 transition-colors duration-500">
-                                    Diagnostic summary of your prompt
-                                    engineering metrics.</p>
-                            </div>
-                            <button
-                                class="bg-primary hover:bg-red-600 text-white px-6 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-primary/20">
-                                UPGRADE PRO
-                                <span class="material-icons-round text-base">bolt</span>
-                            </button>
-                        </div>
-
-                        <!-- Main Stats Grid -->
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
-                            <!-- Radar Chart Panel -->
-                            <div
-                                class="lg:col-span-2 bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 rounded-2xl p-8 relative overflow-hidden group glow-border transition-all duration-300">
-                                <div class="absolute top-0 right-0 p-4">
-                                    <span
-                                        class="text-[10px] font-mono text-primary/50 uppercase tracking-[0.2em] font-bold">Diagnostic_v4.2</span>
-                                </div>
-                                <div class="flex items-start justify-between mb-8 relative z-10">
-                                    <div>
-                                        <h2
-                                            class="text-lg font-bold text-slate-900 dark:text-white transition-colors duration-500">
-                                            Skill Radar</h2>
-                                        <p
-                                            class="text-sm text-slate-500 dark:text-slate-400 transition-colors duration-500">
-                                            Metric balance across core disciplines</p>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="w-2 h-2 rounded-full bg-primary"></span>
-                                            <span class="text-xs text-slate-400 font-mono">Current</span>
-                                        </div>
-                                        <div class="flex items-center gap-1.5 ml-2">
-                                            <span class="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700"></span>
-                                            <span class="text-xs text-slate-400 font-mono">Baseline</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-center relative h-[320px]"
-                                    id="dashRadarContainer">
-                                    <svg class="w-full h-full max-w-[300px] radar-glow overflow-visible"
-                                        viewBox="0 0 200 200">
-                                        <circle class="stroke-slate-100 dark:stroke-white/5" cx="100" cy="100"
-                                            fill="none" r="80" stroke-width="0.5"></circle>
-                                        <circle class="stroke-slate-100 dark:stroke-white/5" cx="100" cy="100"
-                                            fill="none" r="60" stroke-width="0.5"></circle>
-                                        <circle class="stroke-slate-100 dark:stroke-white/5" cx="100" cy="100"
-                                            fill="none" r="40" stroke-width="0.5"></circle>
-                                        <circle class="stroke-slate-100 dark:stroke-white/5" cx="100" cy="100"
-                                            fill="none" r="20" stroke-width="0.5"></circle>
-                                        <line class="stroke-slate-100 dark:stroke-white/5" stroke-width="0.5" x1="100"
-                                            x2="100" y1="20" y2="180"></line>
-                                        <line class="stroke-slate-100 dark:stroke-white/5" stroke-width="0.5" x1="20"
-                                            x2="180" y1="100" y2="100"></line>
-                                        <line class="stroke-slate-100 dark:stroke-white/5" stroke-width="0.5" x1="43.4"
-                                            x2="156.6" y1="43.4" y2="156.6"></line>
-                                        <line class="stroke-slate-100 dark:stroke-white/5" stroke-width="0.5" x1="43.4"
-                                            x2="156.6" y1="156.6" y2="43.4"></line>
-                                        <polygon id="dashRadarPolygon" class="stroke-primary"
-                                            fill="rgba(239, 68, 68, 0.15)" points="100,20 100,20 100,20 100,20 100,20"
-                                            stroke-width="2" style="transition: all 1s ease-out;"></polygon>
-                                        <text
-                                            class="text-[8px] fill-slate-500 font-mono font-bold uppercase tracking-tighter"
-                                            text-anchor="middle" x="100" y="15">Clarity</text>
-                                        <text
-                                            class="text-[8px] fill-slate-500 font-mono font-bold uppercase tracking-tighter"
-                                            text-anchor="start" x="175" y="100">Constraints</text>
-                                        <text
-                                            class="text-[8px] fill-slate-500 font-mono font-bold uppercase tracking-tighter"
-                                            text-anchor="middle" x="100" y="195">Tone</text>
-                                        <text
-                                            class="text-[8px] fill-slate-500 font-mono font-bold uppercase tracking-tighter"
-                                            text-anchor="end" x="25" y="100">Logic</text>
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <!-- Side Stats Panel -->
-                            <div class="flex flex-col gap-4">
-                                <div
-                                    class="bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 p-6 rounded-2xl flex items-center justify-between group hover:border-primary/50 transition-all duration-300 glow-border">
-                                    <div class="flex items-center gap-4">
+                                        class="h-1.5 w-full bg-slate-100 dark:bg-primary/10 rounded-full overflow-hidden transition-colors duration-500">
                                         <div
-                                            class="p-3 bg-red-500/10 rounded-xl group-hover:bg-red-500/20 transition-colors">
-                                            <span class="material-icons-round text-primary">analytics</span>
-                                        </div>
-                                        <div>
-                                            <div class="text-2xl font-bold font-mono text-slate-900 dark:text-white transition-colors duration-500"
-                                                id="statTotal">0</div>
-                                            <div
-                                                class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">
-                                                Total Analyses</div>
+                                            class="h-full bg-primary w-2/3 shadow-[0_0_10px_rgba(220,38,38,0.2)] dark:shadow-[0_0_12px_rgba(220,38,38,0.6)]">
                                         </div>
                                     </div>
+                                    <div
+                                        class="text-[9px] font-mono text-slate-500 uppercase tracking-[0.2em] font-bold">
+                                        Buffer Load</div>
                                 </div>
-
-                                <div
-                                    class="bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 p-6 rounded-2xl flex items-center justify-between group hover:border-blue-500/50 transition-all duration-300 glow-border">
-                                    <div class="flex items-center gap-4">
-                                        <div
-                                            class="p-3 bg-blue-500/10 rounded-xl group-hover:bg-blue-500/20 transition-colors">
-                                            <span class="material-icons-round text-blue-500">speed</span>
-                                        </div>
-                                        <div>
-                                            <div class="text-2xl font-bold font-mono text-slate-900 dark:text-white transition-colors duration-500"
-                                                id="statAvg">0.0</div>
-                                            <div
-                                                class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">
-                                                Average Score</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div
-                                    class="flex-1 bg-gradient-to-br from-primary to-orange-600 p-6 rounded-2xl text-white relative overflow-hidden">
-                                    <div class="relative z-10 flex flex-col h-full justify-between">
-                                        <div>
-                                            <h3 class="text-sm font-bold opacity-80 uppercase tracking-widest">Active
-                                                Streak</h3>
-                                            <div class="text-4xl font-black mt-2" id="statStreak">0 DAYS</div>
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-2 text-xs font-bold bg-white/20 w-fit px-3 py-1 rounded-full backdrop-blur-sm">
-                                            <span id="statRemaining">—</span> LEFT TODAY
-                                        </div>
+                                <button
+                                    class="mt-8 w-full group relative overflow-hidden bg-primary px-6 py-4 rounded-xl transition-all hover:scale-[0.98] active:scale-95 shadow-[0_10px_20px_-5px_rgba(220,38,38,0.25)] dark:shadow-[0_0_30px_rgba(220,38,38,0.3)] hover:shadow-[0_15px_30px_-5px_rgba(220,38,38,0.4)] dark:hover:shadow-[0_0_50px_rgba(220,38,38,0.5)]">
+                                    <div
+                                        class="absolute inset-0 bg-gradient-to-tr from-black/5 dark:from-black/30 to-transparent transition-colors duration-500">
                                     </div>
                                     <span
-                                        class="material-icons-round absolute -bottom-4 -right-4 text-white/10 text-9xl">local_fire_department</span>
-                                </div>
+                                        class="relative z-10 text-white text-xs font-bold tracking-[0.3em] uppercase">Analyze</span>
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Recent Activity Section -->
-                        <div class="flex flex-col gap-4 w-full">
-                            <div class="flex items-center justify-between px-2">
-                                <h2 class="text-lg font-bold">Recent Activity Log</h2>
-                            </div>
-                            <div class="flex flex-col gap-2" id="historyBody">
-                                <div
-                                    class="p-8 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-xl">
-                                    No prompts analyzed yet. Head to the Analyzer to get started!
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <!-- ═══════════ USER PROFILE VIEW ═══════════ -->
-                <section class="view hidden" id="view-profile">
-                    <section class="max-w-5xl mx-auto mt-12 mb-12">
-                        <h1
-                            class="text-3xl font-bold tracking-tight mb-8 text-slate-900 dark:text-white transition-colors duration-500">
-                            User Profile</h1>
                         <div
-                            class="bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 rounded-2xl p-8 max-w-2xl glow-border transition-all duration-300">
-                            <div class="flex items-center gap-6 mb-8">
-                                <div class="w-24 h-24 rounded-full bg-gradient-to-tr from-primary to-orange-400 flex items-center justify-center text-white font-bold text-3xl"
-                                    id="profileAvatarBig">
-                                    ?
-                                </div>
-                                <div>
-                                    <h2 class="text-2xl font-bold text-slate-900 dark:text-white transition-colors duration-500"
-                                        id="profileNameBig">User</h2>
-                                    <p class="text-slate-500 font-mono text-sm transition-colors duration-500"
-                                        id="profileEmailBig">
-                                        email@example.com</p>
-                                    <div
-                                        class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full uppercase tracking-wider">
-                                        <span class="material-icons-round text-sm">stars</span> Free Tier
+                            class="px-6 py-4 bg-slate-50/70 dark:bg-black/80 flex items-center justify-between border-t border-slate-100 dark:border-white/5 transition-colors duration-500">
+                            <div class="flex items-center gap-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="relative group">
+                                        <select
+                                            class="bg-white dark:bg-transparent border border-slate-200 dark:border-white/10 text-[10px] font-mono text-primary font-bold py-1.5 dark:py-1 pl-3 dark:pl-2 pr-8 dark:pr-6 rounded-sm dark:rounded focus:ring-0 focus:border-primary/30 dark:focus:border-primary/50 appearance-none cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-500">
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="gpt-4">OpenAI ChatGPT</option>
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="claude-3">Anthropic Claude</option>
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="gemini-pro">Google Gemini</option>
+                                        </select>
+                                        <span
+                                            class="material-symbols-outlined absolute right-2 dark:right-1 top-1/2 -translate-y-1/2 !text-[14px] text-primary pointer-events-none transition-all duration-500">expand_more</span>
+                                    </div>
+                                    <div class="relative group">
+                                        <select
+                                            class="bg-white dark:bg-transparent border border-slate-200 dark:border-white/10 text-[10px] font-mono text-slate-500 dark:text-slate-400 font-bold py-1.5 dark:py-1 pl-3 dark:pl-2 pr-8 dark:pr-6 rounded-sm dark:rounded focus:ring-0 focus:border-primary/30 dark:focus:border-primary/50 appearance-none cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-500">
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="neutral">Neutral Tone</option>
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="analytical">Analytical</option>
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="creative">Creative</option>
+                                            <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
+                                                value="concise">Concise</option>
+                                        </select>
+                                        <span
+                                            class="material-symbols-outlined absolute right-2 dark:right-1 top-1/2 -translate-y-1/2 !text-[14px] text-slate-400 pointer-events-none transition-all duration-500">expand_more</span>
                                     </div>
                                 </div>
                             </div>
-
-                            <hr class="border-slate-200 dark:border-white/5 mb-8 transition-colors duration-500">
-
-                            <div class="space-y-6">
-                                <div>
-                                    <label
-                                        class="block text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-500 mb-2">Display
-                                        Name</label>
-                                    <input type="text" id="profileDisplayNameInput"
-                                        class="w-full bg-slate-100 dark:bg-neutral-900 border border-transparent dark:border-border-dark rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-50"
-                                        disabled>
-                                </div>
-                                <div>
-                                    <label
-                                        class="block text-[10px] font-mono font-bold uppercase tracking-widest text-neutral-500 mb-2">Account
-                                        Email</label>
-                                    <input type="email" id="profileEmailInput"
-                                        class="w-full bg-slate-100 dark:bg-neutral-900 border border-transparent dark:border-border-dark rounded-lg px-4 py-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary disabled:opacity-50"
-                                        disabled>
-                                </div>
+                            <div
+                                class="text-[10px] font-mono text-slate-500 dark:text-slate-600 flex gap-6 font-medium transition-colors duration-500">
+                                <span class="flex items-center gap-1"><span
+                                        class="material-symbols-outlined !text-[12px]">memory</span> 14MS</span>
+                                <span class="hidden sm:inline">0x2F4A</span>
+                                <span
+                                    class="text-slate-400 dark:text-current transition-colors duration-500">MODEL_A_SYNC</span>
                             </div>
                         </div>
-                    </section>
-                </section>
+                    </div>
+                    <div
+                        class="absolute -bottom-12 left-1/2 -translate-x-1/2 w-[90%] h-8 bg-black/5 dark:bg-primary/20 blur-3xl rounded-full opacity-20 dark:opacity-100 transition-all duration-500">
+                    </div>
+                </div>
 
+                <div class="flex flex-wrap justify-center gap-4 mt-20">
+                    <div
+                        class="diagnostic-pill group dark:bg-white/[0.03] dark:shadow-none bg-white shadow-sm hover:!border-primary/50">
+                        <span
+                            class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary !text-[20px] transition-colors duration-500">center_focus_strong</span>
+                        <span
+                            class="diagnostic-pill-text group-hover:!text-slate-900 dark:group-hover:!text-white">Clarity</span>
+                    </div>
+                    <div
+                        class="diagnostic-pill group dark:bg-white/[0.03] dark:shadow-none bg-white shadow-sm hover:!border-primary/50">
+                        <span
+                            class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary !text-[20px] transition-colors duration-500">straighten</span>
+                        <span
+                            class="diagnostic-pill-text group-hover:!text-slate-900 dark:group-hover:!text-white">Constraints</span>
+                    </div>
+                    <div
+                        class="diagnostic-pill group dark:bg-white/[0.03] dark:shadow-none bg-white shadow-sm hover:!border-primary/50">
+                        <span
+                            class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary !text-[20px] transition-colors duration-500">account_tree</span>
+                        <span
+                            class="diagnostic-pill-text group-hover:!text-slate-900 dark:group-hover:!text-white">Alignment</span>
+                    </div>
+                    <div
+                        class="diagnostic-pill group dark:bg-white/[0.03] dark:shadow-none bg-white shadow-sm hover:!border-primary/50">
+                        <span
+                            class="material-symbols-outlined text-slate-400 dark:text-slate-500 group-hover:text-primary !text-[20px] transition-colors duration-500">grain</span>
+                        <span
+                            class="diagnostic-pill-text group-hover:!text-slate-900 dark:group-hover:!text-white">Ambiguity</span>
+                    </div>
+                </div>
             </div>
-        </main>
-    </div>
+        </section>
 
-    <!-- ── Toast Container ───────────────────────────────────── -->
-    <div class="toast-container" id="toastContainer"></div>
+        <!-- ── Trusted By Logo Cloud ───────────────────────────────────── -->
+        <section
+            class="relative z-10 py-16 px-4 bg-gradient-to-b from-slate-50 to-white dark:from-[#050507] dark:to-[#0a0a0a] border-b border-slate-200 dark:border-white/5 transition-colors duration-500 overflow-hidden text-center">
+            <div class="max-w-4xl mx-auto">
+                <h2
+                    class="mb-8 text-center font-medium text-slate-900 dark:text-white text-lg md:text-2xl tracking-tight transition-colors duration-500">
+                    <span class="text-slate-500 dark:text-slate-400">Trusted by experts.</span>
+                    <br class="md:hidden" />
+                    <span class="font-bold ml-1 md:ml-2">Used by the leaders.</span>
+                </h2>
 
-    <!-- ── Firebase Auth ──────────────────────────────────── -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+                <div class="overflow-hidden py-4 w-full relative"
+                    style="-webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);">
+                    <div
+                        class="flex w-max animate-infinite-scroll hover:[animation-play-state:paused] gap-12 items-center">
+                        <img src="https://svgl.app/library/nvidia-wordmark-light.svg" alt="Nvidia Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/supabase_wordmark_light.svg" alt="Supabase Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/openai_wordmark_light.svg" alt="OpenAI Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/turso-wordmark-light.svg" alt="Turso Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/vercel_wordmark.svg" alt="Vercel Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/github_wordmark_light.svg" alt="GitHub Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/claude-ai-wordmark-icon_light.svg" alt="Claude AI Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/clerk-wordmark-light.svg" alt="Clerk Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
 
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT",
-            storageBucket: "YOUR_PROJECT.firebasestorage.app",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef",
-            measurementId: "G-ABCDEF"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+                        <img src="https://svgl.app/library/nvidia-wordmark-light.svg" alt="Nvidia Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/supabase_wordmark_light.svg" alt="Supabase Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/openai_wordmark_light.svg" alt="OpenAI Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/turso-wordmark-light.svg" alt="Turso Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/vercel_wordmark.svg" alt="Vercel Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/github_wordmark_light.svg" alt="GitHub Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/claude-ai-wordmark-icon_light.svg" alt="Claude AI Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                        <img src="https://svgl.app/library/clerk-wordmark-light.svg" alt="Clerk Logo"
+                            class="h-5 md:h-6 object-contain dark:brightness-0 dark:invert opacity-60 hover:opacity-100 transition-opacity" />
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        window.firebaseSignOut = function () {
-            return signOut(auth);
-        };
 
-        onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                localStorage.removeItem('promptlab_active_user');
-                window.location.href = '/login.html';
+
+        <!-- ── Features Section ─────────────────────────────────── -->
+        <section
+            class="relative z-10 py-24 px-4 bg-white dark:bg-[#0a0a0a] matrix-bg transition-colors duration-500 overflow-hidden"
+            id="features">
+            <div class="scanline"></div>
+            <div class="max-w-7xl mx-auto flex flex-col items-center relative z-10">
+                <div class="flex flex-col gap-4 text-center items-center mb-16">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/20 text-xs font-mono font-bold tracking-widest text-primary uppercase transition-colors duration-500">
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                        System Protocol: Active Analysis
+                    </div>
+                    <h2
+                        class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter text-slate-900 dark:text-white uppercase leading-tight transition-colors duration-500 mt-4 mb-2">
+                        Everything You Need to<br>
+                        <span class="text-primary glow-text-red">Write Better Prompts</span>
+                    </h2>
+                    <p
+                        class="text-slate-500 dark:text-slate-400 text-lg md:text-xl font-medium max-w-2xl mt-4 leading-relaxed transition-colors duration-500">
+                        From instant analysis to AI-powered improvements — PromptLab gives you the professional
+                        diagnostic tools to level up.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                    <!-- Feature 1 -->
+                    <div
+                        class="group glow-border flex flex-col p-8 rounded-2xl bg-white dark:bg-[#191919]/40 border-slate-200 dark:border-white/10 transition-all duration-300 h-full relative">
+                        <div
+                            class="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-6">
+                            <span
+                                class="material-symbols-outlined group-hover:scale-110 transition-transform duration-300">bolt</span>
+                        </div>
+                        <h3
+                            class="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight mb-4 transition-colors duration-500">
+                            Instant Analysis</h3>
+                        <p
+                            class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed flex-grow mb-8 transition-colors duration-500">
+                            Paste any prompt and get real-time scoring across 5 dimensions: clarity, constraints,
+                            model alignment, ambiguity risk, and output controllability.
+                        </p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">Real-time</span>
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">5
+                                Dimensions</span>
+                        </div>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div
+                        class="group glow-border flex flex-col p-8 rounded-2xl bg-white dark:bg-[#191919]/40 border-slate-200 dark:border-white/10 transition-all duration-300 h-full relative">
+                        <div
+                            class="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-6">
+                            <span
+                                class="material-symbols-outlined group-hover:scale-110 transition-transform duration-300">target</span>
+                        </div>
+                        <h3
+                            class="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight mb-4 transition-colors duration-500">
+                            Model-Specific Feedback</h3>
+                        <p
+                            class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed flex-grow mb-8 transition-colors duration-500">
+                            Get tailored feedback for OpenAI GPT, Anthropic Claude, or Google Gemini — each with
+                            unique anti-patterns, bonus checks, and optimization checklists.
+                        </p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">OpenAI</span>
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">Claude</span>
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">Gemini</span>
+                        </div>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div
+                        class="group glow-border flex flex-col p-8 rounded-2xl bg-white dark:bg-[#191919]/40 border-slate-200 dark:border-white/10 transition-all duration-300 h-full relative">
+                        <div
+                            class="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-6">
+                            <span
+                                class="material-symbols-outlined group-hover:scale-110 transition-transform duration-300">construction</span>
+                        </div>
+                        <h3
+                            class="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight mb-4 transition-colors duration-500">
+                            Prompt Generator</h3>
+                        <p
+                            class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed flex-grow mb-8 transition-colors duration-500">
+                            Enter a rough prompt and get an improved version with constraints, model alignment, and
+                            structure — auto-scored against the same rubric.
+                        </p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">Auto-Improve</span>
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">Auto-Score</span>
+                        </div>
+                    </div>
+
+                    <!-- Feature 4 -->
+                    <div
+                        class="group glow-border flex flex-col p-8 rounded-2xl bg-white dark:bg-[#191919]/40 border-slate-200 dark:border-white/10 transition-all duration-300 h-full relative">
+                        <div
+                            class="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-6">
+                            <span
+                                class="material-symbols-outlined group-hover:scale-110 transition-transform duration-300">monitoring</span>
+                        </div>
+                        <h3
+                            class="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight mb-4 transition-colors duration-500">
+                            Learning Dashboard</h3>
+                        <p
+                            class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed flex-grow mb-8 transition-colors duration-500">
+                            Track your progress over time with score history, streak tracking, common mistakes, and
+                            dimension-level averages to refine your skills.
+                        </p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">Progress</span>
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">Streaks</span>
+                        </div>
+                    </div>
+
+                    <!-- Feature 5 -->
+                    <div
+                        class="group glow-border flex flex-col p-8 rounded-2xl bg-white dark:bg-[#191919]/40 border-slate-200 dark:border-white/10 transition-all duration-300 h-full relative">
+                        <div
+                            class="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-6">
+                            <span
+                                class="material-symbols-outlined group-hover:scale-110 transition-transform duration-300">architecture</span>
+                        </div>
+                        <h3
+                            class="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight mb-4 transition-colors duration-500">
+                            Blueprint Architecture</h3>
+                        <p
+                            class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed flex-grow mb-8 transition-colors duration-500">
+                            30+ structural blueprints define what a perfect prompt looks like for each model × task
+                            combination. Precision engineering for your input.
+                        </p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">Structural</span>
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">30+
+                                Blueprints</span>
+                        </div>
+                    </div>
+
+                    <!-- Feature 6 -->
+                    <div
+                        class="group glow-border flex flex-col p-8 rounded-2xl bg-white dark:bg-[#191919]/40 border-slate-200 dark:border-white/10 transition-all duration-300 h-full relative">
+                        <div
+                            class="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mb-6">
+                            <span
+                                class="material-symbols-outlined group-hover:scale-110 transition-transform duration-300">edit_note</span>
+                        </div>
+                        <h3
+                            class="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-tight mb-4 transition-colors duration-500">
+                            Rewrite Templates</h3>
+                        <p
+                            class="text-slate-500 dark:text-slate-400 text-sm leading-relaxed flex-grow mb-8 transition-colors duration-500">
+                            Get model-specific rewrite hints showing the optimal prompt structure — system-user for
+                            GPT, XML-tagged for Claude, and more.
+                        </p>
+                        <div class="flex flex-wrap gap-2 mt-auto">
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">Templates</span>
+                            <span
+                                class="px-2 py-1 border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-transparent rounded text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase transition-colors">Per
+                                Model</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Model Showcase ───────────────────────────────────── -->
+        <section
+            class="relative z-10 py-24 px-4 bg-slate-50 dark:bg-[#020202] border-y border-slate-200 dark:border-white/5 transition-colors duration-500 overflow-hidden"
+            id="models">
+            <div
+                class="absolute inset-0 grid-overlay pointer-events-none opacity-10 dark:opacity-40 transition-opacity duration-500">
+            </div>
+            <div
+                class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/5 dark:bg-primary/10 blur-[120px] rounded-full pointer-events-none transition-colors duration-500">
+            </div>
+            <div
+                class="absolute bottom-[-10%] left-1/4 w-[600px] h-[400px] bg-primary/5 dark:bg-primary/5 blur-[100px] rounded-full pointer-events-none transition-colors duration-500">
+            </div>
+
+            <div class="relative z-10 max-w-7xl mx-auto flex flex-col items-center text-center">
+                <div
+                    class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/20 dark:border-primary/30 bg-primary/5 mb-10 transition-colors duration-500">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                    <span class="text-[10px] font-bold tracking-[0.2em] uppercase text-primary">Model Support: Active
+                        Analysis</span>
+                </div>
+                <h2
+                    class="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-white mb-6 leading-none transition-colors duration-500">
+                    OPTIMIZED FOR<br />
+                    <span class="text-primary glow-text-red">EVERY MAJOR AI MODEL</span>
+                </h2>
+                <p
+                    class="max-w-2xl mx-auto text-base md:text-lg text-slate-500 dark:text-white/40 mb-20 leading-relaxed font-light transition-colors duration-500">
+                    Each model has unique scoring weights, anti-patterns, and rewrite strategies tailored to how it
+                    actually works.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24 w-full">
+
+                    <!-- OpenAI GPT -->
+                    <div
+                        class="group flex flex-col p-10 rounded-[24px] text-left transition-all duration-500 bg-white dark:bg-[#0f0f0f]/40 backdrop-blur-xl border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-none hover:border-[#10A37F]/30 hover:shadow-[0_0_30px_rgba(16,185,129,0.05)] dark:hover:shadow-[0_0_30px_rgba(16,185,129,0.05)]">
+                        <div
+                            class="w-14 h-14 rounded-xl bg-[#10A37F]/10 flex items-center justify-center mb-10 border border-[#10A37F]/20 group-hover:bg-[#10A37F]/20 transition-all overflow-hidden">
+                            <img src="/assets/logos/chatgpt.png" alt="ChatGPT Logo"
+                                class="w-full h-full object-cover" />
+                        </div>
+                        <h3
+                            class="text-2xl font-bold text-slate-900 dark:text-white mb-2 transition-colors duration-500">
+                            OpenAI GPT</h3>
+                        <p class="text-[9px] font-bold tracking-[0.2em] uppercase text-[#10A37F] mb-10">
+                            Instruction-Following Powerhouse</p>
+
+                        <ul class="space-y-4 mb-14 flex-1">
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-600 dark:text-white/70 transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#10A37F]"></span> System-role framing emphasis
+                            </li>
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-600 dark:text-white/70 transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#10A37F]"></span> Chain-of-thought triggers
+                            </li>
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-600 dark:text-white/70 transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#10A37F]"></span> Output format adherence
+                            </li>
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-800 dark:text-white font-medium transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#10A37F]"></span> 30% weight on
+                                controllability
+                            </li>
+                        </ul>
+
+                        <div
+                            class="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full flex overflow-hidden transition-colors duration-500">
+                            <div class="h-full bg-primary w-[15%]"></div>
+                            <div class="h-full bg-amber-500 w-[20%]"></div>
+                            <div class="h-full bg-[#10A37F] w-[45%]"></div>
+                            <div class="h-full bg-slate-200 dark:bg-white/10 w-[20%]"></div>
+                        </div>
+                    </div>
+
+                    <!-- Anthropic Claude -->
+                    <div
+                        class="group flex flex-col p-10 rounded-[24px] text-left transition-all duration-500 bg-primary/[0.02] dark:bg-primary/[0.04] backdrop-blur-xl border border-primary/20 dark:border-primary/20 shadow-xl dark:shadow-none hover:border-[#D97706]/30 hover:shadow-[0_0_30px_rgba(217,119,6,0.05)] dark:hover:shadow-[0_0_30px_rgba(217,119,6,0.05)] relative md:-translate-y-4">
+                        <div
+                            class="absolute -top-3 right-8 bg-primary px-3 py-1 rounded text-[8px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20">
+                            Most Nuanced
+                        </div>
+                        <div
+                            class="w-14 h-14 rounded-xl bg-[#D97706]/10 flex items-center justify-center mb-10 border border-[#D97706]/20 group-hover:bg-[#D97706]/20 transition-all overflow-hidden">
+                            <img src="/assets/logos/claude.png" alt="Claude Logo" class="w-full h-full object-cover" />
+                        </div>
+                        <h3
+                            class="text-2xl font-bold text-slate-900 dark:text-white mb-2 transition-colors duration-500">
+                            Anthropic Claude</h3>
+                        <p class="text-[9px] font-bold tracking-[0.2em] uppercase text-[#D97706] mb-10">Safety-Aligned
+                            Precision Engine</p>
+
+                        <ul class="space-y-4 mb-14 flex-1">
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-600 dark:text-white/70 transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span> XML tag structure emphasis
+                            </li>
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-600 dark:text-white/70 transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span> Explicit scope boundaries
+                            </li>
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-600 dark:text-white/70 transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span> Safety-aligned framing
+                            </li>
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-800 dark:text-white font-medium transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#D97706]"></span> 30% weight on constraints
+                            </li>
+                        </ul>
+
+                        <div
+                            class="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full flex overflow-hidden transition-colors duration-500">
+                            <div class="h-full bg-primary w-[10%]"></div>
+                            <div class="h-full bg-[#D97706] w-[55%]"></div>
+                            <div class="h-full bg-slate-200 dark:bg-white/10 w-[35%]"></div>
+                        </div>
+                    </div>
+
+                    <!-- Google Gemini -->
+                    <div
+                        class="group flex flex-col p-10 rounded-[24px] text-left transition-all duration-500 bg-white dark:bg-[#0f0f0f]/40 backdrop-blur-xl border border-slate-200 dark:border-white/5 shadow-xl dark:shadow-none hover:border-[#3B82F6]/30 hover:shadow-[0_0_30px_rgba(59,130,246,0.05)] dark:hover:shadow-[0_0_30px_rgba(59,130,246,0.05)]">
+                        <div
+                            class="w-14 h-14 rounded-xl bg-[#3B82F6]/10 flex items-center justify-center mb-10 border border-[#3B82F6]/20 group-hover:bg-[#3B82F6]/20 transition-all overflow-hidden">
+                            <img src="/assets/logos/gemini.png" alt="Gemini Logo" class="w-full h-full object-cover" />
+                        </div>
+                        <h3
+                            class="text-2xl font-bold text-slate-900 dark:text-white mb-2 transition-colors duration-500">
+                            Google Gemini</h3>
+                        <p class="text-[9px] font-bold tracking-[0.2em] uppercase text-[#3B82F6] mb-10">Multimodal &amp;
+                            Context-First</p>
+
+                        <ul class="space-y-4 mb-14 flex-1">
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-600 dark:text-white/70 transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#3B82F6]"></span> Context-before-task
+                                structure
+                            </li>
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-600 dark:text-white/70 transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#3B82F6]"></span> Grounding cues emphasis
+                            </li>
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-600 dark:text-white/70 transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#3B82F6]"></span> Multimodal references
+                            </li>
+                            <li
+                                class="flex items-center gap-3 text-sm text-slate-800 dark:text-white font-medium transition-colors duration-500">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#3B82F6]"></span> 25% weight on model
+                                alignment
+                            </li>
+                        </ul>
+
+                        <div
+                            class="h-1 w-full bg-slate-100 dark:bg-white/5 rounded-full flex overflow-hidden transition-colors duration-500">
+                            <div class="h-full bg-primary w-[15%]"></div>
+                            <div class="h-full bg-[#3B82F6] w-[15%]"></div>
+                            <div class="h-full bg-amber-400 w-[30%]"></div>
+                            <div class="h-full bg-slate-200 dark:bg-white/10 w-[40%]"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>\n\n <!-- ── How It Works ─────────────────────────────────────── -->
+        <section
+            class="relative z-10 py-24 px-4 bg-white dark:bg-[#000000] transition-colors duration-500 min-h-[800px]"
+            id="how-it-works">
+            <div
+                class="absolute inset-0 grid-overlay-works pointer-events-none opacity-10 dark:opacity-40 transition-opacity duration-500">
+            </div>
+            <div
+                class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-primary/5 dark:bg-primary/5 blur-[120px] rounded-full pointer-events-none transition-colors duration-500">
+            </div>
+
+            <div class="relative z-10 max-w-7xl mx-auto flex flex-col items-center">
+                <div class="flex flex-col gap-4 text-center items-center mb-16">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold tracking-widest text-slate-500 dark:text-white/60 uppercase transition-colors duration-500">
+                        Process
+                    </div>
+                    <h2
+                        class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-slate-900 dark:text-white transition-colors duration-500 mb-8 w-full block">
+                        How <span class="text-primary dark:breathing-glow transition-all duration-500">PromptLab</span>
+                        Works
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 w-full relative">
+                    <!-- Connector Line (Desktop only) -->
+                    <div
+                        class="hidden md:block absolute top-[32px] left-[15%] right-[15%] h-px connector-line transition-all duration-500">
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="flex flex-col items-center text-center relative z-10 group">
+                        <div
+                            class="size-16 rounded-lg bg-white dark:bg-black border border-slate-200 dark:border-primary/30 shadow-lg dark:shadow-[0_0_20px_rgba(255,77,77,0.15)] flex items-center justify-center mb-6 text-xl font-bold font-mono text-primary group-hover:scale-110 transition-transform duration-300 dark:card-glass-works">
+                            01
+                        </div>
+                        <h3
+                            class="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-3 transition-colors duration-500">
+                            Paste Your Prompt</h3>
+                        <p
+                            class="text-slate-500 dark:text-white/40 text-sm max-w-xs transition-colors duration-500 leading-relaxed">
+                            Enter any prompt you'd send to ChatGPT, Claude, or Gemini. Choose your target model.
+                        </p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex flex-col items-center text-center relative z-10 group">
+                        <div
+                            class="size-16 rounded-lg bg-white dark:bg-black border border-slate-200 dark:border-primary/30 shadow-lg dark:shadow-[0_0_20px_rgba(255,77,77,0.15)] flex items-center justify-center mb-6 text-xl font-bold font-mono text-primary group-hover:scale-110 transition-transform duration-300 dark:card-glass-works">
+                            02
+                        </div>
+                        <h3
+                            class="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-3 transition-colors duration-500">
+                            Blueprint Comparison</h3>
+                        <p
+                            class="text-slate-500 dark:text-white/40 text-sm max-w-xs transition-colors duration-500 leading-relaxed">
+                            PromptLab compares your prompt against the ideal structural blueprint for that model × task.
+                        </p>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex flex-col items-center text-center relative z-10 group">
+                        <div
+                            class="size-16 rounded-lg bg-white dark:bg-black border border-slate-200 dark:border-primary/30 shadow-lg dark:shadow-[0_0_20px_rgba(255,77,77,0.15)] flex items-center justify-center mb-6 text-xl font-bold font-mono text-primary group-hover:scale-110 transition-transform duration-300 dark:card-glass-works">
+                            03
+                        </div>
+                        <h3
+                            class="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-3 transition-colors duration-500">
+                            Actionable Feedback</h3>
+                        <p
+                            class="text-slate-500 dark:text-white/40 text-sm max-w-xs transition-colors duration-500 leading-relaxed">
+                            See scores, issues, suggestions, and a model-specific optimization checklist — then improve.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>\n\n <!-- ── Testimonials Section ─────────────────────────────────── -->
+        <section
+            class="relative z-10 py-24 px-4 bg-white dark:bg-[#0a0a0a] transition-colors duration-500 overflow-hidden"
+            id="testimonials">
+            <div class="max-w-6xl mx-auto flex flex-col items-center relative z-10">
+                <div class="flex flex-col gap-4 text-center items-center mb-16">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase transition-colors duration-500">
+                        Testimonials
+                    </div>
+                    <h2
+                        class="text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 dark:text-white transition-colors duration-500">
+                        What our <span
+                            class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-vibrant-red">users
+                            say</span>
+                    </h2>
+                    <p
+                        class="text-slate-600 dark:text-slate-400 text-lg md:text-xl font-medium max-w-2xl mt-2 transition-colors duration-500">
+                        Discover how thousands of prompt engineers streamline their workflows with PromptLab.
+                    </p>
+                </div>
+
+                <div class="flex justify-center gap-6 mt-10 max-h-[740px] overflow-hidden w-full relative"
+                    style="-webkit-mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent); mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);"
+                    role="region" aria-label="Scrolling Testimonials">
+
+                    <!-- Column 1 -->
+                    <div class="flex flex-col gap-6 pb-6 list-none m-0 p-0 testimonial-col-1">
+                        <div class="testimonial-track flex flex-col gap-6">
+                            <!-- Cards inserted via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Column 2 (Hidden on mobile) -->
+                    <div class="hidden md:flex flex-col gap-6 pb-6 list-none m-0 p-0 testimonial-col-2">
+                        <div class="testimonial-track flex flex-col gap-6">
+                            <!-- Cards inserted via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Column 3 (Hidden on tablet/mobile) -->
+                    <div class="hidden lg:flex flex-col gap-6 pb-6 list-none m-0 p-0 testimonial-col-3">
+                        <div class="testimonial-track flex flex-col gap-6">
+                            <!-- Cards inserted via JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ── CTA Section ──────────────────────────────────────── -->
+        <section
+            class="relative z-10 py-24 px-4 bg-slate-50 dark:bg-slate-900/40 border-y border-slate-200 dark:border-white/5 transition-colors duration-500 overflow-hidden">
+            <div
+                class="absolute inset-0 bg-primary/5 dark:bg-primary/20 bg-[radial-gradient(ellipse_at_center,theme(colors.primary.100)_0%,transparent_70%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(220,38,38,0.15)_0%,transparent_70%)] pointer-events-none transition-colors duration-500">
+            </div>
+            <div
+                class="max-w-4xl mx-auto flex flex-col items-center text-center relative z-10 p-12 bg-white/60 dark:bg-black/40 backdrop-blur-md rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl transition-colors duration-500">
+                <h2
+                    class="text-3xl md:text-5xl font-bold tracking-tighter text-slate-900 dark:text-white mb-6 transition-colors duration-500">
+                    Ready to Level Up Your Prompts?
+                </h2>
+                <p
+                    class="text-slate-600 dark:text-slate-400 text-lg md:text-xl font-medium mb-10 max-w-2xl transition-colors duration-500">
+                    Join PromptLab and start writing prompts that get results. Free to use, no credit card required.
+                </p>
+                <a href="/login.html?mode=signup"
+                    class="group relative overflow-hidden bg-primary px-8 py-4 rounded-xl transition-all hover:scale-[0.98] active:scale-95 shadow-[0_10px_20px_-5px_rgba(220,38,38,0.25)] dark:shadow-[0_0_30px_rgba(220,38,38,0.3)] hover:shadow-[0_15px_30px_-5px_rgba(220,38,38,0.4)] dark:hover:shadow-[0_0_50px_rgba(220,38,38,0.5)] no-underline flex items-center gap-2">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-tr from-black/5 dark:from-black/30 to-transparent transition-colors duration-500">
+                    </div>
+                    <span class="relative z-10 text-white text-sm font-bold tracking-[0.2em] uppercase">🚀 Get Started
+                        Free</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ── Footer ───────────────────────────────────────────── -->
+        <footer
+            class="relative z-10 bg-white dark:bg-[#050507] border-t border-slate-200 dark:border-white/10 py-12 px-6 transition-colors duration-500">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+                <div class="flex flex-col items-center md:items-start gap-2">
+                    <a href="#" class="flex items-center gap-2 group cursor-pointer no-underline">
+                        <div class="flex items-center justify-center size-8 rounded-sm bg-primary/10 text-primary">
+                            <span class="font-display font-bold text-lg">P</span>
+                        </div>
+                        <span
+                            class="text-slate-900 dark:text-white font-bold tracking-tight transition-colors duration-500">PromptLab</span>
+                    </a>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm transition-colors duration-500">Learn prompting
+                        as a skill.</p>
+                </div>
+
+                <div class="flex flex-wrap justify-center gap-6">
+                    <a href="#features"
+                        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors no-underline">Features</a>
+                    <a href="#models"
+                        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors no-underline">Models</a>
+                    <a href="#how-it-works"
+                        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors no-underline">How
+                        It Works</a>
+                    <a href="#testimonials"
+                        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors no-underline">Reviews</a>
+                    <a href="/login.html"
+                        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors no-underline">Sign
+                        In</a>
+                </div>
+
+                <div class="text-slate-400 dark:text-slate-500 text-sm transition-colors duration-500">
+                    &copy; 2026 PromptLab. Built with ❤️
+                </div>
+            </div>
+        </footer>
+
+        <script src="/js/firebase-config.js"></script>
+    </div> <!-- Closes the new wrapper div -->
+
+    <!-- Theme Toggle Switch -->
+    <button id="themeToggle"
+        class="fixed bottom-6 right-6 z-[200] p-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 border border-white/10">
+        <span class="material-symbols-outlined dark:hidden">dark_mode</span>
+        <span class="material-symbols-outlined hidden dark:block">light_mode</span>
+    </button>
+
+    <script src="/js/firebase-config.js"></script>
+    <script src="/js/hero-animation.js"></script>
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+
+        // Check for saved theme or system preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark');
+            htmlElement.classList.remove('light');
+        } else {
+            htmlElement.classList.remove('dark');
+            htmlElement.classList.add('light');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                htmlElement.classList.add('light');
+                localStorage.theme = 'light';
+            } else {
+                htmlElement.classList.remove('light');
+                htmlElement.classList.add('dark');
+                localStorage.theme = 'dark';
             }
         });
-    </script>
 
-    <!-- ── PromptLab Database & Engine ──────────────────────────────────── -->
-    <script src="/js/local-db.js"></script>
-    <script src="/js/promptlab-engine.js"></script>
-    <script src="/js/app.js"></script>
+        // If user is already signed in, redirect to app
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof firebase !== 'undefined' && firebase.auth && firebase.apps && firebase.apps.length > 0) {
+                try {
+                    firebase.auth().onAuthStateChanged(user => {
+                        if (user) {
+                            window.location.href = '/app.html';
+                        }
+                    });
+                } catch (e) {
+                    console.warn("Firebase auth error:", e);
+                }
+            }
+
+            // Mobile menu toggle
+            const mobileBtn = document.getElementById('mobileMenuBtn');
+            const navWrapper = document.getElementById('desktopNav');
+            if (mobileBtn && navWrapper) {
+                mobileBtn.addEventListener('click', () => {
+                    navWrapper.classList.toggle('hidden');
+                    // Add some mobile specific styling when open
+                    if (!navWrapper.classList.contains('hidden')) {
+                        navWrapper.classList.add('flex-col', 'absolute', 'top-full', 'left-0', 'w-full', 'bg-white', 'dark:bg-black', 'p-6', 'border-b', 'border-slate-200', 'dark:border-white/10', 'shadow-xl');
+                    } else {
+                        navWrapper.classList.remove('flex-col', 'absolute', 'top-full', 'left-0', 'w-full', 'bg-white', 'dark:bg-black', 'p-6', 'border-b', 'border-slate-200', 'dark:border-white/10', 'shadow-xl');
+                    }
+                });
+            }
+
+            // Smooth scroll
+            document.querySelectorAll('a[href^="#"]').forEach(a => {
+                a.addEventListener('click', e => {
+                    e.preventDefault();
+                    const href = a.getAttribute('href');
+                    if (href === '#') return; // Ignore empty hashes
+
+                    const target = document.querySelector(href);
+                    if (target) {
+                        const headerOffset = 68; // height of the fixed header roughly
+                        const elementPosition = target.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: "smooth"
+                        });
+                    }
+
+                    // Only hide if we're in mobile view (mobileBtn is visible)
+                    if (navWrapper && !navWrapper.classList.contains('hidden') && window.innerWidth < 768) {
+                        navWrapper.classList.add('hidden');
+                        navWrapper.classList.remove('flex-col', 'absolute', 'top-full', 'left-0', 'w-full', 'bg-white', 'dark:bg-black', 'p-6', 'border-b', 'border-slate-200', 'dark:border-white/10', 'shadow-xl');
+                    }
+                });
+            });
+
+            // Particles
+            createParticles();
+
+            // Testimonials Logic
+            const testimonialsData = [
+                {
+                    text: "PromptLab revolutionized our AI operations, streamlining our prompt testing. The structured blueprints keep us productive.",
+                    image: "https://randomuser.me/api/portraits/women/1.jpg",
+                    name: "Briana Patton",
+                    role: "AI Operations Manager",
+                    rating: 5
+                },
+                {
+                    text: "Implementing this scoring rubric was smooth and quick. The instant feedback made team prompt training effortless.",
+                    image: "https://randomuser.me/api/portraits/men/1.jpg",
+                    name: "Bilal Ahmed",
+                    role: "Lead Prompt Engineer",
+                    rating: 5
+                },
+                {
+                    text: "The model-specific anti-patterns are exceptional, guiding us through Claude's XML quirks and ensuring our prompt accuracy.",
+                    image: "https://randomuser.me/api/portraits/women/2.jpg",
+                    name: "Saman Malik",
+                    role: "AI Product Lead",
+                    rating: 4
+                },
+                {
+                    text: "This generator's seamless improvement suggestions enhanced our GPT-4 outputs and efficiency. Highly recommend.",
+                    image: "https://randomuser.me/api/portraits/men/2.jpg",
+                    name: "Omar Raza",
+                    role: "CTO",
+                    rating: 5
+                },
+                {
+                    text: "Its robust features and quick rewrite templates have transformed our workflow, making us significantly more efficient with Gemini.",
+                    image: "https://randomuser.me/api/portraits/women/3.jpg",
+                    name: "Zainab Hussain",
+                    role: "Project Manager",
+                    rating: 5
+                },
+                {
+                    text: "The scoring breakdown exceeded expectations. It streamlined our prompt validation, improving overall model performance.",
+                    image: "https://randomuser.me/api/portraits/women/4.jpg",
+                    name: "Aliza Khan",
+                    role: "Machine Learning Engineer",
+                    rating: 4
+                },
+                {
+                    text: "Our AI integrations improved with the structured system-user separation design and positive reliability metrics.",
+                    image: "https://randomuser.me/api/portraits/men/3.jpg",
+                    name: "Farhan Siddiqui",
+                    role: "Head of AI",
+                    rating: 5
+                },
+                {
+                    text: "They delivered a rubric that exceeded expectations, understanding our nuance needs and enhancing our RAG operations.",
+                    image: "https://randomuser.me/api/portraits/women/5.jpg",
+                    name: "Sana Sheikh",
+                    role: "Data Scientist",
+                    rating: 5
+                },
+                {
+                    text: "Using PromptLab, our LLM application reliability significantly improved, boosting business performance.",
+                    image: "https://randomuser.me/api/portraits/men/4.jpg",
+                    name: "Hassan Ali",
+                    role: "Solutions Architect",
+                    rating: 5
+                },
+                {
+                    text: "Writing prompts used to be a guessing game. Now, we use the 5-dimension scoring to guarantee clarity before shipping.",
+                    image: "https://randomuser.me/api/portraits/women/6.jpg",
+                    name: "Emily Chen",
+                    role: "Senior Developer",
+                    rating: 5
+                },
+                {
+                    text: "The auto-improve feature is magic. It identified constraint loopholes we missed and practically rewrote our prompts for us.",
+                    image: "https://randomuser.me/api/portraits/men/5.jpg",
+                    name: "Marcus Johnson",
+                    role: "UX Researcher",
+                    rating: 4
+                },
+                {
+                    text: "Learning how different models react to instructions changed my perspective. PromptLab is now an essential daily tool.",
+                    image: "https://randomuser.me/api/portraits/men/6.jpg",
+                    name: "David Kim",
+                    role: "Founding Engineer",
+                    rating: 5
+                },
+                {
+                    text: "I was skeptical about automated prompt scoring, but the alignment metrics are spot-on. It caught hallucinations early.",
+                    image: "https://randomuser.me/api/portraits/women/7.jpg",
+                    name: "Sarah Jenkins",
+                    role: "Data Engineer",
+                    rating: 4
+                },
+                {
+                    text: "With PromptLab, we finally have a standardized way for our entire team to evaluate and iterate on LLM inputs.",
+                    image: "https://randomuser.me/api/portraits/men/7.jpg",
+                    name: "Michael Ross",
+                    role: "VP of Engineering",
+                    rating: 5
+                },
+                {
+                    text: "The blueprint templates taught me the intricacies of zero-shot vs few-shot prompting. My outputs have never been better.",
+                    image: "https://randomuser.me/api/portraits/women/8.jpg",
+                    name: "Jessica Wu",
+                    role: "AI Consultant",
+                    rating: 5
+                },
+                {
+                    text: "Being able to test structural boundaries across GPT, Claude, and Gemini in one place saves us hours of manual testing.",
+                    image: "https://randomuser.me/api/portraits/men/8.jpg",
+                    name: "Daniel Martinez",
+                    role: "Software Architect",
+                    rating: 5
+                },
+                {
+                    text: "PromptLab highlighted ambiguity risks I didn't even know existed. Our bot's user error rate dropped by 40%.",
+                    image: "https://randomuser.me/api/portraits/women/9.jpg",
+                    name: "Amanda Lee",
+                    role: "Product Owner",
+                    rating: 4
+                },
+                {
+                    text: "An indispensable tool for anyone building serious AI products. The controllability score ensures we stay within guardrails.",
+                    image: "https://randomuser.me/api/portraits/men/9.jpg",
+                    name: "Thomas Wright",
+                    role: "Security Analyst",
+                    rating: 5
+                },
+                {
+                    text: "I love the dashboard tracking. Seeing my prompt engineering skills improve over time via the streaks feature is motivating.",
+                    image: "https://randomuser.me/api/portraits/men/10.jpg",
+                    name: "Kevin Patel",
+                    role: "Indie Hacker",
+                    rating: 5
+                },
+                {
+                    text: "The targeted anti-patterns for Claude saved our launch. We rewrote our whole knowledge base integration prompt.",
+                    image: "https://randomuser.me/api/portraits/women/10.jpg",
+                    name: "Rachel Green",
+                    role: "Content Strategy Lead",
+                    rating: 5
+                },
+                {
+                    text: "Finally, a tool that treats prompting as actual engineering. The structured feedback loop is a game-changer.",
+                    image: "https://randomuser.me/api/portraits/men/11.jpg",
+                    name: "James Wilson",
+                    role: "Backend Dev",
+                    rating: 4
+                },
+                {
+                    text: "PromptLab's clarity scanner caught conflicting instructions we had been sending to GPT for months. Immediate ROI.",
+                    image: "https://randomuser.me/api/portraits/women/11.jpg",
+                    name: "Olivia Brown",
+                    role: "ML Ops",
+                    rating: 5
+                },
+                {
+                    text: "Highly intuitive and incredibly powerful. Learning how to properly frame context for Gemini has been eye-opening.",
+                    image: "https://randomuser.me/api/portraits/men/12.jpg",
+                    name: "William Davis",
+                    role: "Tech Lead",
+                    rating: 5
+                },
+                {
+                    text: "A must-have for QA testing AI prompts. The detailed breakdown per dimension lets us identify exact failure points.",
+                    image: "https://randomuser.me/api/portraits/women/12.jpg",
+                    name: "Sophia Taylor",
+                    role: "QA Engineer",
+                    rating: 5
+                },
+                // --- New Student Reviews ---
+                {
+                    text: "PromptLab completely changed how I use ChatGPT for my research. The clarity scoring ensures I get the exact academic context I need without the AI going off-topic.",
+                    image: "https://randomuser.me/api/portraits/men/13.jpg",
+                    name: "James Chen",
+                    role: "Computer Science Student",
+                    rating: 5
+                },
+                {
+                    text: "As a student, writing prompts that don't sound like AI is crucial. The structural blueprints taught me how to constrain outputs to my own voice and style.",
+                    image: "https://randomuser.me/api/portraits/women/14.jpg",
+                    name: "Mia Rodriguez",
+                    role: "Literature Major",
+                    rating: 5
+                },
+                {
+                    text: "I used to spend hours battling with Gemini to summarize legal papers. PromptLab's alignment metric showed me exactly where my instructions were failing.",
+                    image: "https://randomuser.me/api/portraits/men/15.jpg",
+                    name: "Ethan Wright",
+                    role: "Law Student",
+                    rating: 4
+                },
+                {
+                    text: "The auto-improve tool is a lifesaver for my thesis writing. It transforms my messy, late-night thoughts into structured, perfect prompts for Claude.",
+                    image: "https://randomuser.me/api/portraits/women/16.jpg",
+                    name: "Chloe Smith",
+                    role: "PhD Candidate",
+                    rating: 5
+                },
+                {
+                    text: "I didn't realize how much bad habits I had with AI until I saw the anti-patterns list. My coding project generation is significantly faster now.",
+                    image: "https://randomuser.me/api/portraits/men/17.jpg",
+                    name: "Lucas Patel",
+                    role: "Software Engineering Student",
+                    rating: 5
+                },
+                {
+                    text: "Highly recommended for any university student. The dashboard streaks actually make learning prompt engineering feel like a fun daily game instead of a chore.",
+                    image: "https://randomuser.me/api/portraits/women/18.jpg",
+                    name: "Isabella Martinez",
+                    role: "Biology Undergrad",
+                    rating: 4
+                },
+                {
+                    text: "This platform is the single best resource for understanding how different models process information differently. Essential for studying.",
+                    image: "https://randomuser.me/api/portraits/men/19.jpg",
+                    name: "Alexander Kim",
+                    role: "Data Science Student",
+                    rating: 5
+                },
+                {
+                    text: "PromptLab helped me build a perfect grading assistant prompt for my TA duties. The controllability score is highly accurate and reliable.",
+                    image: "https://randomuser.me/api/portraits/women/20.jpg",
+                    name: "Sophia Nguyen",
+                    role: "Graduate Teaching Assistant",
+                    rating: 5
+                },
+                {
+                    text: "The model-specific rewrite hints are incredible. It taught me how to seamlessly switch from GPT-4 syntax to Claude's XML tag system for my essays.",
+                    image: "https://randomuser.me/api/portraits/men/21.jpg",
+                    name: "Oliver Thompson",
+                    role: "History Major",
+                    rating: 5
+                },
+                {
+                    text: "I used to just blindly accept poor AI outputs. Now, I run everything through the 5-dimension scanner first. It saves me so much revision time.",
+                    image: "https://randomuser.me/api/portraits/women/22.jpg",
+                    name: "Emily Clark",
+                    role: "Architecture Student",
+                    rating: 4
+                }
+            ];
+
+            const renderTestimonialCard = (data) => {
+                const starsHTML = Array.from({ length: 5 }).map((_, i) => `
+                    <svg class="w-4 h-4 ${i < data.rating ? 'text-amber-400' : 'text-slate-200 dark:text-slate-800'}" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                `).join('');
+
+                return `
+                <div class="p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-lg shadow-black/5 w-[320px] bg-white dark:bg-black transition-all duration-300 hover:scale-[1.03] hover:-translate-y-2 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.12),0_10px_10px_-5px_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.05)] select-none group focus:outline-none focus:ring-2 focus:ring-primary/30">
+                    <div class="flex gap-1 mb-4">
+                        ${starsHTML}
+                    </div>
+                    <blockquote class="m-0 p-0">
+                        <p class="text-slate-600 dark:text-slate-400 leading-relaxed font-normal m-0 transition-colors duration-300">
+                            "${data.text}"
+                        </p>
+                        <footer class="flex items-center gap-3 mt-6">
+                            <img
+                                width="40"
+                                height="40"
+                                src="${data.image}"
+                                alt="Avatar of ${data.name}"
+                                class="h-10 w-10 rounded-full object-cover ring-2 ring-slate-100 dark:ring-white/10 group-hover:ring-primary/30 transition-all duration-300 ease-in-out"
+                            />
+                            <div class="flex flex-col">
+                                <cite class="font-semibold not-italic tracking-tight leading-5 text-slate-900 dark:text-white transition-colors duration-300">
+                                    ${data.name}
+                                </cite>
+                                <span class="text-sm leading-5 tracking-tight text-slate-500 mt-0.5 transition-colors duration-300">
+                                    ${data.role}
+                                </span>
+                            </div>
+                        </footer>
+                    </blockquote>
+                </div>
+            `;
+            };
+
+            const populateTestimonialColumn = (colSelector, sliceStart, sliceEnd, speed) => {
+                const col = document.querySelector(colSelector);
+                if (!col) return;
+
+                const track = col.querySelector('.testimonial-track');
+                const slice = testimonialsData.slice(sliceStart, sliceEnd);
+
+                // Duplicate the items so it can loop seamlessly
+                const fullHTML = [...slice, ...slice].map(renderTestimonialCard).join('');
+                track.innerHTML = fullHTML;
+
+                // Add animation using CSS Web Animations API if supported
+                if (track.animate) {
+                    track.animate([
+                        { transform: 'translateY(0)' },
+                        { transform: 'translateY(-50%)' }
+                    ], {
+                        duration: speed * 1000,
+                        iterations: Infinity,
+                        easing: 'linear'
+                    });
+                }
+            };
+
+            populateTestimonialColumn('.testimonial-col-1', 0, 8, 30);
+            populateTestimonialColumn('.testimonial-col-2', 8, 16, 35);
+            populateTestimonialColumn('.testimonial-col-3', 16, 24, 32);
+
+        });
+
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            for (let i = 0; i < 30; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                p.style.animationDelay = Math.random() * 8 + 's';
+                p.style.animationDuration = (6 + Math.random() * 8) + 's';
+                p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
+                container.appendChild(p);
+            }
+        }
+    </script>
 </body>
 
 </html>

@@ -17,7 +17,7 @@
 <body>
     <div class="login-page">
         <!-- ── Back link ──────────────────────────────────── -->
-        <a href="/landing.html" class="back-link">← Back to PromptLab</a>
+        <a href="/" class="back-link">← Back to PromptLab</a>
 
         <!-- ── Auth Card ──────────────────────────────────── -->
         <div class="auth-card">
@@ -90,13 +90,13 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
 
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT",
-            storageBucket: "YOUR_PROJECT.firebasestorage.app",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef",
-            measurementId: "G-ABCDEF"
+            apiKey: "AIzaSyCW_ZBkNCFLTok-198d9mOL4CCNLc7G2QY",
+            authDomain: "promptlab-abaed.firebaseapp.com",
+            projectId: "promptlab-abaed",
+            storageBucket: "promptlab-abaed.firebasestorage.app",
+            messagingSenderId: "473416336676",
+            appId: "1:473416336676:web:42dff8f44b61f3e75e5fb1",
+            measurementId: "G-LJY5Z0DH25"
         };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -109,7 +109,7 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 localStorage.setItem('promptlab_active_user', user.uid);
-                window.location.href = '/index.html';
+                window.location.href = '/app.html';
             }
         });
     </script>
