@@ -142,14 +142,65 @@
                 repeating-linear-gradient(0deg, transparent 0, transparent 40px, rgba(220, 38, 38, 0.08) 41px);
         }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(16px);
+        .dark .glass-panel {
+            background: rgba(0, 0, 0, 0.6);
+            border-color: rgba(220, 38, 38, 0.1);
         }
 
-        .dark .glass-panel {
-            background: rgba(5, 5, 7, 0.6);
+        /* ── Pricing Modal Animations ── */
+        @keyframes pricingPopUp {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
+
+        @keyframes slideInUpDelayed {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .pricing-card-animate {
+            animation: slideInUpDelayed 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+
+        .modal-backdrop {
+            backdrop-filter: blur(12px);
+            background: rgba(0, 0, 0, 0.8);
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .pricing-card-glow:hover {
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.4);
+            border-color: rgba(220, 38, 38, 0.6) !important;
+            transform: translateY(-8px) scale(1.02);
+        }
+    </style>
+    background: rgba(5, 5, 7, 0.6);
+    }
     </style>
 
     <link rel="stylesheet" href="/css/index.css">
@@ -490,11 +541,11 @@
                                     Diagnostic summary of your prompt
                                     engineering metrics.</p>
                             </div>
-                            <a href="/index.html#pricing"
+                            <button onclick="openPricingModal()"
                                 class="bg-primary hover:bg-red-600 text-white px-6 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-primary/20 cursor-pointer no-underline">
                                 UPGRADE PRO
                                 <span class="material-icons-round text-base">bolt</span>
-                            </a>
+                            </button>
                         </div>
 
                         <!-- Main Stats Grid -->
@@ -580,6 +631,23 @@
                                             <div
                                                 class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">
                                                 Total Analyses</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 p-6 rounded-2xl flex items-center justify-between group hover:border-emerald-500/50 transition-all duration-300 glow-border">
+                                    <div class="flex items-center gap-4">
+                                        <div
+                                            class="p-3 bg-emerald-500/10 rounded-xl group-hover:bg-emerald-500/20 transition-colors">
+                                            <span class="material-icons-round text-emerald-500">bolt</span>
+                                        </div>
+                                        <div>
+                                            <div class="text-2xl font-bold font-mono text-slate-900 dark:text-white transition-colors duration-500"
+                                                id="statRemaining">0</div>
+                                            <div
+                                                class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">
+                                                Credits Remaining</div>
                                         </div>
                                     </div>
                                 </div>
@@ -689,33 +757,180 @@
 
             <!-- ── Mobile Bottom Nav ───────────────────────────────── -->
             <nav
-                class="sm:hidden fixed bottom-0 left-0 w-full bg-white/90 dark:bg-black/90 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 z-50 flex justify-around items-center h-16 px-2 pb-safe-offset-2">
+                class="md:hidden fixed bottom-0 left-0 w-full bg-white/90 dark:bg-black/80 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 flex items-center justify-around py-3 px-6 z-40 transition-colors duration-500">
                 <button
-                    class="nav-btn flex flex-col items-center justify-center w-16 h-full text-slate-400 active:scale-95 transition-transform"
-                    data-view="dashboard" onclick="switchView('dashboard')">
-                    <span class="material-icons-round text-[22px] nav-icon">dashboard</span>
-                    <span class="text-[9px] font-bold mt-1 tracking-wider uppercase">Dash</span>
+                    class="nav-btn flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-widest transition-colors active"
+                    data-view="dashboard">
+                    <span class="material-icons-round text-xl">dashboard</span>
+                    Dash
                 </button>
                 <button
-                    class="nav-btn active text-primary flex flex-col items-center justify-center w-16 h-full active:scale-95 transition-transform"
-                    data-view="analyzer" onclick="switchView('analyzer')">
-                    <span class="material-icons-round text-[22px] nav-icon">analytics</span>
-                    <span class="text-[9px] font-bold mt-1 tracking-wider uppercase">Analyze</span>
+                    class="nav-btn flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-colors"
+                    data-view="analyzer">
+                    <span class="material-icons-round text-xl">psychology</span>
+                    Analyze
                 </button>
                 <button
-                    class="nav-btn flex flex-col items-center justify-center w-16 h-full text-slate-400 active:scale-95 transition-transform"
-                    data-view="generator" onclick="switchView('generator')">
-                    <span class="material-icons-round text-[22px] nav-icon">auto_awesome</span>
-                    <span class="text-[9px] font-bold mt-1 tracking-wider uppercase">Gen</span>
+                    class="nav-btn flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-colors"
+                    data-view="generator">
+                    <span class="material-icons-round text-xl">auto_awesome</span>
+                    Build
                 </button>
                 <button
-                    class="nav-btn flex flex-col items-center justify-center w-16 h-full text-slate-400 active:scale-95 transition-transform"
-                    data-view="profile" onclick="switchView('profile')">
-                    <span class="material-icons-round text-[22px] nav-icon">account_circle</span>
-                    <span class="text-[9px] font-bold mt-1 tracking-wider uppercase">Profile</span>
+                    class="nav-btn flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-colors"
+                    data-view="profile">
+                    <span class="material-icons-round text-xl">person</span>
+                    Profile
                 </button>
             </nav>
-        </main>
+    </div>
+    </div>
+
+    <!-- ── Pricing Modal Overlay ── -->
+    <div id="pricingModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 md:p-8">
+        <div class="modal-backdrop absolute inset-0" onclick="closePricingModal()"></div>
+        <div
+            class="relative z-10 w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-white dark:bg-[#050507] rounded-3xl border border-slate-200 dark:border-white/10 shadow-2xl p-6 md:p-12 transition-all duration-300 pricing-modal-content">
+            <button onclick="closePricingModal()"
+                class="absolute top-6 right-6 text-slate-500 hover:text-primary transition-colors">
+                <span class="material-icons-round text-3xl">close</span>
+            </button>
+
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">Upgrade
+                    Your Experience</h2>
+                <p class="text-slate-500 dark:text-slate-400 text-lg">Choose a plan that fits your prompt engineering
+                    needs.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                <!-- Free Tier -->
+                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all"
+                    style="animation-delay: 0.1s;">
+                    <div class="mb-8">
+                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
+                            Starter</p>
+                        <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Free</h3>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹0<span
+                                class="text-slate-500 text-sm font-normal">/mo</span></div>
+                    </div>
+                    <ul class="flex-1 space-y-4 mb-8">
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
+                                class="material-icons-round text-primary text-sm">check_circle</span> 5 Credits /day
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
+                                class="material-icons-round text-primary text-sm">check_circle</span> Basic Analysis
+                        </li>
+                    </ul>
+                    <button
+                        class="w-full py-3 rounded-xl bg-slate-200 dark:bg-white/10 text-slate-600 dark:text-slate-300 font-bold text-sm cursor-not-allowed">Current
+                        Plan</button>
+                </div>
+
+                <!-- Essential Tier -->
+                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all"
+                    style="animation-delay: 0.2s;">
+                    <div class="mb-8">
+                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
+                            Essential</p>
+                        <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Basic</h3>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹49<span
+                                class="text-slate-500 text-sm font-normal">/mo</span></div>
+                    </div>
+                    <ul class="flex-1 space-y-4 mb-8">
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
+                                class="material-icons-round text-primary text-sm">check_circle</span> 15 Credits /day
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
+                                class="material-icons-round text-primary text-sm">check_circle</span> Generation &
+                            Optimize</li>
+                    </ul>
+                    <button
+                        class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade
+                        Now</button>
+                </div>
+
+                <!-- Pro Tier (Most Popular) -->
+                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0f0f0f]/80 border-2 border-primary rounded-2xl p-8 transition-all scale-105 z-10 shadow-[0_0_40px_rgba(220,38,38,0.2)]"
+                    style="animation-delay: 0.3s;">
+                    <div
+                        class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full">
+                        Most Popular</div>
+                    <div class="mb-8">
+                        <p class="text-sm font-bold text-primary uppercase tracking-widest mb-1">Advanced</p>
+                        <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Pro</h3>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹99<span
+                                class="text-slate-500 text-sm font-normal">/mo</span></div>
+                    </div>
+                    <ul class="flex-1 space-y-4 mb-8">
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
+                                class="material-icons-round text-primary text-sm">check_circle</span> 30 Credits /day
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
+                                class="material-icons-round text-primary text-sm">check_circle</span> All Models Access
+                        </li>
+                    </ul>
+                    <button
+                        class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade
+                        Now</button>
+                </div>
+
+                <!-- Advanced Tier -->
+                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all"
+                    style="animation-delay: 0.4s;">
+                    <div class="mb-8">
+                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
+                            Power User</p>
+                        <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Advanced</h3>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹199<span
+                                class="text-slate-500 text-sm font-normal">/mo</span></div>
+                    </div>
+                    <ul class="flex-1 space-y-4 mb-8">
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
+                                class="material-icons-round text-primary text-sm">check_circle</span> 100 Credits /day
+                        </li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
+                                class="material-icons-round text-primary text-sm">check_circle</span> Priority Access
+                        </li>
+                    </ul>
+                    <button
+                        class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade
+                        Now</button>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all"
+                    style="animation-delay: 0.5s;">
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-black mb-2 text-slate-900 dark:text-white">Enterprise</h3>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹399<span
+                                class="text-slate-500 text-sm font-normal">/mo</span></div>
+                    </div>
+                    <p class="text-slate-500 text-sm mb-8 flex-1">Custom team limits, aggregated billing, and dedicated
+                        support.</p>
+                    <button
+                        class="w-full py-3 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-bold text-sm border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/20 transition-all">Contact
+                        Sales</button>
+                </div>
+
+                <!-- Credit Pack -->
+                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-primary/5 border border-primary/20 rounded-2xl p-8 transition-all"
+                    style="animation-delay: 0.6s;">
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-black mb-2 text-slate-900 dark:text-white">Credit Pack</h3>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹599<span
+                                class="text-slate-500 text-sm font-normal"> once</span></div>
+                    </div>
+                    <p class="text-slate-500 text-sm mb-8 flex-1">One-time purchase of 1000 credits. Never expires.
+                        Perfect for occasional heavy usage.</p>
+                    <button
+                        class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Buy
+                        Pack</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </main>
     </div>
 
     <!-- ── Toast Container ───────────────────────────────────── -->
