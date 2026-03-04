@@ -170,6 +170,8 @@
                     <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline"
                         href="#testimonials">Reviews</a>
                     <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline"
+                        href="#pricing">Pricing</a>
+                    <a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-[10px] sm:text-xs font-bold tracking-widest uppercase transition-colors no-underline"
                         href="/login.html">Sign In</a>
                 </nav>
                 <a href="/login.html?mode=signup" id="signupBtn"
@@ -180,7 +182,28 @@
             </div>
         </header>
 
-        <!-- ── Hero Section ─────────────────────────────────────── -->
+        <!-- ── Mobile Menu Overlay ────────────────────────────────────── -->
+        <div id="mobileNavMenu"
+            class="fixed inset-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-3xl flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-300 md:hidden pb-10">
+            <nav class="flex flex-col items-center gap-8 w-full px-6">
+                <a class="mobile-link text-slate-800 dark:text-white text-2xl font-black tracking-widest uppercase transition-colors no-underline"
+                    href="#features">Features</a>
+                <a class="mobile-link text-slate-800 dark:text-white text-2xl font-black tracking-widest uppercase transition-colors no-underline"
+                    href="#models">Models</a>
+                <a class="mobile-link text-slate-800 dark:text-white text-2xl font-black tracking-widest uppercase transition-colors no-underline"
+                    href="#how-it-works">How it works</a>
+                <a class="mobile-link text-slate-800 dark:text-white text-2xl font-black tracking-widest uppercase transition-colors no-underline"
+                    href="#testimonials">Reviews</a>
+                <a class="mobile-link text-slate-800 dark:text-white text-2xl font-black tracking-widest uppercase transition-colors no-underline"
+                    href="#pricing">Pricing</a>
+                <a class="mobile-link text-primary text-2xl font-black tracking-widest uppercase transition-colors no-underline"
+                    href="/login.html">Sign In</a>
+                <a href="/login.html?mode=signup"
+                    class="mobile-link w-full max-w-[280px] mt-4 relative group flex items-center justify-center overflow-hidden rounded-xl px-6 py-4 bg-primary text-white text-lg font-bold tracking-widest uppercase transition-all shadow-[0_10px_20px_-5px_rgba(220,38,38,0.25)] dark:shadow-[0_0_30px_rgba(220,38,38,0.3)] no-underline">
+                    <span class="relative z-10">Get Started Free</span>
+                </a>
+            </nav>
+        </div> <!-- ── Hero Section ─────────────────────────────────────── -->
         <section class="hero relative z-10 flex flex-col items-center justify-center px-4 py-16 pb-32"
             style="min-height: calc(100vh - 68px); margin-top: 68px; padding-bottom: 120px;">
             <div class="w-full max-w-5xl flex flex-col items-center">
@@ -267,10 +290,10 @@
                         </div>
 
                         <div
-                            class="px-6 py-4 bg-slate-50/70 dark:bg-black/80 flex items-center justify-between border-t border-slate-100 dark:border-white/5 transition-colors duration-500">
-                            <div class="flex items-center gap-6">
-                                <div class="flex items-center gap-4">
-                                    <div class="relative group">
+                            class="px-5 sm:px-6 py-4 bg-slate-50/70 dark:bg-black/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-slate-100 dark:border-white/5 transition-colors duration-500">
+                            <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-start">
+                                <div class="flex items-center gap-3 w-full sm:w-auto">
+                                    <div class="relative group flex-1 sm:flex-none">
                                         <select
                                             class="bg-white dark:bg-transparent border border-slate-200 dark:border-white/10 text-[10px] font-mono text-primary font-bold py-1.5 dark:py-1 pl-3 dark:pl-2 pr-8 dark:pr-6 rounded-sm dark:rounded focus:ring-0 focus:border-primary/30 dark:focus:border-primary/50 appearance-none cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-500">
                                             <option class="bg-white dark:bg-black text-slate-800 dark:text-white"
@@ -875,6 +898,208 @@
             </div>
         </section>
 
+        <!-- ── Pricing Section ────────────────────────────────────── -->
+        <section
+            class="relative z-10 py-24 px-4 bg-slate-50 dark:bg-[#020202] border-y border-slate-200 dark:border-white/5 transition-colors duration-500 overflow-hidden"
+            id="pricing">
+            <div class="max-w-7xl mx-auto flex flex-col items-center">
+                <div class="flex flex-col gap-4 text-center items-center mb-16">
+                    <div
+                        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs font-bold tracking-widest text-slate-500 dark:text-slate-400 uppercase transition-colors duration-500">
+                        Calibration Pricing
+                    </div>
+                    <h2
+                        class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter text-slate-900 dark:text-white transition-colors duration-500">
+                        PromptLab <span
+                            class="text-primary dark:breathing-glow transition-all duration-500">Tiers</span>
+                    </h2>
+                    <p
+                        class="text-slate-600 dark:text-slate-400 text-lg md:text-xl font-medium max-w-2xl mt-4 transition-colors duration-500">
+                        Professional-grade calibration. Choose the diagnostic level that matches your operational scale.
+                        All prices in INR.
+                    </p>
+                </div>
+
+                <!-- Pricing Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch w-full mb-12">
+
+                    <!-- Free Tier -->
+                    <div
+                        class="flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 hover:border-primary/40 transition-all group backdrop-blur-xl relative">
+                        <div class="mb-8">
+                            <p
+                                class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
+                                Entry</p>
+                            <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Free</h3>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black text-slate-900 dark:text-white">₹0</span>
+                                <span class="text-slate-500 text-sm">/mo</span>
+                            </div>
+                        </div>
+                        <a href="/login.html?mode=signup"
+                            class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-bold text-sm mb-8 hover:bg-slate-200 dark:hover:bg-white/10 transition-all text-center no-underline border border-transparent dark:border-white/10 block">
+                            Get Started
+                        </a>
+                        <ul class="flex-1 space-y-4">
+                            <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                5 Credits /day
+                            </li>
+                            <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                Basic Analysis (1 Credit)
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Essential Tier -->
+                    <div
+                        class="flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 hover:border-primary/40 transition-all group backdrop-blur-xl relative">
+                        <div class="mb-8">
+                            <p
+                                class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
+                                Essential</p>
+                            <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Basic</h3>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black text-slate-900 dark:text-white">₹49</span>
+                                <span class="text-slate-500 text-sm">/mo</span>
+                            </div>
+                        </div>
+                        <button
+                            class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-bold text-sm mb-8 hover:bg-slate-200 dark:hover:bg-white/10 transition-all border border-transparent dark:border-white/10">
+                            Subscribe
+                        </button>
+                        <ul class="flex-1 space-y-4">
+                            <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                15 Credits /day
+                            </li>
+                            <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                Generation & Optimize
+                            </li>
+                            <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                2 Target Models
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Pro Tier -->
+                    <div
+                        class="flex flex-col bg-white dark:bg-[#0f0f0f]/80 border-2 border-primary rounded-2xl p-8 hover:border-primary/80 transition-all group backdrop-blur-xl relative transform lg:scale-105 shadow-[0_0_30px_rgba(220,38,38,0.15)] z-10">
+                        <div
+                            class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full whitespace-nowrap shadow-lg shadow-primary/30">
+                            Most Popular
+                        </div>
+                        <div class="mb-8">
+                            <p class="text-sm font-bold text-primary uppercase tracking-widest mb-1">Advanced</p>
+                            <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Pro</h3>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black text-slate-900 dark:text-white">₹99</span>
+                                <span class="text-slate-500 text-sm">/mo</span>
+                            </div>
+                        </div>
+                        <button
+                            class="w-full py-3 px-4 rounded-xl bg-primary text-white font-bold text-sm mb-8 hover:bg-primary/90 shadow-[0_5px_15px_rgba(220,38,38,0.3)] transition-all">
+                            Subscribe
+                        </button>
+                        <ul class="flex-1 space-y-4">
+                            <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                30 Credits /day
+                            </li>
+                            <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                All Models (GPT, Claude, Gemini)
+                            </li>
+                            <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                Advanced Blueprinting
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Advanced Tier -->
+                    <div
+                        class="flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 hover:border-primary/40 transition-all group backdrop-blur-xl relative">
+                        <div class="mb-8">
+                            <p
+                                class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
+                                Power User</p>
+                            <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Advanced</h3>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black text-slate-900 dark:text-white">₹199</span>
+                                <span class="text-slate-500 text-sm">/mo</span>
+                            </div>
+                        </div>
+                        <button
+                            class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-bold text-sm mb-8 hover:bg-slate-200 dark:hover:bg-white/10 transition-all border border-transparent dark:border-white/10">
+                            Subscribe
+                        </button>
+                        <ul class="flex-1 space-y-4">
+                            <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                100 Credits /day
+                            </li>
+                            <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                Unlimited Analyzer
+                            </li>
+                            <li class="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                                <span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                                Priority Server Queue
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Enterprise & Pay-as-you-go Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch w-full max-w-4xl">
+                    <!-- Enterprise Tier -->
+                    <div
+                        class="flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 hover:border-primary/40 transition-all group backdrop-blur-xl">
+                        <div class="mb-6">
+                            <h3 class="text-2xl font-black mb-2 text-slate-900 dark:text-white">Enterprise</h3>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black text-slate-900 dark:text-white">₹399</span>
+                                <span class="text-slate-500 text-sm">/mo</span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-1">
+                            Team Collaboration. 250 daily credits with aggregated billing and priority support.
+                        </p>
+                        <button
+                            class="w-full py-3 px-4 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-bold text-sm hover:bg-slate-200 dark:hover:bg-white/10 transition-all border border-slate-200 dark:border-white/10">
+                            Contact Sales
+                        </button>
+                    </div>
+
+                    <!-- Pay as you go -->
+                    <div
+                        class="flex flex-col bg-primary/5 dark:bg-primary/5 border border-primary/20 dark:border-primary/20 rounded-2xl p-8 hover:border-primary/40 transition-all group backdrop-blur-xl relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-32 h-32 bg-primary/10 rounded-bl-full pointer-events-none">
+                        </div>
+                        <div class="mb-6 relative z-10">
+                            <h3 class="text-2xl font-black mb-2 text-primary">Credit Pack</h3>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black text-slate-900 dark:text-white">₹599</span>
+                                <span class="text-slate-500 text-sm">/one-time</span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-1 relative z-10">
+                            Tired of subscriptions? Instantly add <strong class="text-primary">1000 Lifetime
+                                Credits</strong> to your running balance to use anytime.
+                        </p>
+                        <button
+                            class="w-full py-3 px-4 rounded-xl bg-primary text-white font-bold text-sm shadow-[0_5px_15px_rgba(220,38,38,0.2)] hover:bg-primary/90 transition-all border border-transparent relative z-10 w-full sm:w-auto">
+                            Buy Credits
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- ── CTA Section ──────────────────────────────────────── -->
         <section
             class="relative z-10 py-24 px-4 bg-slate-50 dark:bg-slate-900/40 border-y border-slate-200 dark:border-white/5 transition-colors duration-500 overflow-hidden">
@@ -928,6 +1153,8 @@
                         It Works</a>
                     <a href="#testimonials"
                         class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors no-underline">Reviews</a>
+                    <a href="#pricing"
+                        class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors no-underline">Pricing</a>
                     <a href="/login.html"
                         class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white transition-colors no-underline">Sign
                         In</a>
@@ -992,16 +1219,31 @@
 
             // Mobile menu toggle
             const mobileBtn = document.getElementById('mobileMenuBtn');
-            const navWrapper = document.getElementById('desktopNav');
-            if (mobileBtn && navWrapper) {
+            const mobileNavElement = document.getElementById('mobileNavMenu');
+            let isMobileMenuOpen = false;
+
+            if (mobileBtn && mobileNavElement) {
                 mobileBtn.addEventListener('click', () => {
-                    navWrapper.classList.toggle('hidden');
-                    // Add some mobile specific styling when open
-                    if (!navWrapper.classList.contains('hidden')) {
-                        navWrapper.classList.add('flex-col', 'absolute', 'top-full', 'left-0', 'w-full', 'bg-white', 'dark:bg-black', 'p-6', 'border-b', 'border-slate-200', 'dark:border-white/10', 'shadow-xl');
+                    isMobileMenuOpen = !isMobileMenuOpen;
+                    if (isMobileMenuOpen) {
+                        mobileNavElement.classList.remove('opacity-0', 'pointer-events-none');
+                        mobileBtn.innerHTML = '<span class="material-symbols-outlined">close</span>';
+                        document.body.style.overflow = 'hidden';
                     } else {
-                        navWrapper.classList.remove('flex-col', 'absolute', 'top-full', 'left-0', 'w-full', 'bg-white', 'dark:bg-black', 'p-6', 'border-b', 'border-slate-200', 'dark:border-white/10', 'shadow-xl');
+                        mobileNavElement.classList.add('opacity-0', 'pointer-events-none');
+                        mobileBtn.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+                        document.body.style.overflow = '';
                     }
+                });
+
+                const mobileLinks = mobileNavElement.querySelectorAll('.mobile-link');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        isMobileMenuOpen = false;
+                        mobileNavElement.classList.add('opacity-0', 'pointer-events-none');
+                        mobileBtn.innerHTML = '<span class="material-symbols-outlined">menu</span>';
+                        document.body.style.overflow = '';
+                    });
                 });
             }
 
@@ -1010,11 +1252,11 @@
                 a.addEventListener('click', e => {
                     e.preventDefault();
                     const href = a.getAttribute('href');
-                    if (href === '#') return; // Ignore empty hashes
+                    if (href === '#') return;
 
                     const target = document.querySelector(href);
                     if (target) {
-                        const headerOffset = 68; // height of the fixed header roughly
+                        const headerOffset = 68;
                         const elementPosition = target.getBoundingClientRect().top;
                         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -1022,12 +1264,6 @@
                             top: offsetPosition,
                             behavior: "smooth"
                         });
-                    }
-
-                    // Only hide if we're in mobile view (mobileBtn is visible)
-                    if (navWrapper && !navWrapper.classList.contains('hidden') && window.innerWidth < 768) {
-                        navWrapper.classList.add('hidden');
-                        navWrapper.classList.remove('flex-col', 'absolute', 'top-full', 'left-0', 'w-full', 'bg-white', 'dark:bg-black', 'p-6', 'border-b', 'border-slate-200', 'dark:border-white/10', 'shadow-xl');
                     }
                 });
             });

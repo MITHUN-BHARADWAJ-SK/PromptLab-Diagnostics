@@ -56,8 +56,9 @@ const PromptLabDB = {
                 displayName,
                 userType,
                 subscriptionTier: 'free',
-                dailyAnalysisCount: 0,
-                dailyAnalysisReset: this._nextMidnight(),
+                dailyCredits: 5, // Default for free tier
+                bonusCredits: 0,
+                dailyCreditReset: this._nextMidnight(),
                 createdAt: new Date().toISOString(),
             };
             db.stats[uid] = {
@@ -66,6 +67,7 @@ const PromptLabDB = {
                 streakDays: 0,
                 lastActiveDate: null,
                 scoreHistory: [],
+                totalCreditsUsed: 0,
             };
             saveDb(db);
         }
@@ -86,34 +88,83 @@ const PromptLabDB = {
         }
     },
 
-    // ── Quota Management ──────────────────────────────────────
-    async checkQuota(uid) {
+    // ── Credit Management ──────────────────────────────────────
+    getTierDailyLimit(tier) {
+        switch (tier) {
+            case 'essential': return 15;
+            case 'pro': return 30;
+            case 'advanced': return 100;
+            case 'enterprise': return 250;
+            case 'free':
+            default: return 5;
+        }
+    },
+
+    async checkCredits(uid) {
         const db = getDb();
         const user = db.users[uid];
-        if (!user) return { limit: 10, used: 0, remaining: 10 };
+        if (!user) return { daily: 5, bonus: 0, total: 5, limit: 5 };
 
         const now = new Date();
-        const reset = user.dailyAnalysisReset ? new Date(user.dailyAnalysisReset) : now;
+        const reset = user.dailyCreditReset ? new Date(user.dailyCreditReset) : now;
+        const dailyLimit = this.getTierDailyLimit(user.subscriptionTier);
 
         // Reset if new day
         if (now >= reset) {
-            user.dailyAnalysisCount = 0;
-            user.dailyAnalysisReset = this._nextMidnight();
+            user.dailyCredits = dailyLimit;
+            user.dailyCreditReset = this._nextMidnight();
             saveDb(db);
         }
 
-        const limit = user.subscriptionTier === 'pro' ? 100 : 10;
-        const used = user.dailyAnalysisCount || 0;
+        // Ensure properties exist
+        if (user.dailyCredits === undefined) user.dailyCredits = dailyLimit;
+        if (user.bonusCredits === undefined) user.bonusCredits = 0;
 
-        return { limit, used, remaining: Math.max(0, limit - used) };
+        return {
+            daily: user.dailyCredits,
+            bonus: user.bonusCredits,
+            total: user.dailyCredits + user.bonusCredits,
+            limit: dailyLimit
+        };
     },
 
-    async consumeQuota(uid) {
+    async consumeCredits(uid, amount) {
+        const db = getDb();
+        const user = db.users[uid];
+        const stats = db.stats[uid];
+        if (!user) return false;
+
+        let needed = amount;
+
+        // Deduct from daily first
+        if (user.dailyCredits >= needed) {
+            user.dailyCredits -= needed;
+            needed = 0;
+        } else {
+            needed -= (user.dailyCredits || 0);
+            user.dailyCredits = 0;
+        }
+
+        // Deduct from bonus if needed
+        if (needed > 0) {
+            if ((user.bonusCredits || 0) >= needed) {
+                user.bonusCredits -= needed;
+                needed = 0;
+            }
+        }
+
+        if (needed > 0) return false; // Insufficient credits
+
+        if (stats) stats.totalCreditsUsed = (stats.totalCreditsUsed || 0) + amount;
+        saveDb(db);
+        return true;
+    },
+
+    async addBonusCredits(uid, amount) {
         const db = getDb();
         const user = db.users[uid];
         if (!user) return;
-
-        user.dailyAnalysisCount = (user.dailyAnalysisCount || 0) + 1;
+        user.bonusCredits = (user.bonusCredits || 0) + amount;
         saveDb(db);
     },
 
@@ -203,7 +254,7 @@ const PromptLabDB = {
 
     _nextMidnight() {
         const d = new Date();
-        d.setUTCHours(24, 0, 0, 0);
+        d.setHours(24, 0, 0, 0);
         return d.toISOString();
     }
 };

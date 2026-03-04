@@ -103,11 +103,11 @@ function switchView(viewName) {
     b.classList.add('text-slate-400');
   });
 
-  const navBtn = document.querySelector(`.nav-btn[data-view="${viewName}"]`);
-  if (navBtn) {
-    navBtn.classList.remove('text-slate-400');
-    navBtn.classList.add('active', 'text-primary');
-  }
+  const navBtns = document.querySelectorAll(`.nav-btn[data-view="${viewName}"]`);
+  navBtns.forEach(btn => {
+    btn.classList.remove('text-slate-400');
+    btn.classList.add('active', 'text-primary');
+  });
 
   if (viewName === 'dashboard') loadDashboard();
 }
@@ -138,6 +138,9 @@ function updateUserChip() {
   if (document.getElementById('profileEmailBig')) document.getElementById('profileEmailBig').textContent = email;
   if (document.getElementById('profileDisplayNameInput')) document.getElementById('profileDisplayNameInput').value = name;
   if (document.getElementById('profileEmailInput')) document.getElementById('profileEmailInput').value = email;
+
+  // Refresh credits to update the chip role text
+  refreshCredits();
 }
 // ════════════════════════════════════════════════════════════════
 //  PROMPT ANALYZER (runs locally via PromptLabEngine)
@@ -162,10 +165,10 @@ async function analyzePrompt() {
   setLoading(btn, true);
 
   try {
-    // Check quota
-    const quota = await PromptLabDB.checkQuota(state.uid);
-    if (quota.remaining <= 0) {
-      showToast('Daily analysis quota exhausted. Try again tomorrow or upgrade to Pro.', 'error');
+    // Check credits
+    const credits = await PromptLabDB.checkCredits(state.uid);
+    if (credits.total < 1) {
+      showToast('Insufficient credits (1 required). Upgrade your plan or wait for tomorrow.', 'error');
       return;
     }
 
@@ -193,17 +196,65 @@ async function analyzePrompt() {
       educational_summary: result.educational_summary || '',
     });
 
-    // Consume quota
-    await PromptLabDB.consumeQuota(state.uid);
+    // Consume credits
+    await PromptLabDB.consumeCredits(state.uid, 1);
 
     // Update learning stats
     await PromptLabDB.updateStats(state.uid, result);
 
     // Render results
     renderAnalysisResults('analyzerResults', result, modelTarget);
-    refreshQuota();
+    refreshCredits();
   } catch (err) {
     showToast(err.message || 'Analysis failed.', 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+async function optimizePrompt() {
+  const promptText = document.getElementById('analyzerPrompt').value.trim();
+  const modelTarget = document.getElementById('analyzerModel').value;
+
+  if (!promptText) {
+    showToast('Please enter a prompt to optimize.', 'error');
+    return;
+  }
+
+  if (!state.uid) {
+    showToast('Please sign in first.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('optimizeBtn');
+  setLoading(btn, true);
+
+  try {
+    // Check credits for generation (3 credits)
+    const credits = await PromptLabDB.checkCredits(state.uid);
+    if (credits.total < 3) {
+      showToast('Insufficient credits (3 required for optimization). Upgrade your plan or wait for tomorrow.', 'error');
+      return;
+    }
+
+    // Run the generation engine to optimize
+    const genResult = PromptLabEngine.generate({ promptText, modelTarget });
+
+    if (genResult.error) {
+      showToast(genResult.error, 'error');
+      return;
+    }
+
+    // Consume 3 credits
+    await PromptLabDB.consumeCredits(state.uid, 3);
+
+    // Replace the text in the analyzer input with the new text
+    document.getElementById('analyzerPrompt').value = genResult.v2 || genResult.v1 || promptText;
+
+    showToast('Prompt optimized successfully!', 'success');
+    refreshCredits();
+  } catch (err) {
+    showToast(err.message || 'Optimization failed.', 'error');
   } finally {
     setLoading(btn, false);
   }
@@ -238,12 +289,12 @@ async function generatePrompt() {
   const setStatus = (text) => { if (statusEl) statusEl.textContent = text; };
 
   try {
-    // Check quota
-    setStatus('CHECKING QUOTA...');
-    const quota = await PromptLabDB.checkQuota(state.uid);
-    if (quota.remaining <= 0) {
-      showToast('Daily quota exhausted. Try again tomorrow.', 'error');
-      setStatus('QUOTA EXHAUSTED');
+    // Check credits
+    setStatus('CHECKING CREDITS...');
+    const credits = await PromptLabDB.checkCredits(state.uid);
+    if (credits.total < 3) {
+      showToast('Insufficient credits (3 required). Upgrade your plan or wait for tomorrow.', 'error');
+      setStatus('INSUFFICIENT CREDITS');
       return;
     }
 
@@ -268,13 +319,13 @@ async function generatePrompt() {
     setStatus(genResult.v2 ? 'AUTO-IMPROVING V1 → V2...' : 'SCORING PROMPT...');
     await new Promise(r => setTimeout(r, 100));
 
-    await PromptLabDB.consumeQuota(state.uid);
+    await PromptLabDB.consumeCredits(state.uid, 3);
 
     setStatus('ENGINE: COMPLETE');
 
     // Pass the full generation result to the renderer
     renderGeneratorResults('generatorResults', genResult, modelTarget);
-    refreshQuota();
+    refreshCredits();
   } catch (err) {
     showToast(err.message || 'Generation failed.', 'error');
     setStatus('ENGINE: ERROR');
@@ -291,13 +342,13 @@ async function loadDashboard() {
   if (!state.uid) return;
 
   try {
-    const [history, quota, stats] = await Promise.all([
+    const [history, credits, stats] = await Promise.all([
       PromptLabDB.getHistory(state.uid, 20),
-      PromptLabDB.checkQuota(state.uid),
+      PromptLabDB.checkCredits(state.uid),
       PromptLabDB.getOrCreateStats(state.uid),
     ]);
 
-    document.getElementById('statRemaining').textContent = quota.remaining;
+    document.getElementById('statRemaining').textContent = credits.total;
     document.getElementById('statTotal').textContent = stats.totalPrompts || 0;
     document.getElementById('statAvg').textContent =
       typeof stats.averageScore === 'number' ? stats.averageScore.toFixed(1) : '0.0';
@@ -1051,14 +1102,22 @@ function renderDashboardRadar(history) {
 //  QUOTA (Firestore-based)
 // ════════════════════════════════════════════════════════════════
 
-async function refreshQuota() {
+async function refreshCredits() {
   if (!state.uid) return;
   try {
-    const q = await PromptLabDB.checkQuota(state.uid);
+    const credits = await PromptLabDB.checkCredits(state.uid);
+
+    // Hide old quota bar if it exists
     const bar = document.getElementById('quotaBar');
-    bar.style.display = 'block';
-    document.getElementById('quotaCount').textContent = `${q.remaining} / ${q.limit}`;
-    document.getElementById('quotaFill').style.width = `${(q.remaining / q.limit) * 100}%`;
+    if (bar) bar.style.display = 'none';
+
+    // Update header pill globally
+    const headerPill = document.getElementById('headerProfilePill');
+    if (headerPill) {
+      headerPill.style.display = 'flex';
+      const tier = state.userTier || 'Free';
+      document.getElementById('headerRole').textContent = `${tier} · ${credits.total} Credits`;
+    }
   } catch (_) { }
 }
 
