@@ -358,19 +358,40 @@ async function loadDashboard() {
   if (!state.uid) return;
 
   try {
-    const [history, credits, stats] = await Promise.all([
-      PromptLabDB.getHistory(state.uid, 20),
-      PromptLabDB.checkCredits(state.uid),
-      PromptLabDB.getOrCreateStats(state.uid),
-    ]);
+    // 1. Load Credits safely
+    let credits = { total: 0 };
+    try {
+      credits = await PromptLabDB.checkCredits(state.uid);
+    } catch (e) { console.warn("Credits error:", e); }
 
+    // 2. Load Stats safely
+    let stats = {};
+    try {
+      stats = await PromptLabDB.getOrCreateStats(state.uid);
+    } catch (e) { console.warn("Stats error:", e); }
+
+    // 3. Load History safely (often fails initially due to missing indexes)
+    let history = [];
+    try {
+      history = await PromptLabDB.getHistory(state.uid, 20);
+    } catch (e) {
+      console.warn("History index error:", e);
+      document.getElementById('historyBody').innerHTML = `<div class="p-8 text-center text-amber-500 bg-amber-500/10 rounded-xl">History is synchronizing indexes. It will appear here in a few minutes.</div>`;
+    }
+
+    // Populate basic stats
     document.getElementById('statRemaining').textContent = credits.total;
     document.getElementById('statTotal').textContent = stats.totalPrompts || 0;
     document.getElementById('statAvg').textContent =
       typeof stats.averageScore === 'number' ? stats.averageScore.toFixed(1) : '0.0';
     document.getElementById('statStreak').textContent = (stats.streakDays || 0) + ' DAYS';
 
-    renderHistory(history);
+    // Render components if history is present
+    if (history.length > 0) {
+      renderHistory(history);
+    }
+
+    // Always render radar (it handles empty arrays safely)
     renderDashboardRadar(history);
   } catch (err) {
     showToast('Failed to load dashboard: ' + err.message, 'error');
@@ -1260,7 +1281,18 @@ async function loadNotifications() {
   const listEl = document.getElementById('notificationsList');
   if (!listEl) return;
 
-  const notifs = await PromptLabDB.getNotifications(state.uid);
+  let notifs = [];
+  try {
+    notifs = await PromptLabDB.getNotifications(state.uid);
+  } catch (err) {
+    console.warn("Notifications index error:", err);
+    listEl.innerHTML = `
+      <div class="text-center py-12 text-amber-500">
+          <span class="material-icons-round text-4xl mb-4 opacity-50">hourglass_empty</span>
+          <p>Database indexes are currently building. Your notifications will be available here in a few minutes.</p>
+      </div>`;
+    return;
+  }
 
   if (!notifs || notifs.length === 0) {
     listEl.innerHTML = `
