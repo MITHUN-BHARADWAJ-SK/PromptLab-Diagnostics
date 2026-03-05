@@ -350,19 +350,19 @@ function analyze({ promptText, exampleOutput = null, modelTarget }) {
     //  OVERALL SCORE (model-specific weighted, 1 decimal)
     // ═══════════════════════════════════════════════════════════
     const dimension_scores = {
-        clarity: clarityScore,
-        constraint_completeness: constraintScore,
-        model_alignment: alignmentScore,
-        ambiguity_risk: ambiguityScore,
-        output_controllability: controlScore,
+        intent_clarity: clarityScore,
+        structural_completeness: constraintScore,
+        model_compatibility: alignmentScore,
+        constraint_strength: ambiguityScore,
+        execution_readiness: controlScore,
     };
 
     const overall_score = _round1(
-        clarityScore * weights.clarity +
-        constraintScore * weights.constraint_completeness +
-        ambiguityScore * weights.ambiguity_risk +
-        controlScore * weights.output_controllability +
-        alignmentScore * weights.model_alignment
+        clarityScore * weights.intent_clarity +
+        constraintScore * weights.structural_completeness +
+        ambiguityScore * weights.constraint_strength +
+        controlScore * weights.execution_readiness +
+        alignmentScore * weights.model_compatibility
     );
 
     // ═══════════════════════════════════════════════════════════

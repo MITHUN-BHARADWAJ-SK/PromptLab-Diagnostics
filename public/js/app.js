@@ -249,22 +249,26 @@ async function optimizePrompt() {
       return;
     }
 
-    // Run the generation engine to optimize
-    const genResult = PromptLabEngine.generate({ promptText, modelTarget });
+    // Run the analyzer to generate a rewritten prompt
+    const genResult = PromptLabEngine.analyze({ promptText, modelTarget });
 
     if (genResult.error) {
       showToast(genResult.error, 'error');
       return;
     }
 
-    // Consume 3 credits
-    await PromptLabDB.consumeCredits(state.uid, 3, 'Prompt Optimization');
+    // Check if rewrite hint was generated
+    if (genResult.prompt_rewrite_hint && genResult.prompt_rewrite_hint.template) {
+      // Consume 3 credits
+      await PromptLabDB.consumeCredits(state.uid, 3, 'Prompt Optimization');
 
-    // Replace the text in the analyzer input with the new text
-    document.getElementById('analyzerPrompt').value = genResult.v2 || genResult.v1 || promptText;
-
-    showToast('Prompt optimized successfully!', 'success');
-    refreshCredits();
+      // Replace the text in the analyzer input with the new text
+      document.getElementById('analyzerPrompt').value = genResult.prompt_rewrite_hint.template;
+      showToast('Prompt optimized successfully!', 'success');
+      refreshCredits();
+    } else {
+      showToast('Optimization could not generate a better prompt. No credits used.', 'warning');
+    }
   } catch (err) {
     showToast(err.message || 'Optimization failed.', 'error');
   } finally {
@@ -980,6 +984,7 @@ window.openPricingModal = openPricingModal;
 window.closePricingModal = closePricingModal;
 window.markAllNotificationsRead = markAllNotificationsRead;
 window._copyGenPrompt = _copyGenPrompt;
+window.loadNotifications = loadNotifications;
 
 // ════════════════════════════════════════════════════════════════
 //  RENDER: HISTORY (Firestore format)
