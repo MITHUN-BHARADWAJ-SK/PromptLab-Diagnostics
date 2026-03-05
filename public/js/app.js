@@ -43,18 +43,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Load user profile from Local DB
   try {
-    const profile = await PromptLabDB.getUserProfile(activeUid);
-    if (profile) {
-      state.userTier = profile.subscriptionTier || 'free';
-      state.userType = profile.userType || 'student';
-      state.userName = profile.displayName || 'User';
-      state.userEmail = profile.email || '';
-    } else {
-      // User not found in DB but token exists (cache cleared?)
+    let profile = await PromptLabDB.getUserProfile(activeUid);
+
+    if (!profile) {
+      console.log('[PromptLab] Profile missing for active UID. Attempting recovery...');
+      // Recovery: Re-init profile if UID exists but data is gone (e.g. storage partial clear)
+      // We don't have the email/name here, so we use placeholders or wait for next login
+      // However, to stop the loop, we MUST either create a profile or clear the UID.
+      // If we clear the UID, the user goes to login once and stays there.
       localStorage.removeItem('promptlab_active_user');
       window.location.href = '/login.html';
       return;
     }
+
+    state.userTier = profile.subscriptionTier || 'free';
+    state.userType = profile.userType || 'student';
+    state.userName = profile.displayName || 'User';
+    state.userEmail = profile.email || '';
+
   } catch (e) {
     console.warn('[PromptLab] Could not load profile:', e);
   }
@@ -109,7 +115,13 @@ function switchView(viewName) {
     btn.classList.add('active', 'text-primary');
   });
 
-  if (viewName === 'dashboard') loadDashboard();
+  if (viewName === 'dashboard') {
+    loadDashboard();
+  } else if (viewName === 'profile') {
+    loadProfile();
+  } else if (viewName === 'notifications') {
+    loadNotifications();
+  }
 }
 
 function updateUserChip() {
@@ -197,7 +209,7 @@ async function analyzePrompt() {
     });
 
     // Consume credits
-    await PromptLabDB.consumeCredits(state.uid, 1);
+    await PromptLabDB.consumeCredits(state.uid, 1, 'Basic Analysis');
 
     // Update learning stats
     await PromptLabDB.updateStats(state.uid, result);
@@ -246,7 +258,7 @@ async function optimizePrompt() {
     }
 
     // Consume 3 credits
-    await PromptLabDB.consumeCredits(state.uid, 3);
+    await PromptLabDB.consumeCredits(state.uid, 3, 'Prompt Optimization');
 
     // Replace the text in the analyzer input with the new text
     document.getElementById('analyzerPrompt').value = genResult.v2 || genResult.v1 || promptText;
@@ -319,7 +331,7 @@ async function generatePrompt() {
     setStatus(genResult.v2 ? 'AUTO-IMPROVING V1 → V2...' : 'SCORING PROMPT...');
     await new Promise(r => setTimeout(r, 100));
 
-    await PromptLabDB.consumeCredits(state.uid, 3);
+    await PromptLabDB.consumeCredits(state.uid, 3, 'Prompt Generation');
 
     setStatus('ENGINE: COMPLETE');
 
@@ -404,10 +416,7 @@ function renderAnalysisResults(containerId, data, modelTarget) {
               </div>
           </div>
           <div class="flex-1 relative z-10">
-              <h2 class="text-3xl font-extrabold mb-4 text-white">${scoreLabel}</h2>
-              <p class="text-base text-neutral-400 leading-relaxed max-w-xl">
-                  ${escapeHtml(summary).replace(/\*\*(.*?)\*\*/g, '<b class="text-white">$1</b>').replace(/\n\n/g, '<br><br>')}
-              </p>
+              <h2 class="text-3xl font-extrabold text-white text-center sm:text-left">${scoreLabel}</h2>
           </div>
       </div>
     </section>
@@ -959,6 +968,20 @@ function _copyGenPrompt() {
 }
 
 // ════════════════════════════════════════════════════════════════
+//  EXPORTS TO WINDOW (for HTML event handlers)
+// ════════════════════════════════════════════════════════════════
+
+window.signOut = signOut;
+window.switchView = switchView;
+window.analyzePrompt = analyzePrompt;
+window.optimizePrompt = optimizePrompt;
+window.generatePrompt = generatePrompt;
+window.openPricingModal = openPricingModal;
+window.closePricingModal = closePricingModal;
+window.markAllNotificationsRead = markAllNotificationsRead;
+window._copyGenPrompt = _copyGenPrompt;
+
+// ════════════════════════════════════════════════════════════════
 //  RENDER: HISTORY (Firestore format)
 // ════════════════════════════════════════════════════════════════
 
@@ -997,6 +1020,12 @@ function renderHistory(entries) {
       return `<div class="w-1.5 bg-primary/40 rounded-full" style="height: ${height}%"></div>`;
     }).join('');
 
+    // Handle Firestore Timestamp or ISO string
+    let dateObj;
+    if (p.createdAt && p.createdAt.toDate) dateObj = p.createdAt.toDate();
+    else if (p.createdAt && p.createdAt.seconds) dateObj = new Date(p.createdAt.seconds * 1000);
+    else dateObj = new Date(p.createdAt || Date.now());
+
     return `
         <div class="group bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 hover:border-primary/40 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 transition-all duration-300 cursor-pointer glow-border terminal-glass">
             <div class="w-12 text-center border-r border-slate-100 dark:border-white/10 pr-4 hidden md:block">
@@ -1019,7 +1048,7 @@ function renderHistory(entries) {
           </div>
           <div class="w-24 text-right">
               <span class="text-[10px] font-mono text-slate-400 block uppercase">Date</span>
-              <span class="font-mono text-xs text-slate-500">${new Date(p.createdAt).toLocaleDateString()}</span>
+              <span class="font-mono text-xs text-slate-500">${dateObj.toLocaleDateString()}</span>
           </div>
       </div>
     `;
@@ -1125,6 +1154,9 @@ async function refreshCredits() {
     if (dashRemaining) {
       dashRemaining.textContent = credits.total;
     }
+
+    // Sync unread badge alongside credits
+    updateUnreadBadge();
   } catch (_) { }
 }
 
@@ -1212,3 +1244,91 @@ function closePricingModal() {
   modal.classList.add('hidden');
   modal.classList.remove('flex');
 }
+
+// ════════════════════════════════════════════════════════════════
+//  NOTIFICATIONS
+// ════════════════════════════════════════════════════════════════
+
+async function loadNotifications() {
+  if (!state.uid) return;
+
+  const listEl = document.getElementById('notificationsList');
+  if (!listEl) return;
+
+  const notifs = await PromptLabDB.getNotifications(state.uid);
+
+  if (!notifs || notifs.length === 0) {
+    listEl.innerHTML = `
+      <div class="text-center py-12 text-slate-500">
+          <span class="material-icons-round text-4xl mb-4 opacity-50">notifications_none</span>
+          <p>You have no notifications yet.</p>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = notifs.map(n => {
+    // Determine visual style based on type
+    let icon, color, bgClass, borderClass;
+    if (n.type === 'success') {
+      icon = 'check_circle';
+      color = 'text-emerald-500';
+      bgClass = 'bg-emerald-500/10';
+      borderClass = 'hover:border-emerald-500/50';
+    } else if (n.type === 'warning') {
+      icon = 'warning';
+      color = 'text-amber-500';
+      bgClass = 'bg-amber-500/10';
+      borderClass = 'hover:border-amber-500/50';
+    } else {
+      icon = 'bolt';
+      color = 'text-primary';
+      bgClass = 'bg-primary/10';
+      borderClass = 'hover:border-primary/50';
+    }
+
+    // Format timestamp
+    const date = new Date(n.timestamp);
+    const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateString = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+    return `
+      <div class="bg-white dark:bg-[#191919]/40 border ${n.read ? 'border-transparent dark:border-white/5 opacity-70' : 'border-slate-200 dark:border-white/10'} p-5 rounded-2xl flex items-start gap-4 transition-all duration-300 ${borderClass} glow-border relative overflow-hidden">
+        ${!n.read ? `<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>` : ''}
+        <div class="p-3 ${bgClass} rounded-xl shrink-0 mt-1">
+            <span class="material-icons-round ${color}">${icon}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-4 mb-1">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white truncate">${escapeHtml(n.title)}</h3>
+                <span class="text-xs text-slate-500 font-mono tracking-widest shrink-0">${dateString} ${timeString}</span>
+            </div>
+            <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">${escapeHtml(n.message)}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function markAllNotificationsRead() {
+  if (!state.uid) return;
+  await PromptLabDB.markNotificationsRead(state.uid);
+  loadNotifications();
+  updateUnreadBadge();
+  showToast('All notifications marked as read', 'success');
+}
+
+async function updateUnreadBadge() {
+  if (!state.uid) return;
+  const badge = document.getElementById('unreadBadge');
+  if (!badge) return;
+
+  const notifs = await PromptLabDB.getNotifications(state.uid);
+  const unreadCount = notifs.filter(n => !n.read).length;
+
+  if (unreadCount > 0) {
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+

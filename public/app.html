@@ -294,25 +294,29 @@
                         <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
                         <span class="text-xs font-bold text-primary tracking-wider uppercase">Live Analysis</span>
                     </div>
-                    <button class="relative p-2 text-slate-400 hover:text-primary transition-colors">
-                        <span class="material-icons-round">notifications</span>
-                        <span
-                            class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-background-dark"></span>
-                    </button>
-                    <div class="h-8 w-px bg-slate-200 dark:bg-border-dark"></div>
-                    <div class="flex items-center gap-3 bg-slate-100 dark:bg-card-dark p-1.5 pr-4 rounded-full border border-transparent dark:border-border-dark"
-                        id="headerProfilePill" style="display:none;">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-orange-400 flex items-center justify-center text-white font-bold text-xs"
-                            id="headerAvatar">
-                            ?
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="text-xs font-semibold leading-none" id="headerName">User</span>
-                            <span class="text-[10px] text-primary font-mono font-bold uppercase tracking-tighter"
-                                id="headerRole">Free Tier</span>
+                    <!-- Notifications & Profile -->
+                    <div class="flex items-center gap-6">
+                        <button
+                            class="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors relative group"
+                            id="notificationsBtn" onclick="switchView('notifications')">
+                            <span class="material-icons-round">notifications</span>
+                            <span id="unreadBadge"
+                                class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-50 dark:border-black hidden transition-all"></span>
+                        </button>
+                        <div class="h-8 w-px bg-slate-200 dark:bg-border-dark"></div>
+                        <div class="flex items-center gap-3 bg-slate-100 dark:bg-card-dark p-1.5 pr-4 rounded-full border border-transparent dark:border-border-dark"
+                            id="headerProfilePill" style="display:none;">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-orange-400 flex items-center justify-center text-white font-bold text-xs"
+                                id="headerAvatar">
+                                ?
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-semibold leading-none" id="headerName">User</span>
+                                <span class="text-[10px] text-primary font-mono font-bold uppercase tracking-tighter"
+                                    id="headerRole">Free Tier</span>
+                            </div>
                         </div>
                     </div>
-                </div>
             </header>
 
             <!-- ── Scrollable Content Area ─────────────────────── -->
@@ -753,6 +757,28 @@
                     </section>
                 </section>
 
+                <!-- ═══════════ NOTIFICATIONS VIEW ═══════════ -->
+                <section class="view hidden" id="view-notifications">
+                    <section class="max-w-4xl mx-auto mt-12 mb-12">
+                        <div class="flex items-center justify-between mb-8">
+                            <h1
+                                class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white transition-colors duration-500">
+                                Notifications</h1>
+                            <button onclick="markAllNotificationsRead()"
+                                class="text-xs font-bold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors">Mark
+                                all as read</button>
+                        </div>
+
+                        <div id="notificationsList" class="space-y-4">
+                            <!-- Dynamic notifications injected here -->
+                            <div class="text-center py-12 text-slate-500">
+                                <span class="material-icons-round text-4xl mb-4 opacity-50">notifications_none</span>
+                                <p>You have no notifications yet.</p>
+                            </div>
+                        </div>
+                    </section>
+                </section>
+
             </div>
 
             <!-- ── Mobile Bottom Nav ───────────────────────────────── -->
@@ -936,10 +962,12 @@
     <!-- ── Toast Container ───────────────────────────────────── -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- ── Firebase Auth ──────────────────────────────────── -->
+    <!-- ── Firebase Auth & Firestore ───────────────────────────── -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import "./js/firebase-db.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCW_ZBkNCFLTok-198d9mOL4CCNLc7G2QY",
@@ -952,6 +980,7 @@
         };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         window.firebaseSignOut = function () {
             return signOut(auth);
@@ -965,10 +994,12 @@
         });
     </script>
 
-    <!-- ── PromptLab Database & Engine ──────────────────────────────────── -->
-    <script src="/js/local-db.js"></script>
+    <!-- ── PromptLab Engine & App Logic ──────────────────────────────────── -->
     <script src="/js/promptlab-engine.js"></script>
-    <script src="/js/app.js"></script>
+    <script type="module">
+        // Import app.js as a module to ensure it runs after firebase-db.js is loaded
+        import "./js/app.js";
+    </script>
 </body>
 
 </html>

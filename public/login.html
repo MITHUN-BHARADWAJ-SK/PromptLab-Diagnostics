@@ -85,10 +85,12 @@
 
     <!-- ── PromptLab Local DB ──────────────────────────────────── -->
     <script src="/js/local-db.js"></script>
-    <!-- ── Firebase Auth ──────────────────────────────────── -->
+    <!-- ── Firebase Auth & Firestore ───────────────────────────── -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import "./js/firebase-db.js"; // This self-initializes window.PromptLabDB
 
         const firebaseConfig = {
             apiKey: "AIzaSyCW_ZBkNCFLTok-198d9mOL4CCNLc7G2QY",
@@ -101,14 +103,19 @@
         };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         // Attach to window so standard script can trigger auth
         window.firebaseAuth = auth;
         window.firebaseSignIn = signInWithEmailAndPassword;
         window.firebaseSignUp = createUserWithEmailAndPassword;
 
+        let manualAuthInProgress = false;
+        window.setManualAuthInProgress = (val) => { manualAuthInProgress = val; };
+
         onAuthStateChanged(auth, (user) => {
-            if (user) {
+            if (user && !manualAuthInProgress) {
+                console.log('[Auth] State changed: User detected, redirecting to app.');
                 localStorage.setItem('promptlab_active_user', user.uid);
                 window.location.href = '/app.html';
             }
@@ -182,26 +189,38 @@
                     throw new Error('Firebase not initialized yet. Wait a moment.');
                 }
 
+                // Prevent the global onAuthStateChanged from redirecting while we handle initialization
+                if (window.setManualAuthInProgress) window.setManualAuthInProgress(true);
+
+                let cred;
                 if (currentMode === 'signup') {
                     const name = document.getElementById('authName').value.trim();
                     if (!name) {
                         showError('Please enter your display name.');
                         submitBtn.disabled = false;
                         submitBtn.textContent = 'Create Account';
+                        if (window.setManualAuthInProgress) window.setManualAuthInProgress(false);
                         return;
                     }
 
-                    const cred = await window.firebaseSignUp(window.firebaseAuth, email, password);
+                    cred = await window.firebaseSignUp(window.firebaseAuth, email, password);
                     if (window.PromptLabDB && window.PromptLabDB.initUserProfile) {
-                        window.PromptLabDB.initUserProfile(cred.user.uid, email, name, selectedUserType);
+                        await window.PromptLabDB.initUserProfile(cred.user.uid, email, name, selectedUserType);
                     }
                 } else {
-                    const cred = await window.firebaseSignIn(window.firebaseAuth, email, password);
+                    cred = await window.firebaseSignIn(window.firebaseAuth, email, password);
+                    // Ensure profile exists for existing users (in case of local storage clear)
                     if (window.PromptLabDB && window.PromptLabDB.initUserProfile) {
-                        window.PromptLabDB.initUserProfile(cred.user.uid, email, email.split('@')[0], 'student');
+                        await window.PromptLabDB.initUserProfile(cred.user.uid, email, email.split('@')[0], 'student');
                     }
                 }
+
+                // Success! Save UID and redirect manually
+                localStorage.setItem('promptlab_active_user', cred.user.uid);
+                window.location.href = '/app.html';
+
             } catch (err) {
+                if (window.setManualAuthInProgress) window.setManualAuthInProgress(false);
                 let msg = 'Something went wrong. Please try again.';
                 if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
                     msg = 'Email or password is incorrect';

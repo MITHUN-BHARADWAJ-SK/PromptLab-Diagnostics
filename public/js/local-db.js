@@ -14,7 +14,8 @@ function getDb() {
         return {
             users: {},
             analyses: [],
-            stats: {}
+            stats: {},
+            notifications: {}
         };
     }
     return JSON.parse(raw);
@@ -69,6 +70,18 @@ const PromptLabDB = {
                 scoreHistory: [],
                 totalCreditsUsed: 0,
             };
+            db.notifications[uid] = [];
+
+            // Add initial welcome notification
+            db.notifications[uid].unshift({
+                id: 'notif_' + Date.now(),
+                title: 'Welcome to PromptLab!',
+                message: 'You have received your first 5 daily credits.',
+                type: 'success', // success, info, warning
+                read: false,
+                timestamp: new Date().toISOString()
+            });
+
             saveDb(db);
         }
         return db.users[uid];
@@ -113,6 +126,18 @@ const PromptLabDB = {
         if (now >= reset) {
             user.dailyCredits = dailyLimit;
             user.dailyCreditReset = this._nextMidnight();
+
+            // Add automated notification for refill
+            if (!db.notifications[uid]) db.notifications[uid] = [];
+            db.notifications[uid].unshift({
+                id: 'notif_' + Date.now(),
+                title: 'Daily Credits Refilled',
+                message: `You have received your ${dailyLimit} daily credits according to your ${user.subscriptionTier} plan.`,
+                type: 'success',
+                read: false,
+                timestamp: new Date().toISOString()
+            });
+
             saveDb(db);
         }
 
@@ -156,6 +181,21 @@ const PromptLabDB = {
         if (needed > 0) return false; // Insufficient credits
 
         if (stats) stats.totalCreditsUsed = (stats.totalCreditsUsed || 0) + amount;
+
+        // Auto-generate notification if actionName was provided (app.js should pass it)
+        const actionName = arguments.length > 2 ? arguments[2] : null;
+        if (actionName) {
+            if (!db.notifications[uid]) db.notifications[uid] = [];
+            db.notifications[uid].unshift({
+                id: 'notif_' + Date.now(),
+                title: 'Credits Consumed',
+                message: `Used ${amount} credit(s) for ${actionName}.`,
+                type: 'info',
+                read: false,
+                timestamp: new Date().toISOString()
+            });
+        }
+
         saveDb(db);
         return true;
     },
@@ -252,10 +292,55 @@ const PromptLabDB = {
         return db.stats[uid];
     },
 
+    // ── Internal Helpers ───────────────────────────────────────
     _nextMidnight() {
         const d = new Date();
         d.setHours(24, 0, 0, 0);
         return d.toISOString();
+    },
+
+    // ── Notifications ──────────────────────────────────────────
+    async addNotification(uid, title, message, type = 'info') {
+        const db = getDb();
+        // Ensure notifications object exists in db if it's the first time
+        if (!db.notifications) db.notifications = {};
+        if (!db.users[uid]) return; // User must exist to receive notifications
+
+        if (!db.notifications[uid]) db.notifications[uid] = [];
+        db.notifications[uid].unshift({
+            id: 'notif_' + Date.now(),
+            title,
+            message,
+            type,
+            read: false,
+            timestamp: new Date().toISOString()
+        });
+
+        // Keep list bounded (e.g. 50 items)
+        if (db.notifications[uid].length > 50) {
+            db.notifications[uid] = db.notifications[uid].slice(0, 50);
+        }
+
+        saveDb(db);
+    },
+
+    async getNotifications(uid) {
+        const db = getDb();
+        return db.notifications?.[uid] || [];
+    },
+
+    async markNotificationsRead(uid) {
+        const db = getDb();
+        if (db.notifications?.[uid]) {
+            let changed = false;
+            db.notifications[uid].forEach(n => {
+                if (!n.read) {
+                    n.read = true;
+                    changed = true;
+                }
+            });
+            if (changed) saveDb(db);
+        }
     }
 };
 
