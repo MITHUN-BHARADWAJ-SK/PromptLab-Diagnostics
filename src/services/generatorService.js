@@ -22,7 +22,7 @@ const OpenAI = require('openai');
 // Initialize OpenRouter client
 const openrouter = new OpenAI({
     baseURL: 'https://openrouter.ai/api/v1',
-    apiKey: process.env.OPENROUTER_API_KEY || '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',
+    apiKey: process.env.OPENROUTER_API_KEY || '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',
     defaultHeaders: {
         'HTTP-Referer': 'https://promptlab.ai', // Optional but recommended
         'X-OpenRouter-Title': 'PromptLab Generator',
