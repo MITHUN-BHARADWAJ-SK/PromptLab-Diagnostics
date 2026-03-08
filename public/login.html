@@ -23,65 +23,76 @@
         <div class="login-brand"><span></span>PromptLab<span></span></div>
 
         <!-- ── Auth Card ──────────────────────────────────── -->
-        <div class="auth-card">
-            <div class="auth-header">
-                <img src="/assets/promptlab-logo.svg" alt="PromptLab Logo"
-                    style="width: 52px; height: 52px; margin: 0 auto 16px auto; display: block; border-radius: 50%; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);" />
-                <h1 class="auth-title" id="authTitle">Welcome Back</h1>
-                <p class="auth-subtitle" id="authSubtitle">Sign in to continue analyzing prompts</p>
-            </div>
-
-            <!-- (Google Sign-In Removed) -->
-
-            <div class="divider">
-                <span class="divider-text">or</span>
-            </div>
-
-            <!-- ── Email/Password Form ─────────────────────── -->
-            <form class="auth-form" id="authForm" onsubmit="handleEmailAuth(event)">
-                <!-- Name field (signup only) -->
-                <div class="form-group" id="nameGroup" style="display:none;">
-                    <label class="form-label" for="authName">Display Name</label>
-                    <input class="form-input" id="authName" type="text" placeholder="Your name" autocomplete="name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="authEmail">Email</label>
-                    <input class="form-input" id="authEmail" type="email" placeholder="you@example.com" required
-                        autocomplete="email">
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="authPassword">Password</label>
-                    <input class="form-input" id="authPassword" type="password" placeholder="••••••••" required
-                        minlength="6" autocomplete="current-password">
+        <div class="auth-card" id="authCard">
+            <!-- ── Registration/Login Form ── -->
+            <div id="authContent">
+                <div class="auth-header">
+                    <img src="/assets/promptlab-logo.svg" alt="PromptLab Logo"
+                        style="width: 52px; height: 52px; margin: 0 auto 16px auto; display: block; border-radius: 50%; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);" />
+                    <h1 class="auth-title" id="authTitle">Welcome Back</h1>
+                    <p class="auth-subtitle" id="authSubtitle">Sign in to continue analyzing prompts</p>
                 </div>
 
-                <!-- User type selector (signup only) -->
-                <div class="form-group" id="userTypeGroup" style="display:none;">
-                    <label class="form-label">I am a…</label>
-                    <div class="user-type-selector">
-                        <button type="button" class="user-type-option selected"
-                            onclick="selectUserType(this, 'student')">
-                            <span class="ut-icon">🎓</span>
-                            <span class="ut-label">Student</span>
-                        </button>
-                        <button type="button" class="user-type-option" onclick="selectUserType(this, 'creator')">
-                            <span class="ut-icon">🎨</span>
-                            <span class="ut-label">Creator</span>
-                        </button>
+                <div class="divider">
+                    <span class="divider-text">or</span>
+                </div>
+
+                <form class="auth-form" id="authForm" onsubmit="handleEmailAuth(event)">
+                    <div class="form-group" id="nameGroup" style="display:none;">
+                        <label class="form-label" for="authName">Display Name</label>
+                        <input class="form-input" id="authName" type="text" placeholder="Your name" autocomplete="name">
                     </div>
+                    <div class="form-group">
+                        <label class="form-label" for="authEmail">Email</label>
+                        <input class="form-input" id="authEmail" type="email" placeholder="you@example.com" required
+                            autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="authPassword">Password</label>
+                        <input class="form-input" id="authPassword" type="password" placeholder="••••••••" required
+                            minlength="6" autocomplete="current-password">
+                    </div>
+
+                    <div class="form-group" id="userTypeGroup" style="display:none;">
+                        <label class="form-label">I am a…</label>
+                        <div class="user-type-selector">
+                            <button type="button" class="user-type-option selected"
+                                onclick="selectUserType(this, 'student')">
+                                <span class="ut-icon">🎓</span>
+                                <span class="ut-label">Student</span>
+                            </button>
+                            <button type="button" class="user-type-option" onclick="selectUserType(this, 'creator')">
+                                <span class="ut-icon">🎨</span>
+                                <span class="ut-label">Creator</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="error-message" id="errorMessage"></div>
+
+                    <button class="btn-submit" type="submit" id="submitBtn">
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="auth-toggle">
+                    <span id="toggleText">Don't have an account?</span>
+                    <button class="toggle-btn" id="toggleBtn" onclick="toggleAuthMode()">Sign Up</button>
                 </div>
+            </div>
 
-                <div class="error-message" id="errorMessage"></div>
-
-                <button class="btn-submit" type="submit" id="submitBtn">
-                    Sign In
+            <!-- ── Verification Screen ── -->
+            <div class="verification-screen" id="verificationScreen">
+                <div class="verification-icon">✉️</div>
+                <h2 class="verification-title">Verify Your Email</h2>
+                <p class="verification-text">
+                    We have sent you a verification email to <br>
+                    <span class="verification-email" id="verifyUserEmail">user@example.com</span>.<br>
+                    Please verify it and log in.
+                </p>
+                <button class="btn-submit" onclick="showLogin()">
+                    Back to Login
                 </button>
-            </form>
-
-            <!-- ── Toggle mode ─────────────────────────────── -->
-            <div class="auth-toggle">
-                <span id="toggleText">Don't have an account?</span>
-                <button class="toggle-btn" id="toggleBtn" onclick="toggleAuthMode()">Sign Up</button>
             </div>
         </div>
     </div>
@@ -91,9 +102,9 @@
     <!-- ── Firebase Auth & Firestore ───────────────────────────── -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-        import "./js/firebase-db.js"; // This self-initializes window.PromptLabDB
+        import "./js/firebase-db.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCW_ZBkNCFLTok-198d9mOL4CCNLc7G2QY",
@@ -108,19 +119,28 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Attach to window so standard script can trigger auth
         window.firebaseAuth = auth;
         window.firebaseSignIn = signInWithEmailAndPassword;
         window.firebaseSignUp = createUserWithEmailAndPassword;
+        window.firebaseSendVerification = sendEmailVerification;
+        window.firebaseSignOut = signOut;
 
         let manualAuthInProgress = false;
         window.setManualAuthInProgress = (val) => { manualAuthInProgress = val; };
 
         onAuthStateChanged(auth, (user) => {
             if (user && !manualAuthInProgress) {
-                console.log('[Auth] State changed: User detected, redirecting to app.');
-                localStorage.setItem('promptlab_active_user', user.uid);
-                window.location.href = '/app.html';
+                if (user.emailVerified) {
+                    console.log('[Auth] State changed: User detected & verified, redirecting to app.');
+                    localStorage.setItem('promptlab_active_user', user.uid);
+                    window.location.href = '/app.html';
+                } else {
+                    console.log('[Auth] State changed: User detected but NOT verified. Signing out.');
+                    signOut(auth).then(() => {
+                        localStorage.removeItem('promptlab_active_user');
+                        window.showVerification(user.email);
+                    });
+                }
             }
         });
     </script>
@@ -133,8 +153,25 @@
             const params = new URLSearchParams(window.location.search);
             if (params.get('mode') === 'signup') {
                 toggleAuthMode();
+            } else if (params.get('mode') === 'verify') {
+                showVerification(params.get('email') || 'your email');
             }
         });
+
+        function showVerification(email) {
+            document.getElementById('authContent').style.display = 'none';
+            document.getElementById('verificationScreen').style.display = 'flex';
+            document.getElementById('verifyUserEmail').textContent = email;
+            // Also update subtitle just in case
+            document.getElementById('authSubtitle').textContent = 'Please verify your email';
+        }
+
+        function showLogin() {
+            document.getElementById('authContent').style.display = 'block';
+            document.getElementById('verificationScreen').style.display = 'none';
+            if (currentMode === 'signup') toggleAuthMode(); // Ensure it's in sign-in mode
+            clearError();
+        }
 
         function toggleAuthMode() {
             currentMode = currentMode === 'signin' ? 'signup' : 'signin';
@@ -192,7 +229,6 @@
                     throw new Error('Firebase not initialized yet. Wait a moment.');
                 }
 
-                // Prevent the global onAuthStateChanged from redirecting while we handle initialization
                 if (window.setManualAuthInProgress) window.setManualAuthInProgress(true);
 
                 let cred;
@@ -207,20 +243,42 @@
                     }
 
                     cred = await window.firebaseSignUp(window.firebaseAuth, email, password);
+
+                    // Send verification email
+                    await window.firebaseSendVerification(cred.user);
+
                     if (window.PromptLabDB && window.PromptLabDB.initUserProfile) {
                         await window.PromptLabDB.initUserProfile(cred.user.uid, email, name, selectedUserType);
                     }
+
+                    // Sign out and show verification
+                    await window.firebaseSignOut(window.firebaseAuth);
+                    localStorage.removeItem('promptlab_active_user');
+                    showVerification(email);
+                    if (window.setManualAuthInProgress) window.setManualAuthInProgress(false);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Create Account';
+
                 } else {
                     cred = await window.firebaseSignIn(window.firebaseAuth, email, password);
-                    // Ensure profile exists for existing users (in case of local storage clear)
+
+                    if (!cred.user.emailVerified) {
+                        await window.firebaseSignOut(window.firebaseAuth);
+                        localStorage.removeItem('promptlab_active_user');
+                        showVerification(email);
+                        if (window.setManualAuthInProgress) window.setManualAuthInProgress(false);
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Sign In';
+                        return;
+                    }
+
                     if (window.PromptLabDB && window.PromptLabDB.initUserProfile) {
                         await window.PromptLabDB.initUserProfile(cred.user.uid, email, email.split('@')[0], 'student');
                     }
-                }
 
-                // Success! Save UID and redirect manually
-                localStorage.setItem('promptlab_active_user', cred.user.uid);
-                window.location.href = '/app.html';
+                    localStorage.setItem('promptlab_active_user', cred.user.uid);
+                    window.location.href = '/app.html';
+                }
 
             } catch (err) {
                 console.error("Auth/DB Error:", err);
@@ -235,7 +293,7 @@
                 } else if (err.code === 'auth/invalid-email') {
                     msg = 'Please enter a valid email address.';
                 } else if (err.code === 'permission-denied') {
-                    msg = 'Missing Firestore permissions. Check your security rules.';
+                    msg = 'Missing Firestore permissions.';
                 } else if (err.message) {
                     msg = 'Error: ' + err.message;
                 }

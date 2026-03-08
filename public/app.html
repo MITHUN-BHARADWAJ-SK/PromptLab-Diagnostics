@@ -1024,6 +1024,12 @@
             if (!user) {
                 localStorage.removeItem('promptlab_active_user');
                 window.location.href = '/login.html';
+            } else if (!user.emailVerified) {
+                console.log('[Auth] User detected but email not verified. Redirecting to login.');
+                signOut(auth).then(() => {
+                    localStorage.removeItem('promptlab_active_user');
+                    window.location.href = `/login.html?mode=verify&email=${encodeURIComponent(user.email)}`;
+                });
             }
         });
     </script>

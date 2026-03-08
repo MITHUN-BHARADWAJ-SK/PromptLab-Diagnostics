@@ -58,8 +58,13 @@ body::before {
 }
 
 @keyframes grid-drift {
-    0%   { background-position: 0 0, 0 0; }
-    100% { background-position: 44px 44px, 44px 44px; }
+    0% {
+        background-position: 0 0, 0 0;
+    }
+
+    100% {
+        background-position: 44px 44px, 44px 44px;
+    }
 }
 
 /* Ambient glow orbs */
@@ -167,10 +172,23 @@ body::after {
 }
 
 @keyframes card-scan {
-    0%   { top: -2px; opacity: 0; }
-    5%   { opacity: 1; }
-    95%  { opacity: 1; }
-    100% { top: 100%; opacity: 0; }
+    0% {
+        top: -2px;
+        opacity: 0;
+    }
+
+    5% {
+        opacity: 1;
+    }
+
+    95% {
+        opacity: 1;
+    }
+
+    100% {
+        top: 100%;
+        opacity: 0;
+    }
 }
 
 @keyframes fadeUp {
@@ -406,7 +424,7 @@ body::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, transparent 60%);
     pointer-events: none;
 }
 
@@ -460,6 +478,47 @@ body::after {
     }
 
     .auth-title {
+        font-size: 20px;
+    }
+}
+
+.verification-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.verification-icon {
+    font-size: 64px;
+    margin-bottom: 24px;
+    filter: drop-shadow(0 0 20px var(--accent-glow));
+}
+
+.verification-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.verification-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 32px;
+    max-width: 320px;
+}
+
+.verification-email {
+    color: var(--accent-light);
+    font-weight: 700;
+    word-break: break-all;
+}
+
+@media (max-width: 480px) {
+    .verification-title {
         font-size: 20px;
     }
 }
