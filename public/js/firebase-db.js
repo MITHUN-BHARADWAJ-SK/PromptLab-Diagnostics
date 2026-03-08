@@ -71,14 +71,15 @@ const PromptLabDB = {
     },
 
     // ── Credit Management ──────────────────────────────────────
-    getTierDailyLimit(tier) {
+    getTierLimit(tier) {
         switch (tier) {
-            case 'essential': return 15;
-            case 'pro': return 30;
-            case 'advanced': return 100;
-            case 'enterprise': return 250;
+            case 'starter': return { limit: 200, period: 'month' };
+            case 'pro': return { limit: 1000, period: 'month' };
+            case 'advanced': return { limit: 3000, period: 'month' };
+            case 'builder': return { limit: 5000, period: 'month' };
+            case 'builder_pro': return { limit: 7000, period: 'month' };
             case 'free':
-            default: return 5;
+            default: return { limit: 5, period: 'day' };
         }
     },
 
@@ -87,37 +88,43 @@ const PromptLabDB = {
         const userRef = doc(db, "users", uid);
         const userSnap = await getDoc(userRef);
 
-        if (!userSnap.exists()) return { daily: 5, bonus: 0, total: 5, limit: 5 };
+        if (!userSnap.exists()) return { daily: 5, bonus: 0, total: 5, limit: 5, period: 'day' };
 
         const user = userSnap.data();
         const now = new Date();
-        const reset = user.dailyCreditReset ? new Date(user.dailyCreditReset) : now;
-        const dailyLimit = this.getTierDailyLimit(user.subscriptionTier);
+        const tierInfo = this.getTierLimit(user.subscriptionTier);
 
-        // Reset if new day
-        if (now >= reset) {
-            const nextReset = this._nextMidnight();
-            await updateDoc(userRef, {
-                dailyCredits: dailyLimit,
-                dailyCreditReset: nextReset
-            });
-
-            await this.addNotification(uid, 'Daily Credits Refilled', `You have received your ${dailyLimit} daily credits according to your ${user.subscriptionTier} plan.`, 'success');
-
-            return {
-                daily: dailyLimit,
-                bonus: user.bonusCredits || 0,
-                total: dailyLimit + (user.bonusCredits || 0),
-                limit: dailyLimit
-            };
+        // Handle Daily Reset
+        if (tierInfo.period === 'day') {
+            const reset = user.dailyCreditReset ? new Date(user.dailyCreditReset) : now;
+            if (now >= reset) {
+                const nextReset = this._nextMidnight();
+                const dailyLimit = tierInfo.limit;
+                await updateDoc(userRef, {
+                    dailyCredits: dailyLimit,
+                    dailyCreditReset: nextReset
+                });
+                await this.addNotification(uid, 'Daily Credits Refilled', `You have received your ${dailyLimit} daily credits.`, 'success');
+                return { daily: dailyLimit, bonus: user.bonusCredits || 0, total: dailyLimit + (user.bonusCredits || 0), limit: dailyLimit, period: 'day' };
+            }
+            return { daily: user.dailyCredits ?? tierInfo.limit, bonus: user.bonusCredits ?? 0, total: (user.dailyCredits ?? tierInfo.limit) + (user.bonusCredits ?? 0), limit: tierInfo.limit, period: 'day' };
         }
 
-        return {
-            daily: user.dailyCredits ?? dailyLimit,
-            bonus: user.bonusCredits ?? 0,
-            total: (user.dailyCredits ?? dailyLimit) + (user.bonusCredits ?? 0),
-            limit: dailyLimit
-        };
+        // Handle Monthly Reset
+        else {
+            const reset = user.monthlyCreditReset ? new Date(user.monthlyCreditReset) : now;
+            if (!user.monthlyCreditReset || now >= reset) {
+                const nextReset = this._nextMonth();
+                const monthlyLimit = tierInfo.limit;
+                await updateDoc(userRef, {
+                    monthlyCredits: monthlyLimit,
+                    monthlyCreditReset: nextReset
+                });
+                await this.addNotification(uid, 'Monthly Credits Refilled', `You have received your ${monthlyLimit} monthly credits for your ${user.subscriptionTier} plan.`, 'success');
+                return { monthly: monthlyLimit, bonus: user.bonusCredits || 0, total: monthlyLimit + (user.bonusCredits || 0), limit: monthlyLimit, period: 'month' };
+            }
+            return { monthly: user.monthlyCredits ?? tierInfo.limit, bonus: user.bonusCredits ?? 0, total: (user.monthlyCredits ?? tierInfo.limit) + (user.bonusCredits ?? 0), limit: tierInfo.limit, period: 'month' };
+        }
     },
 
     async consumeCredits(uid, amount, actionName = null) {
@@ -127,18 +134,27 @@ const PromptLabDB = {
         if (!userSnap.exists()) return false;
 
         const user = userSnap.data();
-        let currentDaily = user.dailyCredits ?? 0;
+        const tierInfo = this.getTierLimit(user.subscriptionTier);
+
+        let currentCredits = tierInfo.period === 'day' ? (user.dailyCredits ?? 0) : (user.monthlyCredits ?? 0);
         let currentBonus = user.bonusCredits ?? 0;
 
-        if (currentDaily + currentBonus < amount) return false;
+        if (currentCredits + currentBonus < amount) return false;
 
-        let dailyDeduct = Math.min(currentDaily, amount);
-        let bonusDeduct = amount - dailyDeduct;
+        let mainDeduct = Math.min(currentCredits, amount);
+        let bonusDeduct = amount - mainDeduct;
 
-        await updateDoc(userRef, {
-            dailyCredits: increment(-dailyDeduct),
+        const updateData = {
             bonusCredits: increment(-bonusDeduct)
-        });
+        };
+
+        if (tierInfo.period === 'day') {
+            updateData.dailyCredits = increment(-mainDeduct);
+        } else {
+            updateData.monthlyCredits = increment(-mainDeduct);
+        }
+
+        await updateDoc(userRef, updateData);
 
         // Update total credits used in stats
         await updateDoc(doc(db, "stats", uid), {
@@ -289,6 +305,13 @@ const PromptLabDB = {
     _nextMidnight() {
         const d = new Date();
         d.setHours(24, 0, 0, 0);
+        return d.toISOString();
+    },
+
+    _nextMonth() {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        d.setMonth(d.getMonth() + 1, 1);
         return d.toISOString();
     }
 };

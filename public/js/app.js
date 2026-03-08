@@ -1161,24 +1161,28 @@ async function refreshCredits() {
   if (!state.uid) return;
   try {
     const credits = await PromptLabDB.checkCredits(state.uid);
-
-    // Hide old quota bar if it exists
-    const bar = document.getElementById('quotaBar');
-    if (bar) bar.style.display = 'none';
+    const tier = state.userTier || 'Free';
+    const periodLabel = credits.period === 'day' ? 'Daily' : 'Monthly';
 
     // Update header pill globally
     const headerPill = document.getElementById('headerProfilePill');
     if (headerPill) {
       headerPill.style.display = 'flex';
-      const tier = state.userTier || 'Free';
       const roleEl = document.getElementById('headerRole');
-      if (roleEl) roleEl.textContent = `${tier} · ${credits.total} Credits`;
+      if (roleEl) {
+        roleEl.textContent = `${tier} · ${credits.total} ${periodLabel} Credits`;
+      }
     }
 
     // Update dashboard stat card if present
     const dashRemaining = document.getElementById('statRemaining');
     if (dashRemaining) {
       dashRemaining.textContent = credits.total;
+    }
+
+    const dashRemainingLabel = document.getElementById('statRemainingLabel');
+    if (dashRemainingLabel) {
+      dashRemainingLabel.textContent = `${periodLabel.toUpperCase()} CREDITS`;
     }
 
     // Sync unread badge alongside credits

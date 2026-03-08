@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
         },
         subscriptionTier: {
             type: String,
-            enum: ['free', 'pro'],
+            enum: ['free', 'starter', 'pro', 'advanced', 'builder', 'builder_pro'],
             default: 'free',
         },
 
@@ -48,6 +48,16 @@ const userSchema = new mongoose.Schema(
             type: Date,
             default: () => _midnight(),
         },
+
+        // ── Monthly Quota Tracking ──────────────────────────────────
+        monthlyAnalysisCount: {
+            type: Number,
+            default: 0,
+        },
+        monthlyAnalysisReset: {
+            type: Date,
+            default: () => _nextMonth(),
+        },
     },
     { timestamps: true }
 );
@@ -56,6 +66,14 @@ const userSchema = new mongoose.Schema(
 function _midnight() {
     const d = new Date();
     d.setUTCHours(24, 0, 0, 0);
+    return d;
+}
+
+/** Returns the first day of the next month UTC. */
+function _nextMonth() {
+    const d = new Date();
+    d.setUTCHours(0, 0, 0, 0);
+    d.setUTCMonth(d.getUTCMonth() + 1, 1);
     return d;
 }
 
