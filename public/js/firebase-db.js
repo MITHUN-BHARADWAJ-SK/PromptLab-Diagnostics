@@ -301,6 +301,30 @@ const PromptLabDB = {
         await Promise.all(promises);
     },
 
+    // ── Daily Login Bonus ─────────────────────────────────────
+    async claimDailyLoginBonus(uid) {
+        const db = getFirestore();
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) return { granted: false };
+
+        const user = userSnap.data();
+        const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+        if (user.lastLoginBonusDate === todayStr) {
+            return { granted: false }; // Already claimed today
+        }
+
+        const DAILY_LOGIN_BONUS = 5;
+        await updateDoc(userRef, {
+            bonusCredits: increment(DAILY_LOGIN_BONUS),
+            lastLoginBonusDate: todayStr,
+        });
+        await this.addNotification(uid, 'Daily Login Bonus!',
+            `+${DAILY_LOGIN_BONUS} bonus credits added for signing in today. Keep it up!`, 'success');
+        return { granted: true, amount: DAILY_LOGIN_BONUS };
+    },
+
     // ── Helpers ───────────────────────────────────────────────
     _nextMidnight() {
         const d = new Date();

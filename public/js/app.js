@@ -66,7 +66,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   updateUserChip();
-  refreshQuota();
+  refreshCredits();
+
+  // Daily login bonus — +5 bonus credits once per calendar day (accumulates)
+  try {
+    const bonus = await PromptLabDB.claimDailyLoginBonus(state.uid);
+    if (bonus.granted) {
+      showToast(`+${bonus.amount} daily login bonus credits added!`, 'success');
+      refreshCredits();
+    }
+  } catch (e) {
+    console.warn('[PromptLab] Could not claim daily login bonus:', e);
+  }
 });
 
 // ════════════════════════════════════════════════════════════════
@@ -318,7 +329,7 @@ async function generatePrompt() {
     setStatus('LAYER 1: INFERRING INTENT...');
     await new Promise(r => setTimeout(r, 120)); // Let UI repaint
 
-    const genResult = PromptLabEngine.generate({ promptText, modelTarget });
+    const genResult = await PromptLabEngine.generate({ promptText, modelTarget });
 
     if (genResult.error) {
       showToast(genResult.error, 'error');

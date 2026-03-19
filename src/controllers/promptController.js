@@ -111,13 +111,20 @@ async function generatePrompt(req, res, next) {
         const { promptText, exampleOutput, taskIntent, modelTarget, promptId } = req.body;
         const userId = req.user._id;
 
-        // 1. Generate improved prompt
-        const result = generatorService.generate({
+        // 1. Generate improved prompt (async — LLM pipeline)
+        const result = await generatorService.generate({
             promptText,
             exampleOutput: exampleOutput || null,
             taskIntent: taskIntent || '',
             modelTarget,
         });
+
+        // Guard against errors from the generator
+        if (result.error) {
+            return res.status(400).json({ error: true, message: result.error });
+        }
+
+        const generatedText = result.finalPrompt || result.generatedPrompt || result.improvedPrompt || '';
 
         let prompt;
         let versionNumber;
@@ -133,7 +140,7 @@ async function generatePrompt(req, res, next) {
         } else {
             prompt = await Prompt.create({
                 userId,
-                promptText: result.improvedPrompt,
+                promptText: generatedText,
                 exampleOutput: exampleOutput || null,
                 modelTarget,
                 latestVersion: 1,
@@ -145,7 +152,7 @@ async function generatePrompt(req, res, next) {
         await PromptVersion.create({
             promptId: prompt._id,
             versionNumber,
-            promptText: result.improvedPrompt,
+            promptText: generatedText,
             exampleOutput: exampleOutput || null,
             analysisId: null, // No analysis for generated
         });
@@ -160,8 +167,8 @@ async function generatePrompt(req, res, next) {
                 promptId: prompt._id,
                 versionNumber,
                 originalPrompt: promptText,
-                improvedPrompt: result.improvedPrompt,
-                improvements: result.improvements,
+                improvedPrompt: generatedText,
+                improvements: result.improvements || [],
             },
         });
     } catch (err) {
