@@ -173,14 +173,19 @@ const PromptLabDB = {
         const db = getFirestore();
         const analysisData = {
             userId: uid,
+            type: data.type || 'analysis',
             promptText: data.promptText,
             modelTarget: data.modelTarget,
             exampleOutput: data.exampleOutput || null,
             overall_score: data.overall_score || 0,
             dimension_scores: data.dimension_scores || {},
+            blueprint_tips: data.blueprint_tips || [],
             issues: data.issues || [],
             suggestions: data.suggestions || [],
             educational_summary: data.educational_summary || '',
+            // generation-specific fields
+            finalPrompt: data.finalPrompt || null,
+            templateUsed: data.templateUsed || null,
             createdAt: serverTimestamp(),
         };
 
@@ -191,15 +196,23 @@ const PromptLabDB = {
     // ── History ───────────────────────────────────────────────
     async getHistory(uid, limitCount = 20) {
         const db = getFirestore();
+        // Use only a single-field query to avoid composite index requirement.
+        // Sort client-side after fetching.
         const q = query(
             collection(db, "analyses"),
             where("userId", "==", uid),
-            orderBy("createdAt", "desc"),
-            limit(limitCount)
+            limit(limitCount * 2) // fetch extra since we'll sort+trim client-side
         );
 
         const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const docs = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Sort by createdAt descending client-side
+        docs.sort((a, b) => {
+            const ta = a.createdAt?.seconds ?? 0;
+            const tb = b.createdAt?.seconds ?? 0;
+            return tb - ta;
+        });
+        return docs.slice(0, limitCount);
     },
 
     // ── Learning Stats ────────────────────────────────────────

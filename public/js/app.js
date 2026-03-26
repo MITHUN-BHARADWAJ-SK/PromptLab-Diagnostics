@@ -214,11 +214,13 @@ async function analyzePrompt() {
 
     // Save to Firestore
     await PromptLabDB.saveAnalysis(state.uid, {
+      type: 'analysis',
       promptText,
       modelTarget,
       exampleOutput: exampleOutput || null,
       overall_score: result.overall_score,
       dimension_scores: result.dimension_scores,
+      blueprint_tips: result.blueprint_tips || [],
       issues: result.issues || [],
       suggestions: result.suggestions || [],
       educational_summary: result.educational_summary || '',
@@ -360,6 +362,19 @@ async function generatePrompt() {
 
     await PromptLabDB.consumeCredits(state.uid, 3, 'Prompt Generation');
 
+    // Save generation to Firestore history
+    try {
+      await PromptLabDB.saveAnalysis(state.uid, {
+        type: 'generation',
+        promptText,
+        modelTarget,
+        overall_score: genResult.v1?.score?.overall || 0,
+        dimension_scores: genResult.v1?.score?.dimensions || {},
+        finalPrompt: genResult.finalPrompt || '',
+        templateUsed: genResult.templateUsed || null,
+      });
+    } catch (e) { console.warn('Failed to save generation to history:', e); }
+
     setStatus('ENGINE: COMPLETE');
 
     // Pass the full generation result to the renderer
@@ -393,13 +408,13 @@ async function loadDashboard() {
       stats = await PromptLabDB.getOrCreateStats(state.uid);
     } catch (e) { console.warn("Stats error:", e); }
 
-    // 3. Load History safely (often fails initially due to missing indexes)
+    // 3. Load History
     let history = [];
     try {
       history = await PromptLabDB.getHistory(state.uid, 20);
     } catch (e) {
-      console.warn("History index error:", e);
-      document.getElementById('historyBody').innerHTML = `<div class="p-8 text-center text-amber-500 bg-amber-500/10 rounded-xl">History is synchronizing indexes. It will appear here in a few minutes.</div>`;
+      console.warn("History load error:", e);
+      document.getElementById('historyBody').innerHTML = `<div class="p-8 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 rounded-xl">No activity yet. Analyze or generate a prompt to see it here.</div>`;
     }
 
     // Populate basic stats
@@ -1041,12 +1056,15 @@ window.loadNotifications = loadNotifications;
 //  RENDER: HISTORY (Firestore format)
 // ════════════════════════════════════════════════════════════════
 
+// Store history data globally so click handlers can access it
+const _historyDataCache = {};
+
 function renderHistory(entries) {
   const tbody = document.getElementById('historyBody');
 
   if (!entries || entries.length === 0) {
     tbody.innerHTML = `<div class="p-8 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 rounded-xl glow-border transition-all duration-300">
-          No prompts analyzed yet. Head to the Analyzer to get started!
+          No prompts analyzed or generated yet. Head to the Analyzer or Generator to get started!
       </div>`;
     return;
   }
@@ -1058,11 +1076,17 @@ function renderHistory(entries) {
     const score = p.overall_score || 0;
     const scoreColor = score >= 4 ? 'text-emerald-500' : score >= 2.5 ? 'text-amber-500' : 'text-primary';
     const promptPreview = (p.promptText || '').substring(0, 80) + ((p.promptText || '').length > 80 ? '...' : '');
-    const mName = modelNames[p.modelTarget] || p.modelTarget;
+    const mName = modelNames[p.modelTarget] || p.modelTarget || '';
     const mColor = modelColors[p.modelTarget] || 'text-primary';
-    const shortId = '#' + (p.id || '').split('_').pop().substring(0, 4).toUpperCase();
+    const isGen = p.type === 'generation';
+    const typeBadge = isGen
+      ? '<span class="text-[9px] font-mono bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded uppercase">Generate</span>'
+      : '<span class="text-[9px] font-mono bg-primary/20 text-primary px-1.5 py-0.5 rounded uppercase">Analyze</span>';
 
-    // Create a mini bar chart for dimension scores
+    // Cache item for click access
+    _historyDataCache[p.id] = p;
+
+    // Mini bar chart
     const dims = p.dimension_scores || {};
     const dValues = [
       dims.constraint_strength || 0,
@@ -1076,40 +1100,80 @@ function renderHistory(entries) {
       return `<div class="w-1.5 bg-primary/40 rounded-full" style="height: ${height}%"></div>`;
     }).join('');
 
-    // Handle Firestore Timestamp or ISO string
+    // Date
     let dateObj;
     if (p.createdAt && p.createdAt.toDate) dateObj = p.createdAt.toDate();
     else if (p.createdAt && p.createdAt.seconds) dateObj = new Date(p.createdAt.seconds * 1000);
     else dateObj = new Date(p.createdAt || Date.now());
 
     return `
-        <div class="group bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 hover:border-primary/40 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 transition-all duration-300 cursor-pointer glow-border terminal-glass">
-            <div class="w-12 text-center border-r border-slate-100 dark:border-white/10 pr-4 hidden md:block">
-                <span class="text-[10px] font-mono text-slate-400 block">ID</span>
-                <span class="font-mono text-sm font-bold text-slate-600 dark:text-slate-300">${shortId}</span>
-            </div>
+        <div class="group bg-white dark:bg-[#191919]/40 border border-slate-200 dark:border-white/10 hover:border-primary/40 rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 transition-all duration-300 cursor-pointer glow-border terminal-glass"
+             onclick="viewHistoryItem('${escapeHtml(p.id)}')">
           <div class="flex-1 min-w-0 w-full">
+            <div class="flex items-center gap-2 mb-1">
+              ${typeBadge}
               <span class="text-[10px] font-mono ${mColor} uppercase tracking-widest font-bold">${escapeHtml(mName)}</span>
-              <h4 class="font-mono text-sm truncate mt-1 text-slate-800 dark:text-slate-200">"${escapeHtml(promptPreview)}"</h4>
+            </div>
+            <h4 class="font-mono text-sm truncate text-slate-800 dark:text-slate-200">"${escapeHtml(promptPreview)}"</h4>
           </div>
           <div class="w-24 hidden lg:block">
-              <div class="flex items-end gap-1 h-8 items-center">
-                  ${barsHtml}
-              </div>
-              <span class="text-[9px] font-mono text-slate-400 mt-1 block uppercase">Metrics</span>
+            <div class="flex items-end gap-1 h-8">
+              ${barsHtml}
+            </div>
+            <span class="text-[9px] font-mono text-slate-400 mt-1 block uppercase">Metrics</span>
           </div>
           <div class="w-16 text-center">
-              <span class="text-[10px] font-mono text-slate-400 block uppercase">Score</span>
-              <span class="font-mono text-sm font-bold ${scoreColor}">${score.toFixed(1)}</span>
+            <span class="text-[10px] font-mono text-slate-400 block uppercase">Score</span>
+            <span class="font-mono text-sm font-bold ${scoreColor}">${score.toFixed(1)}</span>
           </div>
           <div class="w-24 text-right">
-              <span class="text-[10px] font-mono text-slate-400 block uppercase">Date</span>
-              <span class="font-mono text-xs text-slate-500">${dateObj.toLocaleDateString()}</span>
+            <span class="text-[10px] font-mono text-slate-400 block uppercase">Date</span>
+            <span class="font-mono text-xs text-slate-500">${dateObj.toLocaleDateString()}</span>
           </div>
-      </div>
+          <div class="text-slate-400 group-hover:text-primary transition-colors hidden md:block">
+            <span class="material-icons-outlined text-sm">arrow_forward</span>
+          </div>
+        </div>
     `;
   }).join('');
 }
+
+function viewHistoryItem(itemId) {
+  const item = _historyDataCache[itemId];
+  if (!item) return;
+
+  if (item.type === 'generation') {
+    // Switch to generator tab and show the generated prompt
+    switchView('generator');
+    const promptInput = document.getElementById('generatorPrompt');
+    const modelSelect = document.getElementById('generatorModel');
+    if (promptInput) promptInput.value = item.promptText || '';
+    if (modelSelect && item.modelTarget) modelSelect.value = item.modelTarget;
+    if (item.finalPrompt) {
+      const resultsPanel = document.getElementById('generatorResults');
+      if (resultsPanel) {
+        const fakeResult = {
+          finalPrompt: item.finalPrompt,
+          templateUsed: item.templateUsed || 'template',
+          v1: { score: { overall: item.overall_score || 0, dimensions: item.dimension_scores || {} } },
+        };
+        renderGeneratorResults('generatorResults', fakeResult, item.modelTarget);
+      }
+    }
+  } else {
+    // Switch to analyzer tab and show the analysis
+    switchView('analyzer');
+    const promptInput = document.getElementById('analyzerPrompt');
+    const modelSelect = document.getElementById('analyzerModel');
+    if (promptInput) promptInput.value = item.promptText || '';
+    if (modelSelect && item.modelTarget) modelSelect.value = item.modelTarget;
+    renderAnalysisResults('analyzerResults', item, item.modelTarget, false);
+    // Scroll to results
+    const resultsEl = document.getElementById('analyzerResults');
+    if (resultsEl) setTimeout(() => resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+}
+window.viewHistoryItem = viewHistoryItem;
 
 function renderDashboardRadar(history) {
   const container = document.getElementById('dashRadarContainer');
