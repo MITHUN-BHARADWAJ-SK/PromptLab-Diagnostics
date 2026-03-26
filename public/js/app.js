@@ -260,7 +260,7 @@ async function optimizePrompt() {
       return;
     }
 
-    // Run the analyzer to generate a rewritten prompt
+    // Run the analyzer
     const genResult = PromptLabEngine.analyze({ promptText, modelTarget });
 
     if (genResult.error) {
@@ -268,14 +268,11 @@ async function optimizePrompt() {
       return;
     }
 
-    // Check if rewrite hint was generated
     if (genResult.prompt_rewrite_hint && genResult.prompt_rewrite_hint.template) {
-      // Consume 3 credits
       await PromptLabDB.consumeCredits(state.uid, 3, 'Prompt Optimization');
-
-      // Replace the text in the analyzer input with the new text
-      document.getElementById('analyzerPrompt').value = genResult.prompt_rewrite_hint.template;
-      showToast('Prompt optimized successfully!', 'success');
+      // Render full analysis results with the optimized structure section visible
+      renderAnalysisResults('analyzerResults', genResult, modelTarget, true);
+      showToast('Prompt optimized! See the Optimized Structure section below.', 'success');
       refreshCredits();
     } else {
       showToast('Optimization could not generate a better prompt. No credits used.', 'warning');
@@ -417,7 +414,13 @@ async function loadDashboard() {
 //  RENDER: ANALYSIS RESULTS (Vertical Diagnostic Dashboard)
 // ════════════════════════════════════════════════════════════════
 
-function renderAnalysisResults(containerId, data, modelTarget) {
+const BASIC_MODEL_STRUCTURES = {
+  openai: `System: You are a [role/expert] specializing in [domain].\n\nUser: [Your task instruction here]\n\nContext: [Relevant background information]\nConstraints: [Rules, format, length, tone]\nFormat: [Expected output structure]`,
+  anthropic: `<context>\n[Background information and relevant details here]\n</context>\n\n<instructions>\n[Your task clearly stated here]\n</instructions>\n\n<constraints>\n[Format, length, tone, exclusions]\n</constraints>\n\n<format>\n[Expected output structure]\n</format>`,
+  gemini: `Context: [Background information here]\n\nTask: [Your clear instruction here]\n\nRequirements:\n- [Requirement 1]\n- [Requirement 2]\n\nFormat: [Specify output format]\nScope: [Define length and depth]`,
+};
+
+function renderAnalysisResults(containerId, data, modelTarget, showOptimized = false) {
   const panel = document.getElementById(containerId);
   const score = data.overall_score || 0;
   const dims = data.dimension_scores || {};
@@ -426,7 +429,7 @@ function renderAnalysisResults(containerId, data, modelTarget) {
   const suggestions = data.suggestions || [];
   const summary = data.educational_summary || '';
   const colors = MODEL_COLORS[modelTarget] || MODEL_COLORS.openai;
-  const profile = data.model_profile || null;
+
 
   // ── 1. SCORE BANNER ─────────────────────────────────────────
   const circumference = 2 * Math.PI * 86;
@@ -460,13 +463,13 @@ function renderAnalysisResults(containerId, data, modelTarget) {
 
   // ── 2. METRIC PENTAGON DIAGNOSTIC ─────────────────────────────
   const dimValues = [
-    dims.output_controllability || 0,
-    dims.clarity || 0,
-    dims.constraint_completeness || 0,
-    dims.ambiguity_risk || 0,
-    dims.model_alignment || 0
+    dims.constraint_strength || 0,
+    dims.intent_clarity || 0,
+    dims.structural_completeness || 0,
+    dims.execution_readiness || 0,
+    dims.model_compatibility || 0
   ];
-  const dimLabels = ['Controllability', 'Clarity', 'Completeness', 'Ambiguity Risk', 'Model Alignment'];
+  const dimLabels = ['Constraint Strength', 'Intent Clarity', 'Completeness', 'Exec Readiness', 'Model Alignment'];
 
   const angles = [0, 72, 144, 216, 288].map(d => (d * Math.PI) / 180);
   const r = 80;
@@ -523,31 +526,13 @@ function renderAnalysisResults(containerId, data, modelTarget) {
     '<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">';
 
   dimValues.forEach((v, i) => {
-    // For Ambiguity Risk (index 3): raw score 5 = "no risk", 0 = "high risk"
-    // So risk percentage = (5 - v) / 5 * 100
-    const pct = i === 3 ? (((5 - v) / 5) * 100).toFixed(0) : ((v / 5) * 100).toFixed(0);
-
-    let isGood, colorClass, bgClass, icon;
-
-    if (i === 3) { // Ambiguity Risk
-      // If raw score >= 2.5, risk is low (<= 50%), this is "Good"
-      isGood = v >= 2.5;
-      const isExcellent = v >= 4.0; // risk <= 20%
-      const isWarning = v <= 1.0;   // risk >= 80%
-
-      // User requested: green for low risk (0%), red for high risk (100%)
-      colorClass = isGood ? 'text-emerald-500' : 'text-red-500';
-      bgClass = isGood ? 'bg-emerald-500' : 'bg-red-500';
-      icon = isGood ? (isExcellent ? 'check_circle' : 'trending_down') : (isWarning ? 'priority_high' : 'trending_up');
-    } else { // Standard logic
-      isGood = v >= 3.5;
-      const isExcellent = v >= 4.5;
-      const isWarning = v < 2.0;
-
-      colorClass = isGood ? 'text-emerald-500' : 'text-primary';
-      bgClass = isGood ? 'bg-emerald-500' : 'bg-primary';
-      icon = isGood ? (isExcellent ? 'check_circle' : 'trending_up') : (isWarning ? 'priority_high' : 'trending_down');
-    }
+    const pct = ((v / 5) * 100).toFixed(0);
+    const isGood = v >= 3.5;
+    const isExcellent = v >= 4.5;
+    const isWarning = v < 2.0;
+    const colorClass = isGood ? 'text-emerald-500' : 'text-primary';
+    const bgClass = isGood ? 'bg-emerald-500' : 'bg-primary';
+    const icon = isGood ? (isExcellent ? 'check_circle' : 'trending_up') : (isWarning ? 'priority_high' : 'trending_down');
 
     html += '<div class="p-4 bg-neutral-900/50 border border-neutral-800 rounded-lg ' + (i === 4 ? 'sm:col-span-2' : '') + '">' +
       '<div class="text-[10px] font-mono font-bold text-neutral-500 uppercase mb-2">' + dimLabels[i] + '</div>' +
@@ -664,52 +649,71 @@ function renderAnalysisResults(containerId, data, modelTarget) {
     html += '</div></div></section>';
   }
 
-  // ── 5. GPT-OPTIMIZED STRUCTURE ───────────────────────────────
-  if (data.prompt_rewrite_hint) {
-    const titleText = (profile ? profile.name : 'AI') + '-Optimized Structure';
+  // ── 5. PROMPT STRUCTURE ──────────────────────────────────────
+  {
+    const modelNames = { openai: 'OpenAI GPT', anthropic: 'Anthropic Claude', gemini: 'Google Gemini' };
+    const modelName = modelNames[modelTarget] || modelTarget;
 
-    // Parse System vs User blocks for colored rendering
-    const templateRows = escapeHtml(data.prompt_rewrite_hint.template).split('\n');
+    let structureTitle, structureDesc, structureText, structureId;
+
+    if (showOptimized && data.prompt_rewrite_hint) {
+      structureTitle = modelName + ' — Optimized Structure';
+      structureDesc = data.prompt_rewrite_hint.description || 'Rewritten prompt based on analysis findings.';
+      structureText = data.prompt_rewrite_hint.template;
+      structureId = 'rewriteHintClean';
+    } else {
+      structureTitle = modelName + ' — Recommended Structure';
+      structureDesc = 'This is the recommended prompt structure for ' + modelName + '. Run Analyze on your prompt to see how it compares, or click Optimize to generate an improved version.';
+      structureText = BASIC_MODEL_STRUCTURES[modelTarget] || BASIC_MODEL_STRUCTURES.openai;
+      structureId = 'basicStructureClean';
+    }
+
+    // Parse System/User/XML blocks for colored rendering
+    const templateRows = escapeHtml(structureText).split('\n');
     let formattedTemplate = '';
     const metadataHtml = [];
-
     templateRows.forEach(row => {
       if (row.startsWith('System:')) {
-        formattedTemplate += '<p><span class="text-primary font-bold">System:</span> ' + row.substring(7) + '</p>';
+        formattedTemplate += '<p><span class="text-primary font-bold">System:</span>' + row.substring(7) + '</p>';
       } else if (row.startsWith('User:')) {
-        formattedTemplate += '<p class="mt-4"><span class="text-primary font-bold">User:</span> ' + row.substring(5) + '</p>';
-      } else if (row.startsWith('Context:') || row.startsWith('Constraints:') || row.startsWith('Format:') || row.startsWith('Scope:') || row.startsWith('Tone:')) {
+        formattedTemplate += '<p class="mt-4"><span class="text-primary font-bold">User:</span>' + row.substring(5) + '</p>';
+      } else if (row.startsWith('Task:') || row.startsWith('Context:') || row.startsWith('Constraints:') || row.startsWith('Format:') || row.startsWith('Scope:') || row.startsWith('Tone:')) {
         const parts = row.split(':');
         metadataHtml.push('<p><span class="text-neutral-500 text-xs">' + parts[0] + ':</span> ' + parts.slice(1).join(':') + '</p>');
+      } else if (row.startsWith('&lt;') || row.startsWith('-')) {
+        formattedTemplate += '<p class="text-neutral-400">' + row + '</p>';
       } else if (row.trim()) {
-        if (formattedTemplate.length === 0) {
-          formattedTemplate += '<p>' + row + '</p>';
-        } else {
-          formattedTemplate += '<br/>' + row;
-        }
+        formattedTemplate += '<p>' + row + '</p>';
+      } else {
+        formattedTemplate += '<br/>';
       }
     });
 
+    const borderClass = showOptimized ? 'border-primary/20 bg-primary/5' : 'border-neutral-700 bg-neutral-900/30';
+    const headerClass = showOptimized ? 'border-primary/20 bg-primary/5' : 'border-neutral-700 bg-neutral-900/50';
+    const iconName = showOptimized ? 'auto_fix_high' : 'view_quilt';
+    const iconBg = showOptimized ? 'bg-primary' : 'bg-neutral-700';
+
     html += '<section class="max-w-5xl mx-auto mb-12">' +
-      '<div class="bg-primary/5 border border-primary/20 rounded-xl overflow-hidden">' +
-      '<div class="px-6 py-4 border-b border-primary/20 flex justify-between items-center bg-primary/5">' +
+      '<div class="border rounded-xl overflow-hidden ' + borderClass + '">' +
+      '<div class="px-6 py-4 border-b flex justify-between items-center ' + headerClass + '">' +
       '<div class="flex items-center gap-3">' +
-      '<div class="w-8 h-8 rounded bg-primary flex items-center justify-center shadow-lg shadow-primary/20">' +
-      '<span class="material-icons-outlined text-white text-lg">auto_fix_high</span>' +
+      '<div class="w-8 h-8 rounded ' + iconBg + ' flex items-center justify-center">' +
+      '<span class="material-icons-outlined text-white text-lg">' + iconName + '</span>' +
       '</div>' +
-      '<h3 class="text-sm font-bold tracking-tight text-white">' + titleText + '</h3>' +
+      '<h3 class="text-sm font-bold tracking-tight text-white">' + structureTitle + '</h3>' +
       '</div>' +
-      '<button class="text-xs font-mono font-bold text-primary flex items-center gap-1 hover:underline cursor-pointer" onclick="navigator.clipboard.writeText(document.getElementById(&quot;rewriteHintClean&quot;).textContent)">' +
-      'COPY ALL <span class="material-icons-outlined text-xs">content_copy</span>' +
+      '<button class="text-xs font-mono font-bold text-primary flex items-center gap-1 hover:underline" onclick="navigator.clipboard.writeText(document.getElementById(\'' + structureId + '\').textContent)">' +
+      'COPY <span class="material-icons-outlined text-xs">content_copy</span>' +
       '</button>' +
       '</div>' +
       '<div class="p-6">' +
-      '<p class="text-xs text-neutral-400 mb-6 italic">' + escapeHtml(data.prompt_rewrite_hint.description) + '</p>' +
-      '<div class="bg-black/80 rounded-lg p-6 font-mono text-sm text-neutral-300 leading-relaxed space-y-4 border border-white/5">' +
+      '<p class="text-xs text-neutral-400 mb-4 italic">' + structureDesc + '</p>' +
+      '<div class="bg-black/80 rounded-lg p-6 font-mono text-sm text-neutral-300 leading-relaxed space-y-1 border border-white/5">' +
       formattedTemplate +
       (metadataHtml.length > 0 ? '<div class="pt-4 border-t border-white/10 space-y-2">' + metadataHtml.join('') + '</div>' : '') +
       '</div>' +
-      '<div id="rewriteHintClean" style="display:none;">' + escapeHtml(data.prompt_rewrite_hint.template) + '</div>' +
+      '<div id="' + structureId + '" style="display:none;">' + escapeHtml(structureText) + '</div>' +
       '</div>' +
       '</div>' +
       '</section>';
