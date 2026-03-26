@@ -336,8 +336,8 @@ function _extractIntentLocally(text, targetModel) {
     else if (/\b(expert|advanced|PhD|professional|senior)\b/.test(lower)) audience = 'expert';
     else if (/\b(developer|programmer|engineer)\b/.test(lower)) audience = 'developer';
 
-    // Output format
-    let outputFormat = 'structured bullets';
+    // Output format — only set when explicitly requested by the user
+    let outputFormat = null;
     if (/\b(step.by.step|steps|how to|guide|tutorial)\b/i.test(lower)) outputFormat = 'step-by-step';
     else if (/\b(table|comparison table|grid|matrix)\b/i.test(lower)) outputFormat = 'table';
     else if (/\b(story|essay|narrative|paragraph)\b/i.test(lower)) outputFormat = 'narrative';
@@ -357,7 +357,7 @@ function _extractIntentLocally(text, targetModel) {
         goal: subject,
         must_include: [],
         must_exclude: [],
-        assumptions: [`The user wants a ${outputFormat} response about ${subject}`],
+        assumptions: [outputFormat ? `The user wants a ${outputFormat} response about ${subject}` : `The user wants a response about ${subject}`],
         domain,
         audience,
         output_format: outputFormat,
@@ -955,7 +955,7 @@ async function generate({
         intent: {
             taskType: intentContract.task_type,
             domain: intentContract.domain || 'General',
-            outputFormat: intentContract.output_format || 'structured output',
+            outputFormat: intentContract.output_format || null,
             controlLevel: ambiguity.score > 0.4 ? 'high' : 'medium',
             subject: intentContract.subject || intentContract.goal,
             audience: intentContract.audience || 'general',

@@ -1180,58 +1180,64 @@ function renderDashboardRadar(history) {
   if (!container) return;
 
   const dimLabels = ['Constraint', 'Clarity', 'Completeness', 'Exec Ready', 'Alignment'];
+  const dimKeys = ['constraint_strength', 'intent_clarity', 'structural_completeness', 'execution_readiness', 'model_compatibility'];
   let dimValues = [0, 0, 0, 0, 0];
+  let analysisCount = 0;
 
-  if (history && history.length > 0) {
-    let counts = [0, 0, 0, 0, 0];
-    history.forEach(h => {
-      if (h.dimension_scores) {
-        dimValues[0] += h.dimension_scores.constraint_strength || 0;
-        dimValues[1] += h.dimension_scores.intent_clarity || 0;
-        dimValues[2] += h.dimension_scores.structural_completeness || 0;
-        dimValues[3] += h.dimension_scores.execution_readiness || 0;
-        dimValues[4] += h.dimension_scores.model_compatibility || 0;
-        for (let i = 0; i < 5; i++) counts[i]++;
-      }
+  // Only aggregate analysis entries (not generations — they have no real dimension data)
+  const analyses = (history || []).filter(h => h.type !== 'generation' && h.dimension_scores);
+  if (analyses.length > 0) {
+    const sums = [0, 0, 0, 0, 0];
+    analyses.forEach(h => {
+      dimKeys.forEach((k, i) => { sums[i] += h.dimension_scores[k] || 0; });
     });
-    for (let i = 0; i < 5; i++) {
-      if (counts[i] > 0) dimValues[i] /= counts[i];
-    }
-  } else {
-    dimValues = [2.5, 2.5, 2.5, 2.5, 2.5];
+    dimValues = sums.map(s => s / analyses.length);
+    analysisCount = analyses.length;
   }
 
   const angles = [0, 72, 144, 216, 288].map(d => (d * Math.PI) / 180);
   const r = 80;
   const cx = 100;
+
   function getPoint(val, idx) {
     const v = (Math.max(0, Math.min(5, val)) / 5) * r;
     return (cx + v * Math.sin(angles[idx])).toFixed(1) + ',' + (cx - v * Math.cos(angles[idx])).toFixed(1);
   }
 
-  const pts = dimValues.map((v, i) => getPoint(v, i)).join(' ');
-  const circleTags = dimValues.map((v, i) => {
+  const hasData = analysisCount > 0;
+  const pts = hasData ? dimValues.map((v, i) => getPoint(v, i)).join(' ') : '100,100 100,100 100,100 100,100 100,100';
+
+  const circleTags = hasData ? dimValues.map((v, i) => {
     const pt = getPoint(v, i).split(',');
-    return '<circle cx="' + pt[0] + '" cy="' + pt[1] + '" fill="#EF4444" r="3"></circle>';
-  }).join('');
+    return '<circle cx="' + pt[0] + '" cy="' + pt[1] + '" fill="#EF4444" r="3.5"></circle>';
+  }).join('') : '';
 
   const labelTags = dimLabels.map((label, i) => {
-    const labelRadius = 92;
+    const labelRadius = 96;
+    const scoreRadius = 108;
     const tx = (cx + labelRadius * Math.sin(angles[i])).toFixed(1);
     const ty = (cx - labelRadius * Math.cos(angles[i])).toFixed(1);
+    const sx = (cx + scoreRadius * Math.sin(angles[i])).toFixed(1);
+    const sy = (cx - scoreRadius * Math.cos(angles[i])).toFixed(1);
 
-    let anchor = "middle";
-    if (Math.sin(angles[i]) > 0.1) anchor = "start";
-    else if (Math.sin(angles[i]) < -0.1) anchor = "end";
+    let anchor = 'middle';
+    if (Math.sin(angles[i]) > 0.1) anchor = 'start';
+    else if (Math.sin(angles[i]) < -0.1) anchor = 'end';
 
-    let dy = "0.3em";
-    if (Math.cos(angles[i]) > 0.1) dy = "0em";
-    else if (Math.cos(angles[i]) < -0.1) dy = "0.7em";
+    const scoreColor = hasData
+      ? (dimValues[i] >= 4 ? '#10b981' : dimValues[i] >= 2.5 ? '#f59e0b' : '#EF4444')
+      : '#6b7280';
+    const scoreText = hasData ? dimValues[i].toFixed(1) : '—';
 
-    return '<text x="' + tx + '" y="' + ty + '" text-anchor="' + anchor + '" dy="' + dy + '" class="fill-slate-500 font-mono font-bold uppercase tracking-tighter" style="font-size: 8px;">' + label + '</text>';
+    return '<text x="' + tx + '" y="' + ty + '" text-anchor="' + anchor + '" dy="0.3em" class="fill-slate-500 font-mono font-bold uppercase tracking-tighter" style="font-size: 7.5px;">' + label + '</text>' +
+      '<text x="' + sx + '" y="' + sy + '" text-anchor="' + anchor + '" dy="1.5em" font-family="monospace" font-weight="bold" style="font-size: 8px; fill: ' + scoreColor + ';">' + scoreText + '</text>';
   }).join('');
 
-  container.innerHTML = '<svg class="w-full h-full max-w-[300px] radar-glow overflow-visible" viewBox="0 0 200 200">' +
+  const subtitle = hasData
+    ? '<text x="100" y="196" text-anchor="middle" class="fill-slate-400" style="font-size:7px; font-family: monospace;">Based on ' + analysisCount + ' analysis' + (analysisCount > 1 ? 'es' : '') + '</text>'
+    : '<text x="100" y="196" text-anchor="middle" class="fill-slate-500" style="font-size:7px; font-family: monospace;">No analyses yet</text>';
+
+  container.innerHTML = '<svg class="w-full h-full max-w-[300px] radar-glow overflow-visible" viewBox="-20 -20 240 230">' +
     '<circle class="stroke-slate-100 dark:stroke-white/5" cx="100" cy="100" fill="none" r="80" stroke-width="0.5"></circle>' +
     '<circle class="stroke-slate-100 dark:stroke-white/5" cx="100" cy="100" fill="none" r="60" stroke-width="0.5"></circle>' +
     '<circle class="stroke-slate-100 dark:stroke-white/5" cx="100" cy="100" fill="none" r="40" stroke-width="0.5"></circle>' +
@@ -1243,7 +1249,7 @@ function renderDashboardRadar(history) {
     '<line class="stroke-slate-100 dark:stroke-white/5" stroke-width="0.5" x1="100" x2="53" y1="100" y2="165"></line>' +
     '<line class="stroke-slate-100 dark:stroke-white/5" stroke-width="0.5" x1="100" x2="24" y1="100" y2="75"></line>' +
     '<polygon class="stroke-primary" fill="rgba(239, 68, 68, 0.15)" points="' + pts + '" stroke-width="2" style="transition: all 1s ease-out;"></polygon>' +
-    circleTags + labelTags +
+    circleTags + labelTags + subtitle +
     '</svg>';
 }
 
