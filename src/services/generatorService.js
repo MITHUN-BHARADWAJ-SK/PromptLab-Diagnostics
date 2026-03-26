@@ -280,19 +280,19 @@ function _extractIntentLocally(text, targetModel) {
     const TASK_PATTERNS = [
         { task: 'plan', patterns: [/\b(plan|schedule|roadmap|timeline|milestone|daily routine|weekly plan|organize my|time management)\b/i] },
         { task: 'story', patterns: [/\b(story|narrative|fiction|tale|novel|short story|creative writing|plot|character)\b/i] },
-        { task: 'content', patterns: [/\b(blog|article|seo|content|social media|marketing|copywriting|headline)\b/i] },
+        { task: 'content', patterns: [/\b(blog|article|seo|social media|copywriting|headline)\b/i] },
         { task: 'image_generation', patterns: [/\b(image|photo|picture|midjourney|dall-?e|stable diffusion|visual|cinematic|photorealistic)\b/i] },
+        { task: 'code', patterns: [/\b(code|function|class|component|script|implement|algorithm|debug|api|python|javascript|typescript|react|html|css|sql|backend|frontend|build a|build the|write a script|refactor|cli)\b/i] },
         { task: 'evaluate', patterns: [/\b(evaluate|assess|grade|score|rate|critique|review and improve|feedback on)\b/i] },
         { task: 'explain', patterns: [/\b(explain|describe|what is|define|clarify|elaborate|break down|tell me about|teach me)\b/i] },
         { task: 'compare', patterns: [/\b(compare|contrast|difference|versus|vs\.?|similarities|pros and cons|better)\b/i] },
-        { task: 'generate', patterns: [/\b(write|create|generate|compose|draft|produce|come up with|make me)\b/i] },
         { task: 'summarize', patterns: [/\b(summarize|summary|overview|recap|condense|tldr|brief)\b/i] },
-        { task: 'analyze', patterns: [/\b(analyze|analyse|evaluate|assess|review|examine)\b/i] },
+        { task: 'analyze', patterns: [/\b(analyze|analyse|review|examine)\b/i] },
         { task: 'list', patterns: [/\b(list|enumerate|name|give me|what are|identify all|top \d+)\b/i] },
         { task: 'instruct', patterns: [/\b(how to|steps to|guide|tutorial|instructions|walk me through|teach me how)\b/i] },
-        { task: 'code', patterns: [/\b(code|program|function|script|implement|algorithm|debug|api|python|javascript|html|css|sql|build a|write a script)\b/i] },
         { task: 'brainstorm', patterns: [/\b(brainstorm|suggest|recommend|ideas?|options?|alternatives?|creative)\b/i] },
         { task: 'optimize', patterns: [/\b(optimize|improve|enhance|refine|upgrade|boost|maximize|streamline)\b/i] },
+        { task: 'generate', patterns: [/\b(write|create|generate|compose|draft|produce|come up with|make me|marketing|email|content)\b/i] },
     ];
 
     let taskType = 'generate';
@@ -326,9 +326,9 @@ function _extractIntentLocally(text, targetModel) {
         }
     }
 
-    // Subject extraction
-    const verbSubject = text.match(/\b(?:explain|describe|summarize|compare|analyze|write|create|list|review|evaluate|implement|build|define|discuss|teach|outline|critique|plan|schedule|generate|optimize|improve)\s+(?:a\s+|an\s+|the\s+)?(?:concept\s+of\s+|basics\s+of\s+|fundamentals\s+of\s+|principles\s+of\s+)?(.{3,80}?)(?:\.|,|\?|$|\bfor\b|\bin\b|\bto\b|\busing\b|\bwith\b|\bkeeping\b)/i);
-    const subject = verbSubject ? verbSubject[1].trim() : text.substring(0, 60).trim();
+    // Subject extraction — use full text, only strip leading verb + article
+    const verbStrip = text.match(/^(?:explain|describe|summarize|compare|analyze|write|create|list|review|evaluate|implement|build|define|discuss|teach|outline|critique|plan|schedule|generate|optimize|improve|make|draft|produce|compose|develop)\s+(?:a\s+|an\s+|the\s+|me\s+a\s+|me\s+an\s+)?/i);
+    const subject = verbStrip ? text.slice(verbStrip[0].length).replace(/\.$/, '').trim() : text.replace(/\.$/, '').trim();
 
     // Audience
     let audience = 'general';
@@ -341,7 +341,7 @@ function _extractIntentLocally(text, targetModel) {
     if (/\b(step.by.step|steps|how to|guide|tutorial)\b/i.test(lower)) outputFormat = 'step-by-step';
     else if (/\b(table|comparison table|grid|matrix)\b/i.test(lower)) outputFormat = 'table';
     else if (/\b(story|essay|narrative|paragraph)\b/i.test(lower)) outputFormat = 'narrative';
-    else if (/\b(code|function|script|implement)\b/i.test(lower)) outputFormat = 'code block';
+    else if (taskType === 'code' || /\b(code|function|class|component|script|implement|refactor|algorithm|cli)\b/i.test(lower)) outputFormat = 'code block';
     else if (/\b(bullet|points|key points|list)\b/i.test(lower)) outputFormat = 'structured bullets';
 
     // Tone
@@ -353,7 +353,8 @@ function _extractIntentLocally(text, targetModel) {
     const contract = {
         task_type: taskType,
         target_model: targetModel,
-        goal: `${taskType} ${subject}`,
+        original_request: text,
+        goal: subject,
         must_include: [],
         must_exclude: [],
         assumptions: [`The user wants a ${outputFormat} response about ${subject}`],
@@ -503,13 +504,10 @@ function _generatePromptLocally(contract, targetModel) {
     parts.push(role);
     parts.push('');
 
-    // Objective
+    // Objective — always use the full original request so context is never lost
     parts.push('OBJECTIVE:');
-    let objective = contract.goal || `Produce a high-quality response`;
-    if (targetModel === 'gemini' && !objective.toLowerCase().startsWith('execute')) {
-        objective = `Execute the following task: ${objective}`;
-    }
-    parts.push(objective + (objective.endsWith('.') ? '' : '.'));
+    const objectiveText = contract.original_request || contract.goal || 'Produce a high-quality response';
+    parts.push(objectiveText + (objectiveText.endsWith('.') ? '' : '.'));
     parts.push('');
 
     // Context
