@@ -420,9 +420,8 @@ Rules:
 async function _generatePromptFromIntent(intentContract, targetModel) {
     const client = _getClient();
 
-    // Fallback: if no API client available, use template-based generation
     if (!client) {
-        return _generatePromptLocally(intentContract, targetModel);
+        throw new Error('OpenRouter API client is not configured. Set OPENROUTER_API_KEY or OPENAI_API_KEY.');
     }
 
     const systemPrompt = MODEL_GENERATOR_PROMPTS[targetModel] || MODEL_GENERATOR_PROMPTS.openai;
@@ -432,29 +431,23 @@ ${JSON.stringify(intentContract, null, 2)}
 
 Generate the optimized prompt now.`;
 
-    try {
-        const completion = await client.chat.completions.create({
-            model: _getModel(),
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userMsg },
-            ],
-            max_tokens: 800,
-            temperature: 0.4,
-        });
+    const completion = await client.chat.completions.create({
+        model: _getModel(),
+        messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMsg },
+        ],
+        max_tokens: 800,
+        temperature: 0.4,
+    });
 
-        const generated = completion.choices[0]?.message?.content?.trim();
-        if (!generated) {
-            return _generatePromptLocally(intentContract, targetModel);
-        }
-
-        const tokensUsed = _estimateTokens(systemPrompt) + _estimateTokens(userMsg) + _estimateTokens(generated);
-        return { prompt: generated, method: 'llm', tokensUsed };
-
-    } catch (error) {
-        console.error('[PromptLab Generator] Prompt generation error:', error.message);
-        return _generatePromptLocally(intentContract, targetModel);
+    const generated = completion.choices[0]?.message?.content?.trim();
+    if (!generated) {
+        throw new Error('OpenRouter returned an empty response for prompt generation.');
     }
+
+    const tokensUsed = _estimateTokens(systemPrompt) + _estimateTokens(userMsg) + _estimateTokens(generated);
+    return { prompt: generated, method: 'llm', tokensUsed };
 }
 
 /**
@@ -863,7 +856,13 @@ async function generate({
         // ═══════════════════════════════════════════════════════
         //  LAYER 4: PROMPT GENERATION
         // ═══════════════════════════════════════════════════════
-        const genResult = await _generatePromptFromIntent(intentContract, modelTarget);
+        let genResult;
+        try {
+            genResult = await _generatePromptFromIntent(intentContract, modelTarget);
+        } catch (error) {
+            console.error('[PromptLab Generator] Prompt generation error:', error.message);
+            return { error: error.message };
+        }
         generatedPromptText = genResult.prompt;
         generatorTokensUsed = genResult.tokensUsed;
         generatorMethod = genResult.method;
