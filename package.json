@@ -1,6 +1,6 @@
 {
   "name": "promptlab-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "PromptLab — Learn prompting as a skill. Backend API.",
   "main": "src/server.js",
   "scripts": {
