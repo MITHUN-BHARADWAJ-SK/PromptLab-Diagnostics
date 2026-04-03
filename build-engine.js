@@ -116,12 +116,22 @@ global.PromptLabEngine = {
     analyze: function(opts) {
         return analyzerService.analyze(opts);
     },
-    generate: function(opts) {
-        // Wire analyzer into generator for the scoring loop
-        opts.analyzerFn = function(analyzerOpts) {
-            return analyzerService.analyze(analyzerOpts);
-        };
-        return generatorService.generate(opts);
+    generate: async function(opts) {
+        // Call the backend API — OpenRouter key is server-side only
+        const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                promptText: opts.promptText || opts.userIdea,
+                modelTarget: opts.modelTarget,
+                difficulty: opts.difficulty || 'basic',
+            }),
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || 'Generation failed');
+        }
+        return response.json();
     },
 };
 

@@ -73,6 +73,22 @@ app.get('/api/health', (_req, res) => {
     });
 });
 
+// ── Generator Endpoint (no auth — API key is server-side) ────────
+const generatorService = require('./services/generatorService');
+app.post('/api/generate', async (req, res) => {
+    const { promptText, modelTarget, difficulty } = req.body;
+    if (!promptText || !modelTarget) {
+        return res.status(400).json({ error: 'promptText and modelTarget are required.' });
+    }
+    try {
+        const result = await generatorService.generate({ promptText, modelTarget, difficulty: difficulty || 'basic' });
+        if (result.error) return res.status(400).json({ error: result.error });
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ── API Routes ───────────────────────────────────────────────────
 app.use('/api/prompts', promptRoutes);
 app.use('/api/dashboard', dashboardRoutes);

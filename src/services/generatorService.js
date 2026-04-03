@@ -382,11 +382,10 @@ Generate a paste-ready, optimized prompt for OpenAI GPT based on the intent cont
 
 Rules:
 - Start with a clear system-role definition ("You are a...")
-- Include explicit step-by-step reasoning instructions
-- Add structured output format specifications
-- Use markdown formatting cues where appropriate
 - Include specific constraints (length, tone, scope)
 - Add chain-of-thought triggers for complex tasks
+- Infer the output format naturally from the user's intent — do NOT default to bullet points. Use prose/paragraphs for explanations and essays, numbered steps only for instructions or processes, tables for comparisons, code blocks for code, and bullets only when the user explicitly asked for a list.
+- If the intent contract includes an output_format field, honor it exactly. If it is null or absent, let the format emerge naturally from the task type.
 - Return ONLY the prompt text — no explanation, no preamble, no surrounding quotes.`,
 
     anthropic: `You are an expert prompt engineer specializing in Anthropic Claude.
@@ -398,7 +397,8 @@ Rules:
 - State expertise needs directly instead of role-play framing
 - Add explicit scope limits and exclusion boundaries
 - Include thinking/reasoning triggers for complex tasks
-- Request balanced, factual output to leverage Claude's safety alignment
+- Infer the output format naturally from the user's intent — do NOT default to bullet points. Use flowing prose for explanations and narratives, numbered steps only for sequential instructions, tables for comparisons, code blocks for code, and bullets only when the user explicitly requested a list.
+- If the intent contract includes an output_format field, honor it exactly. If it is null or absent, match the format to what the task naturally calls for.
 - Return ONLY the prompt text — no explanation, no preamble, no surrounding quotes.`,
 
     gemini: `You are an expert prompt engineer specializing in Google Gemini.
@@ -408,9 +408,10 @@ Generate a paste-ready, optimized prompt for Gemini based on the intent contract
 Rules:
 - Lead with context/background before the task instruction
 - Use concise, direct imperative sentences
-- Request structured output (tables, lists, JSON) explicitly
 - Add grounding cues ("based on current research", "using evidence")
 - Avoid system-role overhead — state expertise needs directly
+- Infer the output format naturally from the user's intent — do NOT default to bullet points or lists. Use paragraphs for explanations, numbered steps for processes, tables for comparisons, code blocks for code, and bullets only when the user explicitly asked for a list.
+- If the intent contract includes an output_format field, honor it exactly. If it is null or absent, choose the format that best fits the task.
 - Return ONLY the prompt text — no explanation, no preamble, no surrounding quotes.`,
 };
 
