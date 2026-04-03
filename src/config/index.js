@@ -3,7 +3,7 @@
  * Reads from environment variables with sensible defaults.
  */
 
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '..', '.env') });
 
 module.exports = {
   port: parseInt(process.env.PORT, 10) || 3000,
