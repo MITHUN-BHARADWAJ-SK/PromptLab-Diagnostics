@@ -2095,7 +2095,7 @@ function _getClient() {
     if (
         typeof process === 'undefined' ||
         !process.env ||
-        (!process.env.OPENROUTER_API_KEY && !process.env.OPENAI_API_KEY)
+        !process.env.OPENROUTER_API_KEY
     ) {
         return null;
     }
@@ -2103,7 +2103,7 @@ function _getClient() {
     const OpenAI = require('openai');
     _openrouterClient = new OpenAI({
         baseURL: 'https://openrouter.ai/api/v1',
-        apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY,
+        apiKey: process.env.OPENROUTER_API_KEY,
         defaultHeaders: {
             'HTTP-Referer': 'https://promptlab.ai',
             'X-OpenRouter-Title': 'PromptLab Generator v4',
@@ -2391,8 +2391,8 @@ function _extractIntentLocally(text, targetModel) {
     else if (/\b(expert|advanced|PhD|professional|senior)\b/.test(lower)) audience = 'expert';
     else if (/\b(developer|programmer|engineer)\b/.test(lower)) audience = 'developer';
 
-    // Output format
-    let outputFormat = 'structured bullets';
+    // Output format — only set when explicitly requested by the user
+    let outputFormat = null;
     if (/\b(step.by.step|steps|how to|guide|tutorial)\b/i.test(lower)) outputFormat = 'step-by-step';
     else if (/\b(table|comparison table|grid|matrix)\b/i.test(lower)) outputFormat = 'table';
     else if (/\b(story|essay|narrative|paragraph)\b/i.test(lower)) outputFormat = 'narrative';
@@ -2412,7 +2412,7 @@ function _extractIntentLocally(text, targetModel) {
         goal: subject,
         must_include: [],
         must_exclude: [],
-        assumptions: [`The user wants a ${outputFormat} response about ${subject}`],
+        assumptions: [outputFormat ? `The user wants a ${outputFormat} response about ${subject}` : `The user wants a response about ${subject}`],
         domain,
         audience,
         output_format: outputFormat,
@@ -2475,9 +2475,8 @@ Rules:
 async function _generatePromptFromIntent(intentContract, targetModel) {
     const client = _getClient();
 
-    // Fallback: if no API client available, use template-based generation
     if (!client) {
-        return _generatePromptLocally(intentContract, targetModel);
+        throw new Error('OpenRouter API client is not configured. Set OPENROUTER_API_KEY in your environment.');
     }
 
     const systemPrompt = MODEL_GENERATOR_PROMPTS[targetModel] || MODEL_GENERATOR_PROMPTS.openai;
@@ -2487,29 +2486,23 @@ ${JSON.stringify(intentContract, null, 2)}
 
 Generate the optimized prompt now.`;
 
-    try {
-        const completion = await client.chat.completions.create({
-            model: _getModel(),
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userMsg },
-            ],
-            max_tokens: 800,
-            temperature: 0.4,
-        });
+    const completion = await client.chat.completions.create({
+        model: _getModel(),
+        messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMsg },
+        ],
+        max_tokens: 800,
+        temperature: 0.4,
+    });
 
-        const generated = completion.choices[0]?.message?.content?.trim();
-        if (!generated) {
-            return _generatePromptLocally(intentContract, targetModel);
-        }
-
-        const tokensUsed = _estimateTokens(systemPrompt) + _estimateTokens(userMsg) + _estimateTokens(generated);
-        return { prompt: generated, method: 'llm', tokensUsed };
-
-    } catch (error) {
-        console.error('[PromptLab Generator] Prompt generation error:', error.message);
-        return _generatePromptLocally(intentContract, targetModel);
+    const generated = completion.choices[0]?.message?.content?.trim();
+    if (!generated) {
+        throw new Error('OpenRouter returned an empty response for prompt generation.');
     }
+
+    const tokensUsed = _estimateTokens(systemPrompt) + _estimateTokens(userMsg) + _estimateTokens(generated);
+    return { prompt: generated, method: 'llm', tokensUsed };
 }
 
 /**
@@ -2918,7 +2911,13 @@ async function generate({
         // ═══════════════════════════════════════════════════════
         //  LAYER 4: PROMPT GENERATION
         // ═══════════════════════════════════════════════════════
-        const genResult = await _generatePromptFromIntent(intentContract, modelTarget);
+        let genResult;
+        try {
+            genResult = await _generatePromptFromIntent(intentContract, modelTarget);
+        } catch (error) {
+            console.error('[PromptLab Generator] Prompt generation error:', error.message);
+            return { error: error.message };
+        }
         generatedPromptText = genResult.prompt;
         generatorTokensUsed = genResult.tokensUsed;
         generatorMethod = genResult.method;
@@ -3010,7 +3009,7 @@ async function generate({
         intent: {
             taskType: intentContract.task_type,
             domain: intentContract.domain || 'General',
-            outputFormat: intentContract.output_format || 'structured output',
+            outputFormat: intentContract.output_format || null,
             controlLevel: ambiguity.score > 0.4 ? 'high' : 'medium',
             subject: intentContract.subject || intentContract.goal,
             audience: intentContract.audience || 'general',

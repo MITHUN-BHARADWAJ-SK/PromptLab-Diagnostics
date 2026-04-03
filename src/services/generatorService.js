@@ -40,7 +40,7 @@ function _getClient() {
     if (
         typeof process === 'undefined' ||
         !process.env ||
-        (!process.env.OPENROUTER_API_KEY && !process.env.OPENAI_API_KEY)
+        !process.env.OPENROUTER_API_KEY
     ) {
         return null;
     }
@@ -48,7 +48,7 @@ function _getClient() {
     const OpenAI = require('openai');
     _openrouterClient = new OpenAI({
         baseURL: 'https://openrouter.ai/api/v1',
-        apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY,
+        apiKey: process.env.OPENROUTER_API_KEY,
         defaultHeaders: {
             'HTTP-Referer': 'https://promptlab.ai',
             'X-OpenRouter-Title': 'PromptLab Generator v4',
@@ -421,7 +421,7 @@ async function _generatePromptFromIntent(intentContract, targetModel) {
     const client = _getClient();
 
     if (!client) {
-        throw new Error('OpenRouter API client is not configured. Set OPENROUTER_API_KEY or OPENAI_API_KEY.');
+        throw new Error('OpenRouter API client is not configured. Set OPENROUTER_API_KEY in your environment.');
     }
 
     const systemPrompt = MODEL_GENERATOR_PROMPTS[targetModel] || MODEL_GENERATOR_PROMPTS.openai;
