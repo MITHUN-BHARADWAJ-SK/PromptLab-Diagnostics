@@ -73,10 +73,29 @@
         </div>
 
         <!-- Current plan notice -->
-        <div id="currentPlanBanner" class="hidden mb-10 text-center">
+        <div id="currentPlanBanner" class="hidden mb-6 text-center">
             <span class="inline-block bg-white/5 border border-white/10 rounded-full px-5 py-2 text-sm text-slate-300">
                 Current plan: <strong id="currentPlanName" class="text-white"></strong>
             </span>
+        </div>
+
+        <!-- Usage stats -->
+        <div id="usageStats" class="hidden mb-10 max-w-2xl mx-auto grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
+                <p class="text-xs text-slate-500 uppercase tracking-widest mb-1">Generations Left</p>
+                <p id="statsGenerations" class="text-2xl font-black text-white">—</p>
+                <p id="statsGenerationsLimit" class="text-xs text-slate-600 mt-0.5">of — /month</p>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
+                <p class="text-xs text-slate-500 uppercase tracking-widest mb-1">Bonus Credits</p>
+                <p id="statsBonus" class="text-2xl font-black text-primary">—</p>
+                <p class="text-xs text-slate-600 mt-0.5">never expire</p>
+            </div>
+            <div class="col-span-2 sm:col-span-1 bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
+                <p class="text-xs text-slate-500 uppercase tracking-widest mb-1">Total Available</p>
+                <p id="statsTotal" class="text-2xl font-black text-emerald-400">—</p>
+                <p id="statsResetDate" class="text-xs text-slate-600 mt-0.5">resets —</p>
+            </div>
         </div>
 
         <!-- Pricing Grid -->
@@ -93,7 +112,7 @@
                     </div>
                 </div>
                 <ul class="flex-1 space-y-3 mb-8">
-                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>200 analyses /month</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>200 generations /month</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>8 generations /day</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Generation &amp; Optimize</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>All Models Access</li>
@@ -118,7 +137,7 @@
                     </div>
                 </div>
                 <ul class="flex-1 space-y-3 mb-8">
-                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>1000 analyses /month</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>1000 generations /month</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>35 generations /day</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Advanced Blueprinting</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Priority Support</li>
@@ -140,7 +159,7 @@
                     </div>
                 </div>
                 <ul class="flex-1 space-y-3 mb-8">
-                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>3000 analyses /month</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>3000 generations /month</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>100 generations /day</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Priority Server Queue</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>All Features Unlocked</li>
@@ -162,7 +181,7 @@
                     </div>
                 </div>
                 <ul class="flex-1 space-y-3 mb-8">
-                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>5000 analyses /month</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>5000 generations /month</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>170 generations /day</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>API Early Access</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Dedicated Support</li>
@@ -184,7 +203,7 @@
                     </div>
                 </div>
                 <ul class="flex-1 space-y-3 mb-8">
-                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>7000 analyses /month</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>7000 generations /month</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>235 generations /day</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>White-label Dashboard</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Direct Phone Support</li>
@@ -294,9 +313,55 @@
             document.getElementById('userEmailLabel').classList.remove('hidden');
 
             // Show current plan
-            if (currentProfile?.subscriptionTier && currentProfile.subscriptionTier !== 'free') {
-                document.getElementById('currentPlanName').textContent = TIER_LABELS[currentProfile.subscriptionTier] || currentProfile.subscriptionTier;
+            const tier = currentProfile?.subscriptionTier || 'free';
+            if (tier !== 'free') {
+                document.getElementById('currentPlanName').textContent = TIER_LABELS[tier] || tier;
                 document.getElementById('currentPlanBanner').classList.remove('hidden');
+            } else {
+                document.getElementById('currentPlanName').textContent = 'Free';
+                document.getElementById('currentPlanBanner').classList.remove('hidden');
+            }
+
+            // Show usage stats
+            if (currentProfile) {
+                const tierLimits = TIER_CREDITS[tier];
+                const isMonthly = tier !== 'free';
+                const creditKey = isMonthly ? 'monthlyCredits' : 'dailyCredits';
+                const limit = tierLimits?.monthlyCredits ?? (tier === 'free' ? 5 : null);
+                const remaining = currentProfile[creditKey] ?? limit ?? 0;
+                const bonus = currentProfile.bonusCredits ?? 0;
+                const total = remaining + bonus;
+
+                const resetRaw = isMonthly ? currentProfile.monthlyCreditReset : currentProfile.dailyCreditReset;
+                const resetDate = resetRaw ? new Date(resetRaw).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—';
+                const periodLabel = isMonthly ? '/month' : '/day';
+
+                document.getElementById('statsGenerations').textContent = remaining;
+                document.getElementById('statsGenerationsLimit').textContent = `of ${limit ?? '—'}${periodLabel}`;
+                document.getElementById('statsBonus').textContent = bonus;
+                document.getElementById('statsTotal').textContent = total;
+                document.getElementById('statsResetDate').textContent = `resets ${resetDate}`;
+                document.getElementById('usageStats').classList.remove('hidden');
+            }
+
+            // Mark the user's active plan card
+            if (tier && tier !== 'free') {
+                const activeCard = document.querySelector(`[data-plan="${tier}"]`);
+                if (activeCard) {
+                    // Add "Your Plan" badge
+                    const badge = document.createElement('div');
+                    badge.className = 'absolute -top-3 right-4 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1 rounded-full shadow-lg';
+                    badge.textContent = 'Your Plan';
+                    activeCard.style.position = 'relative';
+                    activeCard.appendChild(badge);
+                    // Disable subscribe button on active plan
+                    const btn = activeCard.querySelector('.subscribe-btn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.textContent = 'Current Plan';
+                        btn.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+                }
             }
 
             // Highlight the plan from URL param

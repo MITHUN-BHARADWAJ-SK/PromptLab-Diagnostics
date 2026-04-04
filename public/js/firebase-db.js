@@ -289,21 +289,39 @@ const PromptLabDB = {
 
     async getNotifications(uid) {
         const db = getFirestore();
-        const q = query(
-            collection(db, "notifications"),
-            where("userId", "==", uid),
-            orderBy("timestamp", "desc"),
-            limit(50)
-        );
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => {
+        let querySnapshot;
+        try {
+            // Prefer indexed query (requires composite index: userId + timestamp desc)
+            const q = query(
+                collection(db, "notifications"),
+                where("userId", "==", uid),
+                orderBy("timestamp", "desc"),
+                limit(50)
+            );
+            querySnapshot = await getDocs(q);
+        } catch (_) {
+            // Composite index not yet built — fall back to unordered query, sort client-side
+            const q = query(
+                collection(db, "notifications"),
+                where("userId", "==", uid),
+                limit(50)
+            );
+            querySnapshot = await getDocs(q);
+        }
+        const docs = querySnapshot.docs.map(doc => {
             const data = doc.data();
-            // Convert Firestore Timestamp to JS Date for consistency
             if (data.timestamp && data.timestamp.toDate) {
                 data.timestamp = data.timestamp.toDate();
             }
             return { id: doc.id, ...data };
         });
+        // Ensure newest-first order regardless of which query path ran
+        docs.sort((a, b) => {
+            const ta = a.timestamp instanceof Date ? a.timestamp.getTime() : 0;
+            const tb = b.timestamp instanceof Date ? b.timestamp.getTime() : 0;
+            return tb - ta;
+        });
+        return docs;
     },
 
     async markNotificationsRead(uid) {

@@ -70,6 +70,10 @@
 
                     <div class="error-message" id="errorMessage"></div>
 
+                    <p id="spamNotice" style="display:none; font-size:12px; color:#9ca3af; text-align:center; margin-bottom:8px; line-height:1.4;">
+                        After signing up, check your <strong style="color:#d1d5db;">spam/junk folder</strong> if you don't receive the verification email.
+                    </p>
+
                     <button class="btn-submit" type="submit" id="submitBtn">
                         Sign In
                     </button>
@@ -88,7 +92,8 @@
                 <p class="verification-text">
                     We have sent you a verification email to <br>
                     <span class="verification-email" id="verifyUserEmail">user@example.com</span>.<br>
-                    Please verify it and log in.
+                    Please verify it and log in.<br><br>
+                    <span style="font-size:13px; color:#9ca3af;">Can't find it? Check your <strong style="color:#d1d5db;">spam or junk folder</strong>.</span>
                 </p>
                 <button class="btn-submit" onclick="showLogin()">
                     Back to Login
@@ -185,6 +190,7 @@
             const nameGroup = document.getElementById('nameGroup');
             const userTypeGroup = document.getElementById('userTypeGroup');
 
+            const spamNotice = document.getElementById('spamNotice');
             if (currentMode === 'signup') {
                 title.textContent = 'Create Account';
                 subtitle.textContent = 'Start mastering AI prompts today';
@@ -193,6 +199,7 @@
                 submitBtn.textContent = 'Create Account';
                 nameGroup.style.display = 'block';
                 userTypeGroup.style.display = 'block';
+                spamNotice.style.display = 'block';
                 document.getElementById('authPassword').autocomplete = 'new-password';
             } else {
                 title.textContent = 'Welcome Back';
@@ -202,6 +209,7 @@
                 submitBtn.textContent = 'Sign In';
                 nameGroup.style.display = 'none';
                 userTypeGroup.style.display = 'none';
+                spamNotice.style.display = 'none';
                 document.getElementById('authPassword').autocomplete = 'current-password';
             }
 
