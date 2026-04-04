@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromptLab — Choose Your Plan</title>
+
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: { primary: "#dc2626" },
+                    fontFamily: { sans: ["Space Grotesk", "sans-serif"] },
+                }
+            }
+        };
+    </script>
+
+    <style>
+        body { background: #050507; color: #f1f5f9; font-family: 'Space Grotesk', sans-serif; }
+        .plan-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .plan-card:hover { transform: translateY(-4px); }
+        .plan-card.highlighted { box-shadow: 0 0 30px rgba(220, 38, 38, 0.25); }
+        #toast {
+            position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+            padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600;
+            font-size: 0.875rem; z-index: 9999; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s; white-space: nowrap;
+        }
+        #toast.show { opacity: 1; pointer-events: auto; }
+        #toast.success { background: #16a34a; color: #fff; }
+        #toast.error   { background: #dc2626; color: #fff; }
+        #toast.info    { background: #2563eb; color: #fff; }
+        #toast.warning { background: #d97706; color: #fff; }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-[#050507]/90 backdrop-blur border-b border-white/5 px-6 py-4 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-2 no-underline">
+            <span class="text-primary font-black text-xl tracking-tight">Prompt<span class="text-white">Lab</span></span>
+        </a>
+        <div class="flex items-center gap-3">
+            <span id="userEmailLabel" class="text-sm text-slate-400 hidden"></span>
+            <a href="/app.html" class="text-sm text-slate-400 hover:text-white transition-colors no-underline">← Back to App</a>
+        </div>
+    </header>
+
+    <!-- Loading state -->
+    <div id="loadingState" class="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <div class="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-slate-400 text-sm">Loading your account...</p>
+    </div>
+
+    <!-- Main content (hidden until auth checked) -->
+    <main id="mainContent" class="hidden max-w-7xl mx-auto px-4 py-16">
+
+        <!-- Heading -->
+        <div class="text-center mb-16">
+            <p class="text-primary font-bold uppercase tracking-widest text-sm mb-3">Upgrade Your Plan</p>
+            <h1 class="text-4xl md:text-5xl font-black text-white mb-4">Choose what fits you</h1>
+            <p class="text-slate-400 text-lg max-w-xl mx-auto">All plans include analysis, generation, and optimization. Cancel anytime.</p>
+        </div>
+
+        <!-- Current plan notice -->
+        <div id="currentPlanBanner" class="hidden mb-10 text-center">
+            <span class="inline-block bg-white/5 border border-white/10 rounded-full px-5 py-2 text-sm text-slate-300">
+                Current plan: <strong id="currentPlanName" class="text-white"></strong>
+            </span>
+        </div>
+
+        <!-- Pricing Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+
+            <!-- Starter -->
+            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 flex flex-col" data-plan="starter">
+                <div class="mb-8">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Essential</p>
+                    <h3 class="text-2xl font-black text-white mb-4">Starter</h3>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-4xl font-black text-white">₹99</span>
+                        <span class="text-slate-500 text-sm">/mo</span>
+                    </div>
+                </div>
+                <ul class="flex-1 space-y-3 mb-8">
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>200 analyses /month</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>8 generations /day</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Generation &amp; Optimize</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>All Models Access</li>
+                </ul>
+                <button onclick="subscribeToPlan('starter')"
+                    class="subscribe-btn w-full py-3 px-4 rounded-xl bg-white/5 text-white font-bold text-sm hover:bg-white/10 transition-all border border-white/10">
+                    Subscribe
+                </button>
+            </div>
+
+            <!-- Pro (featured) -->
+            <div class="plan-card bg-[#0f0f0f] border-2 border-primary rounded-2xl p-8 flex flex-col relative highlighted" data-plan="pro">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full whitespace-nowrap shadow-lg shadow-primary/30">
+                    Most Popular
+                </div>
+                <div class="mb-8">
+                    <p class="text-xs font-bold text-primary uppercase tracking-widest mb-1">Advanced</p>
+                    <h3 class="text-2xl font-black text-white mb-4">Pro</h3>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-4xl font-black text-white">₹299</span>
+                        <span class="text-slate-500 text-sm">/mo</span>
+                    </div>
+                </div>
+                <ul class="flex-1 space-y-3 mb-8">
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>1000 analyses /month</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>35 generations /day</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Advanced Blueprinting</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Priority Support</li>
+                </ul>
+                <button onclick="subscribeToPlan('pro')"
+                    class="subscribe-btn w-full py-3 px-4 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary/90 shadow-[0_5px_15px_rgba(220,38,38,0.3)] transition-all">
+                    Subscribe
+                </button>
+            </div>
+
+            <!-- Advanced -->
+            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 flex flex-col" data-plan="advanced">
+                <div class="mb-8">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Power User</p>
+                    <h3 class="text-2xl font-black text-white mb-4">Advanced</h3>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-4xl font-black text-white">₹499</span>
+                        <span class="text-slate-500 text-sm">/mo</span>
+                    </div>
+                </div>
+                <ul class="flex-1 space-y-3 mb-8">
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>3000 analyses /month</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>100 generations /day</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Priority Server Queue</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>All Features Unlocked</li>
+                </ul>
+                <button onclick="subscribeToPlan('advanced')"
+                    class="subscribe-btn w-full py-3 px-4 rounded-xl bg-white/5 text-white font-bold text-sm hover:bg-white/10 transition-all border border-white/10">
+                    Subscribe
+                </button>
+            </div>
+
+            <!-- Builder -->
+            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 flex flex-col" data-plan="builder">
+                <div class="mb-8">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Scale</p>
+                    <h3 class="text-2xl font-black text-white mb-4">Builder</h3>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-4xl font-black text-white">₹699</span>
+                        <span class="text-slate-500 text-sm">/mo</span>
+                    </div>
+                </div>
+                <ul class="flex-1 space-y-3 mb-8">
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>5000 analyses /month</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>170 generations /day</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>API Early Access</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Dedicated Support</li>
+                </ul>
+                <button onclick="subscribeToPlan('builder')"
+                    class="subscribe-btn w-full py-3 px-4 rounded-xl bg-white/5 text-white font-bold text-sm hover:bg-white/10 transition-all border border-white/10">
+                    Subscribe
+                </button>
+            </div>
+
+            <!-- Builder Pro -->
+            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 flex flex-col" data-plan="builder_pro">
+                <div class="mb-8">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Max</p>
+                    <h3 class="text-2xl font-black text-white mb-4">Builder Pro</h3>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-4xl font-black text-white">₹899</span>
+                        <span class="text-slate-500 text-sm">/mo</span>
+                    </div>
+                </div>
+                <ul class="flex-1 space-y-3 mb-8">
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>7000 analyses /month</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>235 generations /day</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>White-label Dashboard</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Direct Phone Support</li>
+                </ul>
+                <button onclick="subscribeToPlan('builder_pro')"
+                    class="subscribe-btn w-full py-3 px-4 rounded-xl bg-white/5 text-white font-bold text-sm hover:bg-white/10 transition-all border border-white/10">
+                    Subscribe
+                </button>
+            </div>
+
+            <!-- Credit Pack -->
+            <div class="plan-card bg-primary/5 border border-primary/20 rounded-2xl p-8 flex flex-col relative overflow-hidden" data-plan="credits">
+                <div class="absolute right-0 top-0 w-32 h-32 bg-primary/10 rounded-bl-full pointer-events-none"></div>
+                <div class="mb-6 relative z-10">
+                    <p class="text-xs font-bold text-primary uppercase tracking-widest mb-1">One-Time</p>
+                    <h3 class="text-2xl font-black text-primary mb-4">Credit Pack</h3>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-4xl font-black text-white">₹599</span>
+                        <span class="text-slate-500 text-sm">/one-time</span>
+                    </div>
+                </div>
+                <p class="text-sm text-slate-400 mb-8 flex-1 relative z-10">
+                    Add <strong class="text-primary">1000 Lifetime Credits</strong> to your account. Never expire, stack with any plan.
+                </p>
+                <button onclick="buyCreditPack()"
+                    class="subscribe-btn relative z-10 w-full py-3 px-4 rounded-xl bg-primary text-white font-bold text-sm shadow-[0_5px_15px_rgba(220,38,38,0.2)] hover:bg-primary/90 transition-all">
+                    Buy Credits
+                </button>
+            </div>
+
+        </div>
+
+        <p class="text-center text-slate-500 text-sm">Secure payments via Razorpay. Cancel anytime from your account settings.</p>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+
+    <!-- Razorpay -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <!-- Firebase Auth check + Firestore -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCW_ZBkNCFLTok-198d9mOL4CCNLc7G2QY",
+            authDomain: "promptlab-abaed.firebaseapp.com",
+            projectId: "promptlab-abaed",
+            storageBucket: "promptlab-abaed.firebasestorage.app",
+            messagingSenderId: "473416336676",
+            appId: "1:473416336676:web:42dff8f44b61f3e75e5fb1",
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const TIER_LABELS = {
+            free: 'Free',
+            starter: 'Starter — ₹99/mo',
+            pro: 'Pro — ₹299/mo',
+            advanced: 'Advanced — ₹499/mo',
+            builder: 'Builder — ₹699/mo',
+            builder_pro: 'Builder Pro — ₹899/mo',
+        };
+
+        const TIER_CREDITS = {
+            starter: { monthlyCredits: 200 },
+            pro: { monthlyCredits: 1000 },
+            advanced: { monthlyCredits: 3000 },
+            builder: { monthlyCredits: 5000 },
+            builder_pro: { monthlyCredits: 7000 },
+        };
+
+        let currentUid = null;
+        let currentProfile = null;
+
+        function showToast(msg, type = 'info') {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = `show ${type}`;
+            clearTimeout(el._t);
+            el._t = setTimeout(() => { el.className = type; }, 3500);
+        }
+        window.showToast = showToast;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user || !user.emailVerified) {
+                // Not signed in — redirect to login with redirect param
+                window.location.href = '/login.html?redirect=subscribe';
+                return;
+            }
+
+            currentUid = user.uid;
+            localStorage.setItem('promptlab_active_user', user.uid);
+
+            // Load profile
+            try {
+                const snap = await getDoc(doc(db, 'users', user.uid));
+                currentProfile = snap.exists() ? snap.data() : null;
+            } catch (_) {}
+
+            // Show email in header
+            document.getElementById('userEmailLabel').textContent = user.email;
+            document.getElementById('userEmailLabel').classList.remove('hidden');
+
+            // Show current plan
+            if (currentProfile?.subscriptionTier && currentProfile.subscriptionTier !== 'free') {
+                document.getElementById('currentPlanName').textContent = TIER_LABELS[currentProfile.subscriptionTier] || currentProfile.subscriptionTier;
+                document.getElementById('currentPlanBanner').classList.remove('hidden');
+            }
+
+            // Highlight the plan from URL param
+            const urlPlan = new URLSearchParams(window.location.search).get('plan');
+            if (urlPlan) {
+                const card = document.querySelector(`[data-plan="${urlPlan}"]`);
+                if (card) {
+                    card.classList.add('highlighted', 'border-primary', '!border-primary');
+                    card.style.boxShadow = '0 0 30px rgba(220,38,38,0.25)';
+                    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+                }
+            }
+
+            // Show main content
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+        });
+
+        // ── Subscribe to Plan ───────────────────────────────────────
+        window.subscribeToPlan = async function(tier, currency = 'INR') {
+            if (!currentUid) { showToast('Please sign in first.', 'error'); return; }
+            if (!window.Razorpay) { showToast('Payment SDK not loaded. Please refresh.', 'error'); return; }
+
+            showToast('Opening payment...', 'info');
+
+            let subData;
+            try {
+                const res = await fetch('/api/payments/create-subscription', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tier, uid: currentUid, currency }),
+                });
+                const text = await res.text();
+                try { subData = JSON.parse(text); } catch (_) { throw new Error('Server error. Please try again.'); }
+                if (!res.ok) throw new Error(subData.error || 'Failed to create subscription.');
+            } catch (err) {
+                showToast(err.message, 'error'); return;
+            }
+
+            const options = {
+                key: subData.keyId,
+                subscription_id: subData.subscriptionId,
+                name: 'PromptLab',
+                description: TIER_LABELS[tier] || tier,
+                image: '/favicon.ico',
+                prefill: {
+                    email: currentProfile?.email || '',
+                    name: currentProfile?.displayName || '',
+                },
+                theme: { color: '#dc2626' },
+                handler: async function (response) {
+                    try {
+                        const confirmRes = await fetch('/api/payments/confirm', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_subscription_id: response.razorpay_subscription_id,
+                                razorpay_signature: response.razorpay_signature,
+                                uid: currentUid,
+                                tier,
+                            }),
+                        });
+                        const confirmText = await confirmRes.text();
+                        let confirmData;
+                        try { confirmData = JSON.parse(confirmText); } catch (_) { throw new Error('Server error during verification.'); }
+                        if (!confirmRes.ok) throw new Error(confirmData.error || 'Verification failed.');
+
+                        // Sync new tier + credits to Firestore
+                        const tierData = TIER_CREDITS[tier] || {};
+                        await updateDoc(doc(db, 'users', currentUid), {
+                            subscriptionTier: tier,
+                            ...tierData,
+                            monthlyCreditReset: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                        });
+
+                        showToast(`Upgraded to ${TIER_LABELS[tier]}! Redirecting to app...`, 'success');
+                        setTimeout(() => { window.location.href = '/app.html'; }, 2000);
+                    } catch (err) {
+                        showToast('Payment received but verification failed. Contact support.', 'error');
+                        console.error('[Payment] Confirm error:', err);
+                    }
+                },
+                modal: { ondismiss: () => showToast('Payment cancelled.', 'warning') },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', (resp) => showToast(`Payment failed: ${resp.error.description}`, 'error'));
+            rzp.open();
+        };
+
+        // ── Buy Credit Pack ─────────────────────────────────────────
+        window.buyCreditPack = async function(currency = 'INR') {
+            if (!currentUid) { showToast('Please sign in first.', 'error'); return; }
+            if (!window.Razorpay) { showToast('Payment SDK not loaded. Please refresh.', 'error'); return; }
+
+            showToast('Opening payment...', 'info');
+
+            let orderData;
+            try {
+                const res = await fetch('/api/payments/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: currentUid, currency }),
+                });
+                const text = await res.text();
+                try { orderData = JSON.parse(text); } catch (_) { throw new Error('Server error. Please try again.'); }
+                if (!res.ok) throw new Error(orderData.error || 'Failed to create order.');
+            } catch (err) {
+                showToast(err.message, 'error'); return;
+            }
+
+            const options = {
+                key: orderData.keyId,
+                amount: orderData.amount,
+                currency: orderData.currency,
+                order_id: orderData.orderId,
+                name: 'PromptLab',
+                description: '1000 Bonus Credits — Never Expires',
+                prefill: { email: currentProfile?.email || '', name: currentProfile?.displayName || '' },
+                theme: { color: '#dc2626' },
+                handler: async function (response) {
+                    try {
+                        const confirmRes = await fetch('/api/payments/confirm-order', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                uid: currentUid,
+                            }),
+                        });
+                        const confirmText = await confirmRes.text();
+                        let confirmData;
+                        try { confirmData = JSON.parse(confirmText); } catch (_) { throw new Error('Server error during verification.'); }
+                        if (!confirmRes.ok) throw new Error(confirmData.error || 'Verification failed.');
+
+                        // Add 1000 bonus credits to Firestore
+                        await updateDoc(doc(db, 'users', currentUid), { bonusCredits: increment(1000) });
+                        showToast('1000 credits added! Redirecting to app...', 'success');
+                        setTimeout(() => { window.location.href = '/app.html'; }, 2000);
+                    } catch (err) {
+                        showToast('Payment received but verification failed. Contact support.', 'error');
+                    }
+                },
+                modal: { ondismiss: () => showToast('Payment cancelled.', 'warning') },
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', (resp) => showToast(`Payment failed: ${resp.error.description}`, 'error'));
+            rzp.open();
+        };
+    </script>
+
+</body>
+</html>

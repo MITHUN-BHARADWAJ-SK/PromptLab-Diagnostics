@@ -1407,7 +1407,8 @@ async function subscribeToPlan(tier, currency = 'INR') {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tier, uid: state.uid, currency }),
     });
-    subData = await res.json();
+    const text = await res.text();
+    try { subData = JSON.parse(text); } catch (_) { throw new Error('Server error. Please try again.'); }
     if (!res.ok) throw new Error(subData.error || 'Failed to create subscription.');
   } catch (err) {
     showToast(err.message, 'error'); return;
@@ -1440,7 +1441,8 @@ async function subscribeToPlan(tier, currency = 'INR') {
             tier,
           }),
         });
-        const confirmData = await confirmRes.json();
+        const confirmText = await confirmRes.text();
+        let confirmData; try { confirmData = JSON.parse(confirmText); } catch (_) { throw new Error('Server error during verification.'); }
         if (!confirmRes.ok) throw new Error(confirmData.error || 'Verification failed.');
 
         // Sync new tier + credits to Firestore
@@ -1482,7 +1484,8 @@ async function buyCreditPack(currency = 'INR') {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ uid: state.uid, currency }),
     });
-    orderData = await res.json();
+    const text = await res.text();
+    try { orderData = JSON.parse(text); } catch (_) { throw new Error('Server error. Please try again.'); }
     if (!res.ok) throw new Error(orderData.error || 'Failed to create order.');
   } catch (err) {
     showToast(err.message, 'error'); return;
@@ -1511,7 +1514,8 @@ async function buyCreditPack(currency = 'INR') {
             uid: state.uid,
           }),
         });
-        const confirmData = await confirmRes.json();
+        const confirmText = await confirmRes.text();
+        let confirmData; try { confirmData = JSON.parse(confirmText); } catch (_) { throw new Error('Server error during verification.'); }
         if (!confirmRes.ok) throw new Error(confirmData.error || 'Verification failed.');
 
         // Add 1000 bonus credits to Firestore

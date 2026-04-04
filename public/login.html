@@ -133,7 +133,8 @@
                 if (user.emailVerified) {
                     console.log('[Auth] State changed: User detected & verified, redirecting to app.');
                     localStorage.setItem('promptlab_active_user', user.uid);
-                    window.location.href = '/app.html';
+                    const redir = new URLSearchParams(window.location.search).get('redirect');
+                    window.location.href = redir === 'subscribe' ? '/subscribe.html' : '/app.html';
                 } else {
                     console.log('[Auth] State changed: User detected but NOT verified. Signing out.');
                     signOut(auth).then(() => {
