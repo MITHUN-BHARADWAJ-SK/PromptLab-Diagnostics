@@ -480,6 +480,32 @@ body::after {
     .auth-title {
         font-size: 20px;
     }
+
+    .login-page {
+        padding: 16px;
+        justify-content: flex-start;
+        padding-top: 64px;
+    }
+
+    .back-link {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+    }
+
+    .login-brand {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 360px) {
+    .auth-card {
+        padding: 24px 16px;
+    }
+
+    .btn-submit {
+        font-size: 13px;
+    }
 }
 
 .verification-screen {

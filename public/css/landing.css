@@ -1441,6 +1441,37 @@ header.header-scrolled {
     .cta-title {
         font-size: 28px;
     }
+
+    .diagnostic-pill {
+        padding: 10px 16px;
+        gap: 8px;
+    }
+
+    .diagnostic-pill-text {
+        font-size: 11px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SMALL PHONE — Extra overrides (≤ 390px)
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 390px) {
+    .hero {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .section-title {
+        font-size: 26px;
+    }
+
+    .diagnostic-pill {
+        padding: 8px 12px;
+    }
 }
 
 .grid-overlay {
