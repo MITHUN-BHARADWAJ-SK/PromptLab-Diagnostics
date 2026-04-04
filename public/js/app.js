@@ -72,12 +72,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   const savedView = localStorage.getItem('promptlab_active_view') || 'analyzer';
   switchView(savedView);
 
-  // Daily login bonus — +5 bonus credits once per calendar day (accumulates)
+  // Daily login bonus — 1 credit/day; +3 streak reward every 5 consecutive days
   try {
     const bonus = await PromptLabDB.claimDailyLoginBonus(state.uid);
     if (bonus.granted) {
-      showToast(`+${bonus.amount} daily login bonus credits added!`, 'success');
+      if (bonus.streakMilestone) {
+        showToast(`🔥 ${bonus.loginStreak}-day streak! +${bonus.amount} credits earned!`, 'success');
+      } else {
+        const daysLeft = 5 - (bonus.loginStreak % 5);
+        showToast(`+1 login bonus! ${daysLeft} day${daysLeft === 1 ? '' : 's'} to streak reward.`, 'success');
+      }
       refreshCredits();
+      updateUnreadBadge();
     }
   } catch (e) {
     console.warn('[PromptLab] Could not claim daily login bonus:', e);
@@ -1689,10 +1695,19 @@ async function loadNotificationsDropdown() {
   const listEl = document.getElementById('notificationsDropdownList');
   if (!listEl) return;
 
+  listEl.innerHTML = `<div class="flex items-center justify-center py-8 text-slate-400 gap-2"><span class="material-icons-round animate-spin text-xl">sync</span></div>`;
+
   let notifs = [];
   try {
     notifs = await PromptLabDB.getNotifications(state.uid);
-  } catch (_) { return; }
+  } catch (err) {
+    listEl.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-10 text-slate-400 gap-2">
+        <span class="material-icons-round text-3xl opacity-40">cloud_off</span>
+        <p class="text-xs text-center px-4">Couldn't load notifications. Check your connection.</p>
+      </div>`;
+    return;
+  }
 
   if (!notifs || notifs.length === 0) {
     listEl.innerHTML = `

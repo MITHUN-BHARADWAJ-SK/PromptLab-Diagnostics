@@ -292,6 +292,50 @@ const PromptLabDB = {
         return db.stats[uid];
     },
 
+    // ── Daily Login Bonus ──────────────────────────────────────
+    async claimDailyLoginBonus(uid) {
+        const db = getDb();
+        const user = db.users[uid];
+        if (!user) return { granted: false };
+
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const yesterdayStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+        if (user.lastLoginBonusDate === todayStr) {
+            return { granted: false };
+        }
+
+        // Streak tracking
+        let loginStreak = user.loginStreak || 0;
+        if (user.lastLoginBonusDate === yesterdayStr) {
+            loginStreak += 1;
+        } else {
+            loginStreak = 1;
+        }
+
+        const DAILY_LOGIN_BONUS = 1;
+        let totalBonus = DAILY_LOGIN_BONUS;
+        let streakMilestone = false;
+
+        if (loginStreak % 5 === 0) {
+            totalBonus += 3;
+            streakMilestone = true;
+        }
+
+        user.bonusCredits = (user.bonusCredits || 0) + totalBonus;
+        user.lastLoginBonusDate = todayStr;
+        user.loginStreak = loginStreak;
+        saveDb(db);
+
+        const notifTitle = streakMilestone ? `🔥 ${loginStreak}-Day Streak!` : 'Daily Login Bonus!';
+        const notifMsg = streakMilestone
+            ? `You signed in ${loginStreak} days in a row! +${totalBonus} bonus credits (1 daily + 3 streak reward).`
+            : `+1 bonus credit for signing in today. ${5 - (loginStreak % 5)} more days to your next streak reward!`;
+        await this.addNotification(uid, notifTitle, notifMsg, 'success');
+
+        return { granted: true, amount: totalBonus, loginStreak, streakMilestone };
+    },
+
     // ── Internal Helpers ───────────────────────────────────────
     _nextMidnight() {
         const d = new Date();

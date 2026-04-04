@@ -330,19 +330,50 @@ const PromptLabDB = {
 
         const user = userSnap.data();
         const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+        const yesterdayStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
         if (user.lastLoginBonusDate === todayStr) {
             return { granted: false }; // Already claimed today
         }
 
-        const DAILY_LOGIN_BONUS = 5;
+        // ── Streak tracking ──────────────────────────────────────
+        // loginStreak counts consecutive calendar days signed in
+        let loginStreak = user.loginStreak || 0;
+        if (user.lastLoginBonusDate === yesterdayStr) {
+            // Continued streak
+            loginStreak += 1;
+        } else {
+            // Missed a day (or first time) — reset to 1
+            loginStreak = 1;
+        }
+
+        // ── Credit calculation ───────────────────────────────────
+        // Free tier: 1 credit/day. Paid tiers: 1 credit/day too (only spec'd free).
+        const DAILY_LOGIN_BONUS = 1;
+        let totalBonus = DAILY_LOGIN_BONUS;
+        let streakMilestone = false;
+
+        if (loginStreak % 5 === 0) {
+            // Every 5th consecutive day earns +3 streak bonus credits
+            totalBonus += 3;
+            streakMilestone = true;
+        }
+
         await updateDoc(userRef, {
-            bonusCredits: increment(DAILY_LOGIN_BONUS),
+            bonusCredits: increment(totalBonus),
             lastLoginBonusDate: todayStr,
+            loginStreak,
         });
-        await this.addNotification(uid, 'Daily Login Bonus!',
-            `+${DAILY_LOGIN_BONUS} bonus credits added for signing in today. Keep it up!`, 'success');
-        return { granted: true, amount: DAILY_LOGIN_BONUS };
+
+        if (streakMilestone) {
+            await this.addNotification(uid, `🔥 ${loginStreak}-Day Streak!`,
+                `You signed in ${loginStreak} days in a row! +${totalBonus} bonus credits (1 daily + 3 streak reward).`, 'success');
+        } else {
+            await this.addNotification(uid, 'Daily Login Bonus!',
+                `+1 bonus credit for signing in today. ${5 - (loginStreak % 5)} more days to your next streak reward!`, 'success');
+        }
+
+        return { granted: true, amount: totalBonus, loginStreak, streakMilestone };
     },
 
     // ── Helpers ───────────────────────────────────────────────
