@@ -38,7 +38,8 @@ router.post('/create-subscription', async (req, res) => {
             currency: currency.toUpperCase(),
         });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('[Payment] create-subscription error:', err?.error || err.message, err?.statusCode);
+        res.status(500).json({ error: err?.error?.description || err.message });
     }
 });
 

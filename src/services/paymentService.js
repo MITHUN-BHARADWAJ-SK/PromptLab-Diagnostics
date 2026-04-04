@@ -42,7 +42,7 @@ async function createSubscription({ tier, uid, currency = 'INR', userEmail, user
     const subscription = await razorpay.subscriptions.create({
         plan_id: planId,
         quantity: 1,
-        total_count: 0, // 0 = until cancelled (indefinite monthly billing)
+        total_count: 120, // 120 months (10 years) — Razorpay max is 1000; use high number for "indefinite"
         notes: { uid, tier, currency },
         ...(userEmail ? { notify_info: { notify_email: userEmail } } : {}),
     });
