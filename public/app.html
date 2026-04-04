@@ -277,35 +277,47 @@
             <!-- ── Top Header ──────────────────────────────────── -->
             <header
                 class="h-16 sm:h-20 px-4 sm:px-8 flex items-center justify-between border-b border-slate-200 dark:border-white/5 glass-panel sticky top-0 z-30 transition-colors duration-500">
-                <div class="hidden sm:flex items-center gap-6 w-1/3">
-                    <div class="relative w-full max-w-md">
-                        <span
-                            class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
-                        <input
-                            class="w-full bg-slate-100 dark:bg-card-dark border-transparent dark:border-border-dark rounded-full pl-10 pr-4 py-2 focus:ring-1 focus:ring-primary focus:border-primary text-sm"
-                            placeholder="Search prompts or logs..." type="text" />
+
+                <!-- Left: logo on mobile, search on desktop -->
+                <div class="flex items-center gap-3">
+                    <!-- Mobile logo (only shown when sidebar is hidden) -->
+                    <a href="/" class="sm:hidden flex items-center gap-2 no-underline">
+                        <img src="/assets/promptlab-logo.svg" alt="PromptLab"
+                            class="w-8 h-8 rounded-full shadow shadow-primary/30" />
+                        <span class="text-primary font-black text-base tracking-tight">Prompt<span class="text-slate-100">Lab</span></span>
+                    </a>
+                    <!-- Desktop search bar -->
+                    <div class="hidden sm:flex items-center gap-6 w-full max-w-md">
+                        <div class="relative w-full">
+                            <span
+                                class="material-icons-round absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+                            <input
+                                class="w-full bg-slate-100 dark:bg-card-dark border-transparent dark:border-border-dark rounded-full pl-10 pr-4 py-2 focus:ring-1 focus:ring-primary focus:border-primary text-sm"
+                                placeholder="Search prompts or logs..." type="text" />
+                        </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-3 sm:gap-6">
+
+                <!-- Right: live pill + notifications + profile -->
+                <div class="flex items-center gap-3 sm:gap-4">
                     <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full">
                         <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
                         <span class="text-xs font-bold text-primary tracking-wider uppercase">Live Analysis</span>
                     </div>
-                    <!-- Notifications & Profile -->
-                    <div class="flex items-center gap-3 sm:gap-6">
-                        <!-- Bell + Dropdown wrapper -->
-                        <div class="relative" id="notificationsWrapper">
+
+                    <!-- Bell + Dropdown wrapper -->
+                    <div class="relative" id="notificationsWrapper">
                         <button
-                            class="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors relative group"
+                            class="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors relative"
                             id="notificationsBtn" onclick="toggleNotificationsDropdown(event)">
-                            <span class="material-icons-round">notifications</span>
+                            <span class="material-icons-round text-2xl">notifications</span>
                             <span id="unreadBadge"
-                                class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-50 dark:border-black hidden transition-all"></span>
+                                class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-50 dark:border-black hidden"></span>
                         </button>
 
-                        <!-- Notifications Dropdown -->
+                        <!-- Notifications Dropdown — fixed to right edge on mobile -->
                         <div id="notificationsDropdown"
-                            class="hidden absolute right-0 top-10 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                            class="hidden fixed sm:absolute right-2 sm:right-0 top-16 sm:top-10 w-[calc(100vw-1rem)] sm:w-80 max-w-sm bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
                             <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/10">
                                 <span class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Notifications</span>
                                 <button onclick="markAllNotificationsRead()" class="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary/70 transition-colors">Mark all read</button>
@@ -320,14 +332,16 @@
                                 <button onclick="switchView('notifications'); closeNotificationsDropdown()" class="text-xs font-bold text-primary hover:text-primary/70 transition-colors uppercase tracking-widest">See all notifications</button>
                             </div>
                         </div>
-                        </div>
-                        <div class="h-8 w-px bg-slate-200 dark:bg-border-dark"></div>
-                        <button onclick="switchView('profile')"
-                            id="headerProfilePill"
-                            class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-orange-400 flex items-center justify-center text-white font-bold text-sm shrink-0 hover:scale-105 transition-transform ring-2 ring-transparent hover:ring-primary/40"
-                            style="display:none;"
-                            title="View Profile">?</button>
                     </div>
+
+                    <div class="h-6 w-px bg-slate-200 dark:bg-border-dark"></div>
+
+                    <button onclick="switchView('profile')"
+                        id="headerProfilePill"
+                        class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-orange-400 flex items-center justify-center text-white font-bold text-sm shrink-0 hover:scale-105 transition-transform"
+                        style="display:none;"
+                        title="View Profile">?</button>
+                </div>
             </header>
 
             <!-- ── Scrollable Content Area ─────────────────────── -->
