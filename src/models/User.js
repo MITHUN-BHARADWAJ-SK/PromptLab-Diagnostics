@@ -39,12 +39,30 @@ const userSchema = new mongoose.Schema(
             default: 'free',
         },
 
-        // ── Daily Quota Tracking ────────────────────────────────────
+        // ── Razorpay Subscription ───────────────────────────────────
+        razorpaySubscriptionId: { type: String, default: null },
+        subscriptionStatus: {
+            type: String,
+            enum: ['active', 'cancelled', 'expired', 'halted', null],
+            default: null,
+        },
+
+        // ── Daily Analysis Quota ────────────────────────────────────
         dailyAnalysisCount: {
             type: Number,
             default: 0,
         },
         dailyAnalysisReset: {
+            type: Date,
+            default: () => _midnight(),
+        },
+
+        // ── Daily Generation Quota ──────────────────────────────────
+        dailyGenerationCount: {
+            type: Number,
+            default: 0,
+        },
+        dailyGenerationReset: {
             type: Date,
             default: () => _midnight(),
         },

@@ -162,7 +162,14 @@ const PromptLabDB = {
         });
 
         if (actionName) {
-            await this.addNotification(uid, 'Credits Consumed', `Used ${amount} credit(s) for ${actionName}.`, 'info');
+            const label = actionName === 'Basic Analysis'
+                ? `You used ${amount} credit for analysis.`
+                : actionName === 'Prompt Optimization'
+                ? `You used ${amount} credits for prompt optimization.`
+                : actionName === 'Prompt Generation'
+                ? `You used ${amount} credits for prompt generation.`
+                : `You used ${amount} credit(s) for ${actionName}.`;
+            await this.addNotification(uid, 'Credits Used', label, 'info');
         }
 
         return true;

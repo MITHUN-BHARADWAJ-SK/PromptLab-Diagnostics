@@ -293,13 +293,34 @@
                     </div>
                     <!-- Notifications & Profile -->
                     <div class="flex items-center gap-6">
+                        <!-- Bell + Dropdown wrapper -->
+                        <div class="relative" id="notificationsWrapper">
                         <button
                             class="text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors relative group"
-                            id="notificationsBtn" onclick="switchView('notifications')">
+                            id="notificationsBtn" onclick="toggleNotificationsDropdown(event)">
                             <span class="material-icons-round">notifications</span>
                             <span id="unreadBadge"
                                 class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-slate-50 dark:border-black hidden transition-all"></span>
                         </button>
+
+                        <!-- Notifications Dropdown -->
+                        <div id="notificationsDropdown"
+                            class="hidden absolute right-0 top-10 w-80 bg-white dark:bg-[#1a1a1a] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-white/10">
+                                <span class="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Notifications</span>
+                                <button onclick="markAllNotificationsRead()" class="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary/70 transition-colors">Mark all read</button>
+                            </div>
+                            <div id="notificationsDropdownList" class="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
+                                <div class="flex flex-col items-center justify-center py-10 text-slate-400 gap-2">
+                                    <span class="material-icons-round text-3xl opacity-40">notifications_none</span>
+                                    <p class="text-xs">No notifications yet</p>
+                                </div>
+                            </div>
+                            <div class="px-4 py-2.5 border-t border-slate-100 dark:border-white/10 text-center">
+                                <button onclick="switchView('notifications'); closeNotificationsDropdown()" class="text-xs font-bold text-primary hover:text-primary/70 transition-colors uppercase tracking-widest">See all notifications</button>
+                            </div>
+                        </div>
+                        </div>
                         <div class="h-8 w-px bg-slate-200 dark:bg-border-dark"></div>
                         <div class="flex items-center gap-3 bg-slate-100 dark:bg-card-dark p-1.5 pr-4 rounded-full border border-transparent dark:border-border-dark"
                             id="headerProfilePill" style="display:none;">
@@ -851,141 +872,89 @@
                 </div>
 
                 <!-- Starter Tier -->
-                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all"
-                    style="animation-delay: 0.2s;">
+                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all" style="animation-delay: 0.2s;">
                     <div class="mb-8">
-                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
-                            Essential</p>
+                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Essential</p>
                         <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Starter</h3>
-                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹99<span
-                                class="text-slate-500 text-sm font-normal">/mo</span></div>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹99<span class="text-slate-500 text-sm font-normal">/mo</span></div>
                     </div>
                     <ul class="flex-1 space-y-4 mb-8">
-                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
-                                class="material-icons-round text-primary text-sm">check_circle</span> 200 analyses
-                            /month
-                        </li>
-                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
-                                class="material-icons-round text-primary text-sm">check_circle</span> Generation &
-                            Optimize</li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> 200 analyses /month</li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> 8 generations /day</li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> Generation & Optimize</li>
                     </ul>
-                    <button
-                        class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade
-                        Now</button>
+                    <button onclick="subscribeToPlan('starter')" class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade Now</button>
                 </div>
 
                 <!-- Pro Tier (Most Popular) -->
-                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0f0f0f]/80 border-2 border-primary rounded-2xl p-8 transition-all scale-105 z-10 shadow-[0_0_40px_rgba(220,38,38,0.2)]"
-                    style="animation-delay: 0.3s;">
-                    <div
-                        class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full">
-                        Most Popular</div>
+                <div class="pricing-card-animate pricing-card-glow relative flex flex-col bg-white dark:bg-[#0f0f0f]/80 border-2 border-primary rounded-2xl p-8 transition-all scale-105 z-10 shadow-[0_0_40px_rgba(220,38,38,0.2)]" style="animation-delay: 0.3s;">
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full">Most Popular</div>
                     <div class="mb-8">
                         <p class="text-sm font-bold text-primary uppercase tracking-widest mb-1">Advanced</p>
                         <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Pro</h3>
-                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹299<span
-                                class="text-slate-500 text-sm font-normal">/mo</span></div>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹299<span class="text-slate-500 text-sm font-normal">/mo</span></div>
                     </div>
                     <ul class="flex-1 space-y-4 mb-8">
-                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
-                                class="material-icons-round text-primary text-sm">check_circle</span> 1000 analyses
-                            /month
-                        </li>
-                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
-                                class="material-icons-round text-primary text-sm">check_circle</span> All Models Access
-                        </li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> 1000 analyses /month</li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> 35 generations /day</li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> All Models Access</li>
                     </ul>
-                    <button
-                        class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade
-                        Now</button>
+                    <button onclick="subscribeToPlan('pro')" class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade Now</button>
                 </div>
 
                 <!-- Advanced Tier -->
-                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all"
-                    style="animation-delay: 0.4s;">
+                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all" style="animation-delay: 0.4s;">
                     <div class="mb-8">
-                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
-                            Power User</p>
+                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Power User</p>
                         <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Advanced</h3>
-                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹499<span
-                                class="text-slate-500 text-sm font-normal">/mo</span></div>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹499<span class="text-slate-500 text-sm font-normal">/mo</span></div>
                     </div>
                     <ul class="flex-1 space-y-4 mb-8">
-                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
-                                class="material-icons-round text-primary text-sm">check_circle</span> 3000 analyses
-                            /month
-                        </li>
-                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
-                                class="material-icons-round text-primary text-sm">check_circle</span> Priority Access
-                        </li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> 3000 analyses /month</li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> 100 generations /day</li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> Priority Access</li>
                     </ul>
-                    <button
-                        class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade
-                        Now</button>
+                    <button onclick="subscribeToPlan('advanced')" class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade Now</button>
                 </div>
 
                 <!-- Builder Tier -->
-                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all"
-                    style="animation-delay: 0.5s;">
+                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all" style="animation-delay: 0.5s;">
                     <div class="mb-8">
-                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
-                            Scale</p>
+                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Scale</p>
                         <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Builder</h3>
-                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹699<span
-                                class="text-slate-500 text-sm font-normal">/mo</span></div>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹699<span class="text-slate-500 text-sm font-normal">/mo</span></div>
                     </div>
                     <ul class="flex-1 space-y-4 mb-8">
-                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
-                                class="material-icons-round text-primary text-sm">check_circle</span> 5000 analyses
-                            /month
-                        </li>
-                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
-                                class="material-icons-round text-primary text-sm">check_circle</span> Dedicated Support
-                        </li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> 5000 analyses /month</li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> 170 generations /day</li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> Dedicated Support</li>
                     </ul>
-                    <button
-                        class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade
-                        Now</button>
+                    <button onclick="subscribeToPlan('builder')" class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade Now</button>
                 </div>
 
                 <!-- Builder Pro Tier -->
-                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all"
-                    style="animation-delay: 0.6s;">
+                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-white dark:bg-[#0a0a0a]/60 border border-slate-200 dark:border-white/10 rounded-2xl p-8 transition-all" style="animation-delay: 0.6s;">
                     <div class="mb-8">
-                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">
-                            Max</p>
+                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Max</p>
                         <h3 class="text-2xl font-black mb-4 text-slate-900 dark:text-white">Builder Pro</h3>
-                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹899<span
-                                class="text-slate-500 text-sm font-normal">/mo</span></div>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹899<span class="text-slate-500 text-sm font-normal">/mo</span></div>
                     </div>
                     <ul class="flex-1 space-y-4 mb-8">
-                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
-                                class="material-icons-round text-primary text-sm">check_circle</span> 7000 analyses
-                            /month
-                        </li>
-                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span
-                                class="material-icons-round text-primary text-sm">check_circle</span> All Features
-                            Included
-                        </li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> 7000 analyses /month</li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> 235 generations /day</li>
+                        <li class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400"><span class="material-icons-round text-primary text-sm">check_circle</span> All Features Included</li>
                     </ul>
-                    <button
-                        class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade
-                        Now</button>
+                    <button onclick="subscribeToPlan('builder_pro')" class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Upgrade Now</button>
                 </div>
 
                 <!-- Credit Pack -->
-                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-primary/5 border border-primary/20 rounded-2xl p-8 transition-all"
-                    style="animation-delay: 0.7s;">
+                <div class="pricing-card-animate pricing-card-glow flex flex-col bg-primary/5 border border-primary/20 rounded-2xl p-8 transition-all" style="animation-delay: 0.7s;">
                     <div class="mb-8">
                         <h3 class="text-2xl font-black mb-2 text-slate-900 dark:text-white">Credit Pack</h3>
-                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹599<span
-                                class="text-slate-500 text-sm font-normal"> once</span></div>
+                        <div class="text-4xl font-black text-slate-900 dark:text-white">₹599<span class="text-slate-500 text-sm font-normal"> once</span></div>
                     </div>
-                    <p class="text-slate-500 text-sm mb-8 flex-1">One-time purchase of 1000 credits. Never expires.
-                        Perfect for occasional heavy usage.</p>
-                    <button
-                        class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Buy
-                        Pack</button>
+                    <p class="text-slate-500 text-sm mb-8 flex-1">One-time purchase of 1000 credits. Never expires. Perfect for occasional heavy usage.</p>
+                    <button onclick="buyCreditPack()" class="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-red-600 transition-all shadow-lg shadow-primary/20">Buy Pack</button>
                 </div>
             </div>
         </div>
@@ -995,6 +964,9 @@
 
     <!-- ── Toast Container ───────────────────────────────────── -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ── Razorpay Checkout SDK ──────────────────────────────── -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <!-- ── Firebase Auth & Firestore ───────────────────────────── -->
     <script type="module">

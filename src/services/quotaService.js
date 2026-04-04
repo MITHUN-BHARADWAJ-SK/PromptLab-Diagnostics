@@ -75,4 +75,40 @@ async function _resetIfNewPeriod(user) {
     }
 }
 
-module.exports = { check, consume };
+/**
+ * Check the user's remaining daily generation quota.
+ * @param {import('mongoose').Document} user
+ * @returns {{ limit: number, used: number, remaining: number }}
+ */
+async function checkGeneration(user) {
+    await _resetGenerationIfNewDay(user);
+
+    const tierConfig = TIERS[user.subscriptionTier] || TIERS.free;
+    const limit = tierConfig.generationLimit ?? 0;
+    const used = user.dailyGenerationCount || 0;
+
+    return { limit, used, remaining: Math.max(0, limit - used) };
+}
+
+/**
+ * Increment the user's daily generation count by 1.
+ * Call this AFTER a successful generation.
+ */
+async function consumeGeneration(user) {
+    await _resetGenerationIfNewDay(user);
+    user.dailyGenerationCount = (user.dailyGenerationCount || 0) + 1;
+    await user.save();
+}
+
+async function _resetGenerationIfNewDay(user) {
+    const now = new Date();
+    if (!user.dailyGenerationReset || now >= user.dailyGenerationReset) {
+        user.dailyGenerationCount = 0;
+        const nextMidnight = new Date();
+        nextMidnight.setUTCHours(24, 0, 0, 0);
+        user.dailyGenerationReset = nextMidnight;
+        await user.save();
+    }
+}
+
+module.exports = { check, consume, checkGeneration, consumeGeneration };

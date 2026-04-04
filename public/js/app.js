@@ -275,7 +275,7 @@ async function optimizePrompt() {
     }
 
     // Run generator to produce the optimized prompt
-    const genResult = await PromptLabEngine.generate({ promptText, modelTarget });
+    const genResult = await PromptLabEngine.generate({ promptText, modelTarget, uid: state.uid });
     if (genResult.error) {
       showToast(genResult.error, 'error');
       return;
@@ -343,7 +343,7 @@ async function generatePrompt() {
     setStatus('LAYER 1: INFERRING INTENT...');
     await new Promise(r => setTimeout(r, 120)); // Let UI repaint
 
-    const genResult = await PromptLabEngine.generate({ promptText, modelTarget });
+    const genResult = await PromptLabEngine.generate({ promptText, modelTarget, uid: state.uid });
 
     if (genResult.error) {
       showToast(genResult.error, 'error');
@@ -1048,9 +1048,13 @@ window.optimizePrompt = optimizePrompt;
 window.generatePrompt = generatePrompt;
 window.openPricingModal = openPricingModal;
 window.closePricingModal = closePricingModal;
+window.subscribeToPlan = subscribeToPlan;
+window.buyCreditPack = buyCreditPack;
 window.markAllNotificationsRead = markAllNotificationsRead;
 window._copyGenPrompt = _copyGenPrompt;
 window.loadNotifications = loadNotifications;
+window.toggleNotificationsDropdown = toggleNotificationsDropdown;
+window.closeNotificationsDropdown = closeNotificationsDropdown;
 
 // ════════════════════════════════════════════════════════════════
 //  RENDER: HISTORY (Firestore format)
@@ -1287,6 +1291,11 @@ async function refreshCredits() {
 
     // Sync unread badge alongside credits
     updateUnreadBadge();
+    // Refresh dropdown list if it's currently open
+    const dropdown = document.getElementById('notificationsDropdown');
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+      loadNotificationsDropdown();
+    }
   } catch (_) { }
 }
 
@@ -1375,6 +1384,175 @@ function closePricingModal() {
   modal.classList.remove('flex');
 }
 
+// ── Razorpay Payment ──────────────────────────────────────────────
+
+const TIER_LABELS = {
+  starter: 'Starter — ₹99/mo',
+  pro: 'Pro — ₹299/mo',
+  advanced: 'Advanced — ₹499/mo',
+  builder: 'Builder — ₹699/mo',
+  builder_pro: 'Builder Pro — ₹899/mo',
+};
+
+async function subscribeToPlan(tier, currency = 'INR') {
+  if (!state.uid) { showToast('Please sign in first.', 'error'); return; }
+  if (!window.Razorpay) { showToast('Payment SDK not loaded. Please refresh.', 'error'); return; }
+
+  showToast('Opening payment...', 'info');
+
+  let subData;
+  try {
+    const res = await fetch('/api/payments/create-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tier, uid: state.uid, currency }),
+    });
+    subData = await res.json();
+    if (!res.ok) throw new Error(subData.error || 'Failed to create subscription.');
+  } catch (err) {
+    showToast(err.message, 'error'); return;
+  }
+
+  const profile = await PromptLabDB.getUserProfile(state.uid).catch(() => ({}));
+
+  const options = {
+    key: subData.keyId,
+    subscription_id: subData.subscriptionId,
+    name: 'PromptLab',
+    description: TIER_LABELS[tier] || tier,
+    image: '/favicon.ico',
+    prefill: {
+      email: profile?.email || '',
+      name: profile?.displayName || '',
+    },
+    theme: { color: '#dc2626' },
+    handler: async function (response) {
+      // Payment succeeded — verify server-side and upgrade tier
+      try {
+        const confirmRes = await fetch('/api/payments/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_subscription_id: response.razorpay_subscription_id,
+            razorpay_signature: response.razorpay_signature,
+            uid: state.uid,
+            tier,
+          }),
+        });
+        const confirmData = await confirmRes.json();
+        if (!confirmRes.ok) throw new Error(confirmData.error || 'Verification failed.');
+
+        // Sync new tier + credits to Firestore
+        await _applyUpgradedTier(tier);
+
+        closePricingModal();
+        showToast(`🎉 Upgraded to ${TIER_LABELS[tier]}! Enjoy your new plan.`, 'success');
+        await PromptLabDB.addNotification(state.uid, 'Subscription Activated',
+          `You are now on the ${TIER_LABELS[tier]} plan. Your limits have been updated.`, 'success');
+        refreshCredits();
+        updateUnreadBadge();
+      } catch (err) {
+        showToast('Payment received but verification failed. Contact support.', 'error');
+        console.error('[Payment] Confirm error:', err);
+      }
+    },
+    modal: {
+      ondismiss: () => showToast('Payment cancelled.', 'warning'),
+    },
+  };
+
+  const rzp = new window.Razorpay(options);
+  rzp.on('payment.failed', (resp) => {
+    showToast(`Payment failed: ${resp.error.description}`, 'error');
+  });
+  rzp.open();
+}
+
+async function buyCreditPack(currency = 'INR') {
+  if (!state.uid) { showToast('Please sign in first.', 'error'); return; }
+  if (!window.Razorpay) { showToast('Payment SDK not loaded. Please refresh.', 'error'); return; }
+
+  showToast('Opening payment...', 'info');
+
+  let orderData;
+  try {
+    const res = await fetch('/api/payments/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: state.uid, currency }),
+    });
+    orderData = await res.json();
+    if (!res.ok) throw new Error(orderData.error || 'Failed to create order.');
+  } catch (err) {
+    showToast(err.message, 'error'); return;
+  }
+
+  const profile = await PromptLabDB.getUserProfile(state.uid).catch(() => ({}));
+
+  const options = {
+    key: orderData.keyId,
+    amount: orderData.amount,
+    currency: orderData.currency,
+    order_id: orderData.orderId,
+    name: 'PromptLab',
+    description: '1000 Bonus Credits — Never Expires',
+    prefill: { email: profile?.email || '', name: profile?.displayName || '' },
+    theme: { color: '#dc2626' },
+    handler: async function (response) {
+      try {
+        const confirmRes = await fetch('/api/payments/confirm-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+            uid: state.uid,
+          }),
+        });
+        const confirmData = await confirmRes.json();
+        if (!confirmRes.ok) throw new Error(confirmData.error || 'Verification failed.');
+
+        // Add 1000 bonus credits to Firestore
+        await PromptLabDB.updateUserProfile(state.uid, { bonusCredits: (profile?.bonusCredits || 0) + 1000 });
+        closePricingModal();
+        showToast('🎉 1000 credits added to your account!', 'success');
+        await PromptLabDB.addNotification(state.uid, 'Credit Pack Purchased',
+          'You received 1000 bonus credits. They never expire.', 'success');
+        refreshCredits();
+        updateUnreadBadge();
+      } catch (err) {
+        showToast('Payment received but verification failed. Contact support.', 'error');
+      }
+    },
+    modal: { ondismiss: () => showToast('Payment cancelled.', 'warning') },
+  };
+
+  const rzp = new window.Razorpay(options);
+  rzp.on('payment.failed', (resp) => showToast(`Payment failed: ${resp.error.description}`, 'error'));
+  rzp.open();
+}
+
+// Apply upgraded tier to Firestore — updates subscriptionTier and resets credits to new tier limits
+async function _applyUpgradedTier(tier) {
+  const tierCredits = {
+    starter: { monthlyCredits: 200, dailyCredits: null },
+    pro: { monthlyCredits: 1000, dailyCredits: null },
+    advanced: { monthlyCredits: 3000, dailyCredits: null },
+    builder: { monthlyCredits: 5000, dailyCredits: null },
+    builder_pro: { monthlyCredits: 7000, dailyCredits: null },
+  };
+  const credits = tierCredits[tier] || {};
+  const update = { subscriptionTier: tier };
+  if (credits.monthlyCredits) {
+    update.monthlyCredits = credits.monthlyCredits;
+    update.monthlyCreditReset = new Date(new Date().setMonth(new Date().getMonth() + 1, 1)).toISOString();
+  }
+  await PromptLabDB.updateUserProfile(state.uid, update);
+  state.userTier = tier.charAt(0).toUpperCase() + tier.slice(1).replace('_', ' ');
+}
+
 // ════════════════════════════════════════════════════════════════
 //  NOTIFICATIONS
 // ════════════════════════════════════════════════════════════════
@@ -1454,6 +1632,7 @@ async function markAllNotificationsRead() {
   if (!state.uid) return;
   await PromptLabDB.markNotificationsRead(state.uid);
   loadNotifications();
+  loadNotificationsDropdown();
   updateUnreadBadge();
   showToast('All notifications marked as read', 'success');
 }
@@ -1471,5 +1650,90 @@ async function updateUnreadBadge() {
   } else {
     badge.classList.add('hidden');
   }
+}
+
+// ── Notifications Dropdown ───────────────────────────────────────
+
+function toggleNotificationsDropdown(event) {
+  event.stopPropagation();
+  const dropdown = document.getElementById('notificationsDropdown');
+  if (!dropdown) return;
+  const isOpen = !dropdown.classList.contains('hidden');
+  if (isOpen) {
+    dropdown.classList.add('hidden');
+  } else {
+    dropdown.classList.remove('hidden');
+    loadNotificationsDropdown();
+  }
+}
+
+function closeNotificationsDropdown() {
+  const dropdown = document.getElementById('notificationsDropdown');
+  if (dropdown) dropdown.classList.add('hidden');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const wrapper = document.getElementById('notificationsWrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    closeNotificationsDropdown();
+  }
+});
+
+async function loadNotificationsDropdown() {
+  if (!state.uid) return;
+  const listEl = document.getElementById('notificationsDropdownList');
+  if (!listEl) return;
+
+  let notifs = [];
+  try {
+    notifs = await PromptLabDB.getNotifications(state.uid);
+  } catch (_) { return; }
+
+  if (!notifs || notifs.length === 0) {
+    listEl.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-10 text-slate-400 gap-2">
+        <span class="material-icons-round text-3xl opacity-40">notifications_none</span>
+        <p class="text-xs">No notifications yet</p>
+      </div>`;
+    return;
+  }
+
+  // Show newest 8
+  const recent = notifs.slice(0, 8);
+  listEl.innerHTML = recent.map(n => {
+    let icon, color, bgClass;
+    if (n.type === 'success') {
+      icon = 'check_circle'; color = 'text-emerald-500'; bgClass = 'bg-emerald-500/10';
+    } else if (n.type === 'warning') {
+      icon = 'warning'; color = 'text-amber-500'; bgClass = 'bg-amber-500/10';
+    } else {
+      icon = 'bolt'; color = 'text-primary'; bgClass = 'bg-primary/10';
+    }
+
+    const ts = n.timestamp ? new Date(n.timestamp) : null;
+    const timeAgo = ts ? _timeAgo(ts) : '';
+
+    return `
+      <div class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors ${!n.read ? 'bg-primary/5' : ''}">
+        ${!n.read ? `<div class="mt-2 w-1.5 h-1.5 rounded-full bg-primary shrink-0"></div>` : `<div class="mt-2 w-1.5 h-1.5 shrink-0"></div>`}
+        <div class="p-1.5 ${bgClass} rounded-lg shrink-0">
+          <span class="material-icons-round ${color} text-base">${icon}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-semibold text-slate-900 dark:text-white leading-snug">${escapeHtml(n.title)}</p>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-snug mt-0.5">${escapeHtml(n.message)}</p>
+          ${timeAgo ? `<p class="text-[10px] text-slate-400 dark:text-slate-600 mt-1 font-mono">${timeAgo}</p>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function _timeAgo(date) {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+  if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+  return Math.floor(seconds / 86400) + 'd ago';
 }
 

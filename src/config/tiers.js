@@ -10,6 +10,7 @@ const TIERS = {
         name: 'Free',
         limit: 5,
         period: 'day',
+        generationLimit: 0,
         features: {
             crossModelAnalysis: false,
             fullBreakdowns: false,
@@ -21,6 +22,7 @@ const TIERS = {
         limit: 200,
         period: 'month',
         price: 99,
+        generationLimit: 8,
         features: {
             crossModelAnalysis: true,
             fullBreakdowns: true,
@@ -32,6 +34,7 @@ const TIERS = {
         limit: 1000,
         period: 'month',
         price: 299,
+        generationLimit: 35,
         features: {
             crossModelAnalysis: true,
             fullBreakdowns: true,
@@ -43,6 +46,7 @@ const TIERS = {
         limit: 3000,
         period: 'month',
         price: 499,
+        generationLimit: 100,
         features: {
             crossModelAnalysis: true,
             fullBreakdowns: true,
@@ -54,6 +58,7 @@ const TIERS = {
         limit: 5000,
         period: 'month',
         price: 699,
+        generationLimit: 170,
         features: {
             crossModelAnalysis: true,
             fullBreakdowns: true,
@@ -65,6 +70,7 @@ const TIERS = {
         limit: 7000,
         period: 'month',
         price: 899,
+        generationLimit: 235,
         features: {
             crossModelAnalysis: true,
             fullBreakdowns: true,

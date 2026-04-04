@@ -22,6 +22,7 @@ const errorHandler = require('./middleware/errorHandler');
 const promptRoutes = require('./routes/promptRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const userRoutes = require('./routes/userRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // ── Express App ──────────────────────────────────────────────────
 const app = express();
@@ -31,12 +32,12 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-            'script-src': ["'self'", "'unsafe-inline'", 'https://cdn.tailwindcss.com', 'https://www.gstatic.com', 'https://apis.google.com'],
+            'script-src': ["'self'", "'unsafe-inline'", 'https://cdn.tailwindcss.com', 'https://www.gstatic.com', 'https://apis.google.com', 'https://checkout.razorpay.com'],
             'script-src-attr': ["'unsafe-inline'"],
             'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
             'font-src': ["'self'", 'https://fonts.gstatic.com'],
-            'connect-src': ["'self'", 'https://*.googleapis.com', 'https://*.firebaseio.com', 'https://securetoken.googleapis.com'],
-            'frame-src': ["'self'", 'https://promptlab-abaed.firebaseapp.com'],
+            'connect-src': ["'self'", 'https://*.googleapis.com', 'https://*.firebaseio.com', 'https://securetoken.googleapis.com', 'https://api.razorpay.com', 'https://lumberjack.razorpay.com'],
+            'frame-src': ["'self'", 'https://promptlab-abaed.firebaseapp.com', 'https://api.razorpay.com'],
             'img-src': ["'self'", 'data:', 'https://cdn.jsdelivr.net', 'https://ui-avatars.com', 'https://randomuser.me'],
         },
     },
@@ -48,8 +49,11 @@ app.use(cors());
 // Request logging
 app.use(morgan(config.nodeEnv === 'production' ? 'combined' : 'dev'));
 
-// Body parsing
-app.use(express.json({ limit: '1mb' }));
+// Body parsing — capture rawBody for Razorpay webhook signature verification
+app.use(express.json({
+    limit: '1mb',
+    verify: (req, _res, buf) => { req.rawBody = buf; },
+}));
 
 // Serve static frontend from /public
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -75,16 +79,46 @@ app.get('/api/health', (_req, res) => {
     });
 });
 
-// ── Generator Endpoint (no auth — API key is server-side) ────────
+// ── Generator Endpoint ───────────────────────────────────────────
 const generatorService = require('./services/generatorService');
+const { checkGeneration, consumeGeneration } = require('./services/quotaService');
+const User = require('./models/User');
+
 app.post('/api/generate', async (req, res) => {
-    const { promptText, modelTarget, difficulty } = req.body;
+    const { promptText, modelTarget, difficulty, uid } = req.body;
     if (!promptText || !modelTarget) {
         return res.status(400).json({ error: 'promptText and modelTarget are required.' });
     }
+
+    // Enforce per-tier daily generation limit when UID is provided
+    let user = null;
+    if (uid) {
+        try {
+            user = await User.findOne({ externalAuthId: uid });
+        } catch (_) { /* non-fatal — proceed without limit enforcement */ }
+
+        if (user) {
+            const quota = await checkGeneration(user);
+            if (quota.remaining <= 0) {
+                return res.status(429).json({
+                    error: `Daily generation limit reached (${quota.limit}/day for your plan). Resets at midnight UTC.`,
+                    limit: quota.limit,
+                    used: quota.used,
+                    remaining: 0,
+                });
+            }
+        }
+    }
+
     try {
         const result = await generatorService.generate({ promptText, modelTarget, difficulty: difficulty || 'basic' });
         if (result.error) return res.status(400).json({ error: result.error });
+
+        // Consume one generation credit after success
+        if (user) {
+            await consumeGeneration(user).catch(() => {});
+        }
+
         res.json(result);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -95,6 +129,7 @@ app.post('/api/generate', async (req, res) => {
 app.use('/api/prompts', promptRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // ── SPA Fallback (serve index.html for non-API routes) ───────────
 app.get('*', (_req, res) => {

@@ -125,6 +125,7 @@ global.PromptLabEngine = {
                 promptText: opts.promptText || opts.userIdea,
                 modelTarget: opts.modelTarget,
                 difficulty: opts.difficulty || 'basic',
+                uid: opts.uid || null,
             }),
         });
         if (!response.ok) {

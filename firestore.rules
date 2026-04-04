@@ -2,19 +2,82 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Tier rank helper — higher number = higher tier
+    function _tierRank(tier) {
+      return tier == 'builder_pro' ? 5
+           : tier == 'builder'     ? 4
+           : tier == 'advanced'    ? 3
+           : tier == 'pro'         ? 2
+           : tier == 'starter'     ? 1
+           : 0; // free or unknown
+    }
+
+    // ── Users ──────────────────────────────────────────────────────
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Only the authenticated owner can read their own profile
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // New profile: must be owner, tier must start as 'free', no bonus credits
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.subscriptionTier == 'free'
+        && (request.resource.data.bonusCredits == 0
+            || !('bonusCredits' in request.resource.data));
+
+      // Updates:
+      // - subscriptionTier can only move to a HIGHER tier (never downgrade from client)
+      // - bonusCredits may only increase by ≤1000 per write (credit pack cap)
+      // - Server-side webhook handles cancellation / downgrade to free
+      allow update: if request.auth != null
+        && request.auth.uid == userId
+        // subscriptionTier: only allow upgrade (free < starter < pro < advanced < builder < builder_pro)
+        && (
+          !('subscriptionTier' in request.resource.data.diff(resource.data).affectedKeys())
+          || _tierRank(request.resource.data.subscriptionTier) >= _tierRank(resource.data.subscriptionTier)
+        )
+        // bonusCredits can only increase by ≤1000 per write (daily login=5, credit pack=1000)
+        && (
+          !('bonusCredits' in request.resource.data.diff(resource.data).affectedKeys())
+          || (request.resource.data.bonusCredits - resource.data.bonusCredits) <= 1000
+        );
     }
+
+    // ── Stats ──────────────────────────────────────────────────────
     match /stats/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false;
     }
+
+    // ── Analyses ───────────────────────────────────────────────────
     match /analyses/{analysisId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Only owner can create and read their own analyses
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      // Analyses are append-only — no editing or deleting
+      allow update, delete: if false;
     }
+
+    // ── Notifications ──────────────────────────────────────────────
     match /notifications/{notificationId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      allow read: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+      // Only allowed update: marking a notification as read=true
+      allow update: if request.auth != null
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
+        && request.resource.data.read == true;
+      allow delete: if false;
+    }
+
+    // ── Deny everything else ───────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
