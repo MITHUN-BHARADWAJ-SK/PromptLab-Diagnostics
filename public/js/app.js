@@ -146,6 +146,36 @@ function switchView(viewName) {
   }
 }
 
+async function loadProfile() {
+  if (!state.uid) return;
+  // updateUserChip already populates name/email/avatar — just need to load credits
+  try {
+    const profile = await PromptLabDB.getUserProfile(state.uid) || {};
+    const tier = profile.subscriptionTier || 'free';
+    const isMonthly = tier !== 'free';
+    const creditKey = isMonthly ? 'monthlyCredits' : 'dailyCredits';
+
+    const TIER_LIMITS = { free: 5, starter: 200, pro: 1000, advanced: 3000, builder: 5000, builder_pro: 7000 };
+    const limit = TIER_LIMITS[tier] ?? 5;
+    const remaining = profile[creditKey] ?? limit;
+    const bonus = profile.bonusCredits ?? 0;
+    const total = remaining + bonus;
+
+    const resetRaw = isMonthly ? profile.monthlyCreditReset : profile.dailyCreditReset;
+    const resetDate = resetRaw ? new Date(resetRaw).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—';
+    const periodLabel = isMonthly ? '/month' : '/day';
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('profileStatsGenerations', remaining);
+    set('profileStatsLimit', `of ${limit}${periodLabel}`);
+    set('profileStatsBonus', bonus);
+    set('profileStatsTotal', total);
+    set('profileStatsReset', `resets ${resetDate}`);
+  } catch (e) {
+    console.warn('[Profile] Could not load usage stats:', e);
+  }
+}
+
 function updateUserChip() {
   const initial = (state.userName || '?')[0].toUpperCase();
   const name = state.userName || 'User';
@@ -159,12 +189,13 @@ function updateUserChip() {
   if (document.getElementById('userName')) document.getElementById('userName').textContent = name;
   if (document.getElementById('userTier')) document.getElementById('userTier').textContent = tier;
 
-  // New Profile Header Pill
+  // Header avatar (simplified circle button)
   const headerPill = document.getElementById('headerProfilePill');
-  if (headerPill) headerPill.style.display = 'flex';
-  if (document.getElementById('headerAvatar')) document.getElementById('headerAvatar').textContent = initial;
-  if (document.getElementById('headerName')) document.getElementById('headerName').textContent = name;
-  if (document.getElementById('headerRole')) document.getElementById('headerRole').textContent = tier;
+  if (headerPill) {
+    headerPill.style.display = 'flex';
+    headerPill.textContent = initial;
+    headerPill.title = `${name} — ${tier}`;
+  }
 
   // New Profile Page Big View
   if (document.getElementById('profileAvatarBig')) document.getElementById('profileAvatarBig').textContent = initial;
@@ -414,7 +445,13 @@ async function loadDashboard() {
       stats = await PromptLabDB.getOrCreateStats(state.uid);
     } catch (e) { console.warn("Stats error:", e); }
 
-    // 3. Load History
+    // 3. Load user profile for login streak
+    let profile = {};
+    try {
+      profile = await PromptLabDB.getUserProfile(state.uid) || {};
+    } catch (e) { console.warn("Profile error:", e); }
+
+    // 4. Load History
     let history = [];
     try {
       history = await PromptLabDB.getHistory(state.uid, 20);
@@ -428,7 +465,29 @@ async function loadDashboard() {
     document.getElementById('statTotal').textContent = stats.totalPrompts || 0;
     document.getElementById('statAvg').textContent =
       typeof stats.averageScore === 'number' ? stats.averageScore.toFixed(1) : '0.0';
-    document.getElementById('statStreak').textContent = (stats.streakDays || 0) + ' DAYS';
+
+    // Login streak — use user.loginStreak (consecutive daily sign-ins)
+    const loginStreak = profile.loginStreak || 0;
+    const daysToReward = loginStreak > 0 ? (5 - (loginStreak % 5)) : 5;
+    const streakEl = document.getElementById('statStreak');
+    streakEl.textContent = loginStreak + (loginStreak === 1 ? ' DAY' : ' DAYS');
+
+    // Inject "days to next reward" progress below the streak number if not already present
+    let streakHint = document.getElementById('statStreakHint');
+    if (!streakHint) {
+      streakHint = document.createElement('div');
+      streakHint.id = 'statStreakHint';
+      streakHint.className = 'text-xs font-bold opacity-70 mt-1';
+      streakEl.parentNode.insertBefore(streakHint, streakEl.nextSibling);
+    }
+    if (loginStreak > 0 && loginStreak % 5 === 0) {
+      // Just hit a milestone — next reward is 5 more days away
+      streakHint.textContent = '🎉 Bonus earned! 4 days to next';
+    } else if (loginStreak > 0) {
+      streakHint.textContent = `${daysToReward} day${daysToReward === 1 ? '' : 's'} to +3 bonus`;
+    } else {
+      streakHint.textContent = 'Sign in daily for rewards';
+    }
 
     // Render components if history is present
     if (history.length > 0) {

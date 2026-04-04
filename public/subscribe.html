@@ -50,9 +50,9 @@
         <a href="/" class="flex items-center gap-2 no-underline">
             <span class="text-primary font-black text-xl tracking-tight">Prompt<span class="text-white">Lab</span></span>
         </a>
-        <div class="flex items-center gap-3">
-            <span id="userEmailLabel" class="text-sm text-slate-400 hidden"></span>
-            <a href="/app.html" class="text-sm text-slate-400 hover:text-white transition-colors no-underline">← Back to App</a>
+        <div class="flex items-center gap-2 sm:gap-3">
+            <span id="userEmailLabel" class="text-xs sm:text-sm text-slate-400 hidden max-w-[120px] sm:max-w-none truncate"></span>
+            <a href="/app.html" class="text-xs sm:text-sm text-slate-400 hover:text-white transition-colors no-underline whitespace-nowrap">← Back</a>
         </div>
     </header>
 
@@ -63,13 +63,13 @@
     </div>
 
     <!-- Main content (hidden until auth checked) -->
-    <main id="mainContent" class="hidden max-w-7xl mx-auto px-4 py-16">
+    <main id="mainContent" class="hidden max-w-7xl mx-auto px-3 sm:px-4 py-8 sm:py-16">
 
         <!-- Heading -->
         <div class="text-center mb-16">
             <p class="text-primary font-bold uppercase tracking-widest text-sm mb-3">Upgrade Your Plan</p>
-            <h1 class="text-4xl md:text-5xl font-black text-white mb-4">Choose what fits you</h1>
-            <p class="text-slate-400 text-lg max-w-xl mx-auto">All plans include analysis, generation, and optimization. Cancel anytime.</p>
+            <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white mb-4">Choose what fits you</h1>
+            <p class="text-slate-400 text-sm sm:text-lg max-w-xl mx-auto">All plans include analysis, generation, and optimization. Cancel anytime.</p>
         </div>
 
         <!-- Current plan notice -->
@@ -102,7 +102,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
 
             <!-- Starter -->
-            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 flex flex-col" data-plan="starter">
+            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 sm:p-8 flex flex-col" data-plan="starter">
                 <div class="mb-8">
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Essential</p>
                     <h3 class="text-2xl font-black text-white mb-4">Starter</h3>
@@ -124,7 +124,7 @@
             </div>
 
             <!-- Pro (featured) -->
-            <div class="plan-card bg-[#0f0f0f] border-2 border-primary rounded-2xl p-8 flex flex-col relative highlighted" data-plan="pro">
+            <div class="plan-card bg-[#0f0f0f] border-2 border-primary rounded-2xl p-5 sm:p-8 flex flex-col relative highlighted" data-plan="pro">
                 <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full whitespace-nowrap shadow-lg shadow-primary/30">
                     Most Popular
                 </div>
@@ -149,7 +149,7 @@
             </div>
 
             <!-- Advanced -->
-            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 flex flex-col" data-plan="advanced">
+            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 sm:p-8 flex flex-col" data-plan="advanced">
                 <div class="mb-8">
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Power User</p>
                     <h3 class="text-2xl font-black text-white mb-4">Advanced</h3>
@@ -171,7 +171,7 @@
             </div>
 
             <!-- Builder -->
-            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 flex flex-col" data-plan="builder">
+            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 sm:p-8 flex flex-col" data-plan="builder">
                 <div class="mb-8">
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Scale</p>
                     <h3 class="text-2xl font-black text-white mb-4">Builder</h3>
@@ -193,7 +193,7 @@
             </div>
 
             <!-- Builder Pro -->
-            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 flex flex-col" data-plan="builder_pro">
+            <div class="plan-card bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 sm:p-8 flex flex-col" data-plan="builder_pro">
                 <div class="mb-8">
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Max</p>
                     <h3 class="text-2xl font-black text-white mb-4">Builder Pro</h3>
@@ -215,7 +215,7 @@
             </div>
 
             <!-- Credit Pack -->
-            <div class="plan-card bg-primary/5 border border-primary/20 rounded-2xl p-8 flex flex-col relative overflow-hidden" data-plan="credits">
+            <div class="plan-card bg-primary/5 border border-primary/20 rounded-2xl p-5 sm:p-8 flex flex-col relative overflow-hidden" data-plan="credits">
                 <div class="absolute right-0 top-0 w-32 h-32 bg-primary/10 rounded-bl-full pointer-events-none"></div>
                 <div class="mb-6 relative z-10">
                     <p class="text-xs font-bold text-primary uppercase tracking-widest mb-1">One-Time</p>
