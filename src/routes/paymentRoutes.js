@@ -26,7 +26,7 @@ router.post('/create-subscription', async (req, res) => {
     if (!VALID_PAID_TIERS.includes(tier)) return res.status(400).json({ error: 'Invalid tier.' });
 
     try {
-        const user = await User.findOne({ externalAuthId: uid });
+        const user = await User.findOne({ externalAuthId: uid }).maxTimeMS(3000).catch(() => null);
         const subscription = await paymentService.createSubscription({
             tier, uid, currency,
             userEmail: user?.email,
@@ -64,7 +64,8 @@ router.post('/confirm', async (req, res) => {
     if (!valid) return res.status(400).json({ error: 'Payment signature verification failed.' });
 
     try {
-        const user = await User.findOneAndUpdate(
+        // Best-effort MongoDB update — webhook is the authoritative fallback
+        await User.findOneAndUpdate(
             { externalAuthId: uid },
             {
                 subscriptionTier: tier,
@@ -72,8 +73,7 @@ router.post('/confirm', async (req, res) => {
                 subscriptionStatus: 'active',
             },
             { new: true }
-        );
-        if (!user) return res.status(404).json({ error: 'User not found.' });
+        ).maxTimeMS(3000).catch((e) => console.warn('[Payment] MongoDB update skipped:', e.message));
 
         res.json({ success: true, tier, subscriptionId: razorpay_subscription_id });
     } catch (err) {
