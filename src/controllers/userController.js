@@ -16,7 +16,10 @@ const AppError = require('../utils/AppError');
  */
 async function onboard(req, res, next) {
     try {
-        const { externalAuthId, email, displayName, userType } = req.body;
+        const { displayName, userType } = req.body;
+        // Use server-verified uid/email from onboardAuth  14 never trust req.body for these
+        const externalAuthId = req.verifiedUid;
+        const email = req.verifiedEmail;
 
         // Check for existing user
         const existing = await User.findOne({

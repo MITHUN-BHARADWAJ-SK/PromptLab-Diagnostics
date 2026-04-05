@@ -83,6 +83,60 @@ const PromptLabDB = {
         }
     },
 
+    // ── Generation Quota (paid tiers only) ────────────────────
+    getGenerationLimit(tier) {
+        switch (tier) {
+            case 'starter': return 200;
+            case 'pro': return 1000;
+            case 'advanced': return 3000;
+            case 'builder': return 5000;
+            case 'builder_pro': return 7000;
+            default: return null; // free tier uses credits instead
+        }
+    },
+
+    async checkGenerations(uid) {
+        const db = getFirestore();
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) return null;
+
+        const user = userSnap.data();
+        const limit = this.getGenerationLimit(user.subscriptionTier);
+        if (limit === null) return null; // free tier — caller should use checkCredits
+
+        const now = new Date();
+        const reset = user.monthlyGenerationReset ? new Date(user.monthlyGenerationReset) : null;
+
+        if (!reset || now >= reset) {
+            const nextReset = this._nextMonth();
+            await updateDoc(userRef, {
+                monthlyGenerations: limit,
+                monthlyGenerationReset: nextReset,
+            });
+            await this.addNotification(uid, 'Generations Refilled',
+                `Your ${limit} monthly generations have been reset.`, 'success');
+            return { remaining: limit, limit, resetDate: nextReset };
+        }
+
+        const remaining = user.monthlyGenerations ?? limit;
+        return { remaining, limit, resetDate: user.monthlyGenerationReset };
+    },
+
+    async consumeGeneration(uid) {
+        const db = getFirestore();
+        const userRef = doc(db, "users", uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) return false;
+
+        const user = userSnap.data();
+        const remaining = user.monthlyGenerations ?? 0;
+        if (remaining <= 0) return false;
+
+        await updateDoc(userRef, { monthlyGenerations: increment(-1) });
+        return true;
+    },
+
     async checkCredits(uid) {
         const db = getFirestore();
         const userRef = doc(db, "users", uid);

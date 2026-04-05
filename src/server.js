@@ -27,20 +27,41 @@ const paymentRoutes = require('./routes/paymentRoutes');
 // ── Express App ──────────────────────────────────────────────────
 const app = express();
 
-// Security headers — allow inline scripts for SPA event handlers
+// Security headers
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
-            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-            'script-src': ["'self'", "'unsafe-inline'", 'https://cdn.tailwindcss.com', 'https://www.gstatic.com', 'https://apis.google.com', 'https://checkout.razorpay.com'],
-            'script-src-attr': ["'unsafe-inline'"],
-            'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-            'font-src': ["'self'", 'https://fonts.gstatic.com'],
-            'connect-src': ["'self'", 'https://*.googleapis.com', 'https://*.firebaseio.com', 'https://securetoken.googleapis.com', 'https://api.razorpay.com', 'https://lumberjack.razorpay.com'],
-            'frame-src': ["'self'", 'https://promptlab-abaed.firebaseapp.com', 'https://api.razorpay.com'],
-            'img-src': ["'self'", 'data:', 'https://cdn.jsdelivr.net', 'https://ui-avatars.com', 'https://randomuser.me'],
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+                "'self'",
+                "'unsafe-inline'",           // required: Tailwind CDN config blocks + inline handlers
+                'https://cdn.tailwindcss.com',
+                'https://www.gstatic.com',
+                'https://apis.google.com',
+                'https://checkout.razorpay.com',
+            ],
+            // script-src-attr removed — onclick attributes now use data-* + event delegation
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+            fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+            connectSrc: [
+                "'self'",
+                'https://*.googleapis.com',
+                'https://*.firebaseio.com',
+                'https://securetoken.googleapis.com',
+                'https://api.razorpay.com',
+                'https://lumberjack.razorpay.com',
+            ],
+            frameSrc: ["'self'", 'https://promptlab-abaed.firebaseapp.com', 'https://api.razorpay.com'],
+            // data: removed — prevents data-URI script/SVG injection
+            imgSrc: ["'self'", 'https://cdn.jsdelivr.net', 'https://ui-avatars.com'],
+            objectSrc: ["'none'"],           // blocks Flash / plugin exploits
+            baseUri: ["'self'"],             // prevents <base> tag hijacking
+            upgradeInsecureRequests: [],
         },
     },
+    // Additional hardening headers
+    crossOriginEmbedderPolicy: false,       // keep false — Firebase SDK needs cross-origin resources
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 }));
 
 // CORS (allow all origins in dev, lock down in prod)

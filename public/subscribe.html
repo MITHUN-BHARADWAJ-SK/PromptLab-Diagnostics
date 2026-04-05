@@ -113,7 +113,7 @@
                 </div>
                 <ul class="flex-1 space-y-3 mb-8">
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>200 generations /month</li>
-                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>8 generations /day</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>No credit cost for generation</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Generation &amp; Optimize</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>All Models Access</li>
                 </ul>
@@ -138,7 +138,7 @@
                 </div>
                 <ul class="flex-1 space-y-3 mb-8">
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>1000 generations /month</li>
-                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>35 generations /day</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>No credit cost for generation</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Advanced Blueprinting</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Priority Support</li>
                 </ul>
@@ -160,7 +160,7 @@
                 </div>
                 <ul class="flex-1 space-y-3 mb-8">
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>3000 generations /month</li>
-                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>100 generations /day</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>No credit cost for generation</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Priority Server Queue</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>All Features Unlocked</li>
                 </ul>
@@ -182,7 +182,7 @@
                 </div>
                 <ul class="flex-1 space-y-3 mb-8">
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>5000 generations /month</li>
-                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>170 generations /day</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>No credit cost for generation</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>API Early Access</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Dedicated Support</li>
                 </ul>
@@ -204,7 +204,7 @@
                 </div>
                 <ul class="flex-1 space-y-3 mb-8">
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>7000 generations /month</li>
-                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>235 generations /day</li>
+                    <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>No credit cost for generation</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>White-label Dashboard</li>
                     <li class="flex items-start gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-base mt-0.5">check_circle</span>Direct Phone Support</li>
                 </ul>
@@ -273,11 +273,11 @@
         };
 
         const TIER_CREDITS = {
-            starter: { monthlyCredits: 200 },
-            pro: { monthlyCredits: 1000 },
-            advanced: { monthlyCredits: 3000 },
-            builder: { monthlyCredits: 5000 },
-            builder_pro: { monthlyCredits: 7000 },
+            starter: { monthlyGenerations: 200 },
+            pro: { monthlyGenerations: 1000 },
+            advanced: { monthlyGenerations: 3000 },
+            builder: { monthlyGenerations: 5000 },
+            builder_pro: { monthlyGenerations: 7000 },
         };
 
         let currentUid = null;
@@ -324,23 +324,34 @@
 
             // Show usage stats
             if (currentProfile) {
-                const tierLimits = TIER_CREDITS[tier];
-                const isMonthly = tier !== 'free';
-                const creditKey = isMonthly ? 'monthlyCredits' : 'dailyCredits';
-                const limit = tierLimits?.monthlyCredits ?? (tier === 'free' ? 5 : null);
-                const remaining = currentProfile[creditKey] ?? limit ?? 0;
-                const bonus = currentProfile.bonusCredits ?? 0;
-                const total = remaining + bonus;
+                const isPaid = tier !== 'free';
+                if (isPaid) {
+                    // Paid tier: show generation quota
+                    const genLimit = TIER_CREDITS[tier]?.monthlyGenerations ?? null;
+                    const remaining = currentProfile.monthlyGenerations ?? genLimit ?? 0;
+                    const bonus = currentProfile.bonusCredits ?? 0;
+                    const resetRaw = currentProfile.monthlyGenerationReset;
+                    const resetDate = resetRaw ? new Date(resetRaw).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—';
 
-                const resetRaw = isMonthly ? currentProfile.monthlyCreditReset : currentProfile.dailyCreditReset;
-                const resetDate = resetRaw ? new Date(resetRaw).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—';
-                const periodLabel = isMonthly ? '/month' : '/day';
+                    document.getElementById('statsGenerations').textContent = remaining;
+                    document.getElementById('statsGenerationsLimit').textContent = `of ${genLimit ?? '—'} /month`;
+                    document.getElementById('statsBonus').textContent = bonus;
+                    document.getElementById('statsTotal').textContent = remaining;
+                    document.getElementById('statsResetDate').textContent = `resets ${resetDate}`;
+                } else {
+                    // Free tier: show credits
+                    const daily = currentProfile.dailyCredits ?? 5;
+                    const bonus = currentProfile.bonusCredits ?? 0;
+                    const total = daily + bonus;
+                    const resetRaw = currentProfile.dailyCreditReset;
+                    const resetDate = resetRaw ? new Date(resetRaw).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—';
 
-                document.getElementById('statsGenerations').textContent = remaining;
-                document.getElementById('statsGenerationsLimit').textContent = `of ${limit ?? '—'}${periodLabel}`;
-                document.getElementById('statsBonus').textContent = bonus;
-                document.getElementById('statsTotal').textContent = total;
-                document.getElementById('statsResetDate').textContent = `resets ${resetDate}`;
+                    document.getElementById('statsGenerations').textContent = daily;
+                    document.getElementById('statsGenerationsLimit').textContent = `of 5 /day (credits)`;
+                    document.getElementById('statsBonus').textContent = bonus;
+                    document.getElementById('statsTotal').textContent = total;
+                    document.getElementById('statsResetDate').textContent = `resets ${resetDate}`;
+                }
                 document.getElementById('usageStats').classList.remove('hidden');
             }
 
@@ -430,12 +441,12 @@
                         try { confirmData = JSON.parse(confirmText); } catch (_) { throw new Error('Server error during verification.'); }
                         if (!confirmRes.ok) throw new Error(confirmData.error || 'Verification failed.');
 
-                        // Sync new tier + credits to Firestore
+                        // Sync new tier + generation quota to Firestore
                         const tierData = TIER_CREDITS[tier] || {};
                         await updateDoc(doc(db, 'users', currentUid), {
                             subscriptionTier: tier,
                             ...tierData,
-                            monthlyCreditReset: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                            monthlyGenerationReset: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
                         });
 
                         showToast(`Upgraded to ${TIER_LABELS[tier]}! Redirecting to app...`, 'success');

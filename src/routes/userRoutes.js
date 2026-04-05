@@ -6,15 +6,26 @@
  */
 
 const { Router } = require('express');
+const rateLimit = require('express-rate-limit');
 const userController = require('../controllers/userController');
 const auth = require('../middleware/auth');
+const onboardAuth = require('../middleware/onboardAuth');
 const validate = require('../middleware/validate');
 
 const router = Router();
 
-// Onboarding (no auth required — this is the first call)
+// Strict rate limit on onboard — 5 accounts per IP per hour
+const onboardLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: { error: true, message: 'Too many account creation attempts. Try again later.' },
+});
+
+// Onboarding — requires a valid Firebase token; uid must match externalAuthId
 router.post(
     '/onboard',
+    onboardLimiter,
+    onboardAuth,
     validate({
         externalAuthId: { required: true, type: 'string' },
         email: { required: true, type: 'string' },

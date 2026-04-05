@@ -130,7 +130,10 @@ async function generatePrompt(req, res, next) {
         let versionNumber;
 
         if (promptId) {
-            prompt = await Prompt.findById(promptId);
+            // findOne with both _id AND userId — one query, zero IDOR
+            // If promptId belongs to a different user this returns null,
+            // which is indistinguishable from "not found" (no info leak).
+            prompt = await Prompt.findOne({ _id: promptId, userId });
             if (!prompt) {
                 return res.status(404).json({ error: true, message: 'Prompt not found.' });
             }
