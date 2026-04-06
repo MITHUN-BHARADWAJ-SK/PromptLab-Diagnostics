@@ -13,10 +13,65 @@ const { Router } = require('express');
 const paymentService = require('../services/paymentService');
 const User = require('../models/User');
 const TIERS = require('../config/tiers');
+const admin = require('firebase-admin');
+
+// Ensure Firebase Admin is initialised (idempotent — auth.js may have done it first)
+if (!admin.apps.length) {
+    const credential = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
+        ? admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON))
+        : admin.credential.applicationDefault();
+    admin.initializeApp({ credential, projectId: process.env.FIREBASE_PROJECT_ID || 'promptlab-abaed' });
+}
 
 const router = Router();
 
 const VALID_PAID_TIERS = ['starter', 'pro', 'advanced', 'builder', 'builder_pro'];
+
+const TIER_GENERATIONS = {
+    starter: 200,
+    pro: 1000,
+    advanced: 3000,
+    builder: 5000,
+    builder_pro: 7000,
+};
+
+function _nextMonthISO() {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setMonth(d.getMonth() + 1, 1);
+    return d.toISOString();
+}
+
+// Update Firestore user document with the new subscription tier + generation quota
+async function _updateFirestoreSubscription(uid, tier) {
+    try {
+        const db = admin.firestore();
+        const limit = TIER_GENERATIONS[tier];
+        await db.collection('users').doc(uid).update({
+            subscriptionTier: tier,
+            monthlyGenerations: limit,
+            monthlyGenerationReset: _nextMonthISO(),
+        });
+        console.log(`[Payment] Firestore updated: ${uid} → ${tier} (${limit} gen/mo)`);
+    } catch (err) {
+        console.error('[Payment] Firestore update failed:', err.message);
+    }
+}
+
+// Revert Firestore user to free tier when subscription is cancelled/expired
+async function _revertFirestoreSubscription(uid) {
+    try {
+        const db = admin.firestore();
+        await db.collection('users').doc(uid).update({
+            subscriptionTier: 'free',
+            monthlyGenerations: admin.firestore.FieldValue.delete(),
+            monthlyGenerationReset: admin.firestore.FieldValue.delete(),
+        });
+        console.log(`[Payment] Firestore reverted: ${uid} → free`);
+    } catch (err) {
+        console.error('[Payment] Firestore revert failed:', err.message);
+    }
+}
 
 // ── Create Subscription ───────────────────────────────────────────
 router.post('/create-subscription', async (req, res) => {
@@ -64,7 +119,7 @@ router.post('/confirm', async (req, res) => {
     if (!valid) return res.status(400).json({ error: 'Payment signature verification failed.' });
 
     try {
-        // Best-effort MongoDB update — webhook is the authoritative fallback
+        // Update MongoDB
         await User.findOneAndUpdate(
             { externalAuthId: uid },
             {
@@ -74,6 +129,9 @@ router.post('/confirm', async (req, res) => {
             },
             { new: true }
         ).maxTimeMS(3000).catch((e) => console.warn('[Payment] MongoDB update skipped:', e.message));
+
+        // Update Firestore — this is what the frontend reads
+        await _updateFirestoreSubscription(uid, tier);
 
         res.json({ success: true, tier, subscriptionId: razorpay_subscription_id });
     } catch (err) {
@@ -164,6 +222,7 @@ async function _handleWebhookEvent(event) {
                 { externalAuthId: uid },
                 { subscriptionTier: tier, razorpaySubscriptionId: sub.id, subscriptionStatus: 'active' }
             );
+            await _updateFirestoreSubscription(uid, tier);
             console.log(`[Webhook] Upgraded ${uid} → ${tier}`);
         }
     }
@@ -176,6 +235,7 @@ async function _handleWebhookEvent(event) {
                 { externalAuthId: uid },
                 { subscriptionTier: 'free', subscriptionStatus: type === 'subscription.cancelled' ? 'cancelled' : 'expired' }
             );
+            await _revertFirestoreSubscription(uid);
             console.log(`[Webhook] Reverted ${uid} → free (${type})`);
         }
     }
