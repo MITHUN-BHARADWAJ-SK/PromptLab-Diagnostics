@@ -148,29 +148,55 @@ function switchView(viewName) {
 
 async function loadProfile() {
   if (!state.uid) return;
-  // updateUserChip already populates name/email/avatar — just need to load credits
   try {
     const profile = await PromptLabDB.getUserProfile(state.uid) || {};
     const tier = profile.subscriptionTier || 'free';
-    const isMonthly = tier !== 'free';
-    const creditKey = isMonthly ? 'monthlyCredits' : 'dailyCredits';
+    const isPaid = tier !== 'free';
 
+    const TIER_LABELS = { free: 'Free Tier', starter: 'Starter', pro: 'Pro', advanced: 'Advanced', builder: 'Builder', builder_pro: 'Builder Pro' };
     const TIER_LIMITS = { free: 5, starter: 200, pro: 1000, advanced: 3000, builder: 5000, builder_pro: 7000 };
-    const limit = TIER_LIMITS[tier] ?? 5;
-    const remaining = profile[creditKey] ?? limit;
-    const bonus = profile.bonusCredits ?? 0;
-    const total = remaining + bonus;
 
-    const resetRaw = isMonthly ? profile.monthlyCreditReset : profile.dailyCreditReset;
-    const resetDate = resetRaw ? new Date(resetRaw).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—';
-    const periodLabel = isMonthly ? '/month' : '/day';
+    // ── Tier badge ──────────────────────────────────────────────
+    const tierLabel = TIER_LABELS[tier] || tier;
+    const tierLabelEl = document.getElementById('profileTierLabel');
+    if (tierLabelEl) tierLabelEl.textContent = tierLabel;
 
+    // Paid tiers get a gold/emerald badge colour instead of red
+    const tierBadge = document.getElementById('profileTierBadge');
+    if (tierBadge && isPaid) {
+      tierBadge.classList.remove('bg-primary/10', 'text-primary');
+      tierBadge.classList.add('bg-emerald-500/10', 'text-emerald-400');
+    }
+
+    // ── Generate button hint ────────────────────────────────────
+    const creditHint = document.getElementById('generateCreditHint');
+    if (creditHint) creditHint.style.display = isPaid ? 'none' : '';
+
+    // ── Usage stats ─────────────────────────────────────────────
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    set('profileStatsGenerations', remaining);
-    set('profileStatsLimit', `of ${limit}${periodLabel}`);
-    set('profileStatsBonus', bonus);
-    set('profileStatsTotal', total);
-    set('profileStatsReset', `resets ${resetDate}`);
+
+    if (isPaid) {
+      const limit = TIER_LIMITS[tier] ?? 0;
+      const remaining = profile.monthlyGenerations ?? limit;
+      const bonus = profile.bonusCredits ?? 0;
+      const resetRaw = profile.monthlyGenerationReset;
+      const resetDate = resetRaw ? new Date(resetRaw).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—';
+      set('profileStatsGenerations', remaining);
+      set('profileStatsLimit', `of ${limit} /month`);
+      set('profileStatsBonus', bonus);
+      set('profileStatsTotal', remaining);
+      set('profileStatsReset', `resets ${resetDate}`);
+    } else {
+      const daily = profile.dailyCredits ?? 5;
+      const bonus = profile.bonusCredits ?? 0;
+      const resetRaw = profile.dailyCreditReset;
+      const resetDate = resetRaw ? new Date(resetRaw).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—';
+      set('profileStatsGenerations', daily);
+      set('profileStatsLimit', 'of 5 /day');
+      set('profileStatsBonus', bonus);
+      set('profileStatsTotal', daily + bonus);
+      set('profileStatsReset', `resets ${resetDate}`);
+    }
   } catch (e) {
     console.warn('[Profile] Could not load usage stats:', e);
   }
@@ -179,7 +205,9 @@ async function loadProfile() {
 function updateUserChip() {
   const initial = (state.userName || '?')[0].toUpperCase();
   const name = state.userName || 'User';
-  const tier = state.userTier || 'Free Tier';
+  const rawTier = state.userTier || 'free';
+  const TIER_DISPLAY = { free: 'Free Tier', starter: 'Starter', pro: 'Pro', advanced: 'Advanced', builder: 'Builder', builder_pro: 'Builder Pro' };
+  const tierDisplay = TIER_DISPLAY[rawTier.toLowerCase()] || rawTier;
   const email = state.userEmail || 'email@example.com';
 
   // Old header chip (if it still exists somewhere)
@@ -187,14 +215,14 @@ function updateUserChip() {
   if (chip) chip.style.display = 'flex';
   if (document.getElementById('userAvatar')) document.getElementById('userAvatar').textContent = initial;
   if (document.getElementById('userName')) document.getElementById('userName').textContent = name;
-  if (document.getElementById('userTier')) document.getElementById('userTier').textContent = tier;
+  if (document.getElementById('userTier')) document.getElementById('userTier').textContent = tierDisplay;
 
   // Header avatar (simplified circle button)
   const headerPill = document.getElementById('headerProfilePill');
   if (headerPill) {
     headerPill.style.display = 'flex';
     headerPill.textContent = initial;
-    headerPill.title = `${name} — ${tier}`;
+    headerPill.title = `${name} — ${tierDisplay}`;
   }
 
   // New Profile Page Big View
