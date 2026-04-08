@@ -79,6 +79,30 @@ app.use(express.json({
 // Serve static frontend from /public
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+// ── Lazy MongoDB Connection (serverless-safe) ─────────────────────
+// On Vercel each cold start needs to reconnect. We cache the promise
+// so concurrent requests on the same instance don't open multiple connections.
+let _mongoConnPromise = null;
+
+async function ensureMongoConnected() {
+    if (mongoose.connection.readyState === 1) return; // already connected
+    if (_mongoConnPromise) return _mongoConnPromise;   // connection in progress
+    const uri = config.mongoUri;
+    _mongoConnPromise = mongoose.connect(uri, { serverSelectionTimeoutMS: 8000 })
+        .then(() => { console.log('✅ MongoDB connected'); })
+        .catch(err => { _mongoConnPromise = null; throw err; }); // reset on failure so next request retries
+    return _mongoConnPromise;
+}
+
+app.use(async (_req, _res, next) => {
+    try {
+        await ensureMongoConnected();
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
+
 // Global rate limiter (100 requests per minute per IP)
 app.use(
     rateLimit({
@@ -168,32 +192,12 @@ app.use((_req, res) => {
 // ── Central Error Handler ────────────────────────────────────────
 app.use(errorHandler);
 
-// ── Start Server ─────────────────────────────────────────────────
-async function start() {
-    try {
-        let mongoUri = config.mongoUri;
-
-        // Use in-memory MongoDB for development when no external instance is available
-        if (process.env.USE_MEMORY_DB === 'true') {
-            const { MongoMemoryServer } = require('mongodb-memory-server');
-            const mongod = await MongoMemoryServer.create();
-            mongoUri = mongod.getUri();
-            console.log('📦 Using in-memory MongoDB');
-        }
-
-        await mongoose.connect(mongoUri);
-        console.log('✅ MongoDB connected');
-
-        app.listen(config.port, () => {
-            console.log(`🚀 PromptLab API running on http://localhost:${config.port}`);
-            console.log(`   Environment: ${config.nodeEnv}`);
-        });
-    } catch (err) {
-        console.error('❌ Failed to start server:', err.message);
-        process.exit(1);
-    }
+// ── Start Server (local dev only — Vercel uses module.exports = app) ──
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(config.port, () => {
+        console.log(`🚀 PromptLab API running on http://localhost:${config.port}`);
+        console.log(`   Environment: ${config.nodeEnv}`);
+    });
 }
-
-start();
 
 module.exports = app; // for testing
