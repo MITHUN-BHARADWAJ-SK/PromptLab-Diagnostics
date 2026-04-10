@@ -41,36 +41,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   state.uid = activeUid;
 
-  // Wait for Firebase Auth to finish loading the persisted session from IndexedDB.
-  // Without this, Firestore calls race against auth — rules deny unauthenticated reads,
-  // and the onAuthStateChanged in recovery fires with null before the session is ready.
-  if (window.firebaseAuth?.authStateReady) {
-    await window.firebaseAuth.authStateReady();
-  }
-
   // Load user profile from Local DB
   try {
     let profile = await PromptLabDB.getUserProfile(activeUid);
 
     if (!profile) {
-      console.log('[PromptLab] Profile missing — attempting to create from Firebase auth...');
-      try {
-        // authStateReady() already resolved above, so currentUser is reliably populated
-        const firebaseUser = window.firebaseAuth?.currentUser;
-        if (firebaseUser) {
-          const email = firebaseUser.email || '';
-          const name = firebaseUser.displayName || email.split('@')[0] || 'User';
-          profile = await PromptLabDB.initUserProfile(activeUid, email, name, 'student');
-        }
-      } catch (e) {
-        console.warn('[PromptLab] Profile recovery failed:', e);
-      }
-      if (!profile) {
-        // Truly unrecoverable — clear state and send to login
-        localStorage.removeItem('promptlab_active_user');
-        window.location.href = '/login.html';
-        return;
-      }
+      console.log('[PromptLab] Profile missing for active UID. Attempting recovery...');
+      // Recovery: Re-init profile if UID exists but data is gone (e.g. storage partial clear)
+      // We don't have the email/name here, so we use placeholders or wait for next login
+      // However, to stop the loop, we MUST either create a profile or clear the UID.
+      // If we clear the UID, the user goes to login once and stays there.
+      localStorage.removeItem('promptlab_active_user');
+      window.location.href = '/login.html';
+      return;
     }
 
     state.userTier = profile.subscriptionTier || 'free';

@@ -1016,27 +1016,21 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        window.firebaseAuth = auth;
         window.firebaseSignOut = function () {
             return signOut(auth);
         };
 
-        // authStateReady resolves once Firebase has determined the auth state from IndexedDB.
-        // Only then do we start listening — this prevents a premature null firing before
-        // the persisted session is loaded, which caused a login ↔ app redirect loop.
-        auth.authStateReady().then(() => {
-            onAuthStateChanged(auth, (user) => {
-                if (!user) {
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                localStorage.removeItem('promptlab_active_user');
+                window.location.href = '/login.html';
+            } else if (!user.emailVerified) {
+                console.log('[Auth] User detected but email not verified. Redirecting to login.');
+                signOut(auth).then(() => {
                     localStorage.removeItem('promptlab_active_user');
-                    window.location.href = '/login.html';
-                } else if (!user.emailVerified) {
-                    console.log('[Auth] User not verified. Signing out.');
-                    signOut(auth).then(() => {
-                        localStorage.removeItem('promptlab_active_user');
-                        window.location.href = `/login.html?mode=verify&email=${encodeURIComponent(user.email)}`;
-                    });
-                }
-            });
+                    window.location.href = `/login.html?mode=verify&email=${encodeURIComponent(user.email)}`;
+                });
+            }
         });
     </script>
 
