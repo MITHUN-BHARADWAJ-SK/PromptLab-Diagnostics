@@ -1321,6 +1321,58 @@ header.header-scrolled {
     60%       { transform: translateX(3px); }
 }
 
+/* ── Pricing — Phone Optimizations ────────────────────────────── */
+
+/* Touch devices: show the swipe hint from the start */
+@media (hover: none) and (pointer: coarse) {
+    .pricing-drag-hint {
+        opacity: 0.75 !important;
+    }
+}
+
+/* Tablets and large phones (≤ 768px) */
+@media (max-width: 768px) {
+    .pricing-scroll-track {
+        /* Reduce side padding — 56px was cutting into visible card area */
+        padding: 20px 20px 12px;
+        gap: 14px;
+        /* Snap each card into place on swipe */
+        scroll-snap-type: x mandatory;
+        scroll-padding-left: 20px;
+    }
+
+    .pricing-card-item,
+    .pricing-card-item.pricing-card-featured {
+        /* ~85 vw keeps a sliver of the next card visible as a swipe cue */
+        flex: 0 0 min(290px, 85vw);
+        scroll-snap-align: start;
+    }
+
+    /* Narrow the fades so they don't swallow the visible card area */
+    .pricing-edge-fade {
+        width: 36px;
+    }
+}
+
+/* Small phones (≤ 480px) */
+@media (max-width: 480px) {
+    .pricing-scroll-track {
+        padding: 16px 16px 12px;
+        gap: 12px;
+        scroll-padding-left: 16px;
+    }
+
+    .pricing-card-item,
+    .pricing-card-item.pricing-card-featured {
+        flex: 0 0 min(280px, 88vw);
+    }
+
+    /* Hide edge fades on very small screens — not enough room */
+    .pricing-edge-fade {
+        display: none;
+    }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    ANIMATIONS
    ═══════════════════════════════════════════════════════════════ */

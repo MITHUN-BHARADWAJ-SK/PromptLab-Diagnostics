@@ -90,6 +90,25 @@ app.use(
     })
 );
 
+// ── Lazy MongoDB Guard ────────────────────────────────────────────
+// On Vercel, the module loads and start() fires asynchronously.
+// A cold-start request can arrive before mongoose.connect() resolves,
+// causing 500s. This middleware waits for the stored connection promise
+// before any /api route handler runs, without blocking static files.
+app.use('/api', async (_req, _res, next) => {
+    if (mongoose.connection.readyState === 1) return next();
+    // If a previous attempt failed (promise was reset to null), retry it.
+    if (!_startPromise) {
+        _startPromise = start().catch(err => { _startPromise = null; throw err; });
+    }
+    try {
+        await _startPromise;
+        next();
+    } catch (err) {
+        next(err);
+    }
+});
+
 // ── Health Check ─────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
     res.json({
@@ -169,31 +188,37 @@ app.use((_req, res) => {
 app.use(errorHandler);
 
 // ── Start Server ─────────────────────────────────────────────────
+// _startPromise is read by the lazy MongoDB guard middleware above.
+let _startPromise = null;
+
 async function start() {
-    try {
-        let mongoUri = config.mongoUri;
+    let mongoUri = config.mongoUri;
 
-        // Use in-memory MongoDB for development when no external instance is available
-        if (process.env.USE_MEMORY_DB === 'true') {
-            const { MongoMemoryServer } = require('mongodb-memory-server');
-            const mongod = await MongoMemoryServer.create();
-            mongoUri = mongod.getUri();
-            console.log('📦 Using in-memory MongoDB');
-        }
+    // Use in-memory MongoDB for development when no external instance is available
+    if (process.env.USE_MEMORY_DB === 'true') {
+        const { MongoMemoryServer } = require('mongodb-memory-server');
+        const mongod = await MongoMemoryServer.create();
+        mongoUri = mongod.getUri();
+        console.log('📦 Using in-memory MongoDB');
+    }
 
-        await mongoose.connect(mongoUri);
-        console.log('✅ MongoDB connected');
+    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 8000 });
+    console.log('✅ MongoDB connected');
 
+    // Only bind a port in local dev — Vercel handles incoming connections itself.
+    if (process.env.NODE_ENV !== 'production') {
         app.listen(config.port, () => {
             console.log(`🚀 PromptLab API running on http://localhost:${config.port}`);
             console.log(`   Environment: ${config.nodeEnv}`);
         });
-    } catch (err) {
-        console.error('❌ Failed to start server:', err.message);
-        process.exit(1);
     }
 }
 
-start();
+_startPromise = start().catch(err => {
+    console.error('❌ Failed to connect to MongoDB:', err.message);
+    // Reset so the lazy guard retries on the next request instead of
+    // serving every subsequent request a cached rejection.
+    _startPromise = null;
+});
 
-module.exports = app; // for testing
+module.exports = app; // Vercel serverless entry point + testing
