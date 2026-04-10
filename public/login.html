@@ -283,12 +283,12 @@
                         return;
                     }
 
-                    if (window.PromptLabDB && window.PromptLabDB.initUserProfile) {
-                        await window.PromptLabDB.initUserProfile(cred.user.uid, email, email.split('@')[0], 'student');
-                    }
-
+                    // Profile creation happens on sign-up — don't block sign-in on Firestore writes.
+                    // app.js handles missing profiles via recovery on first load.
                     localStorage.setItem('promptlab_active_user', cred.user.uid);
-                    window.location.href = '/app.html';
+                    if (window.setManualAuthInProgress) window.setManualAuthInProgress(false);
+                    const redir = new URLSearchParams(window.location.search).get('redirect');
+                    window.location.href = redir === 'subscribe' ? '/subscribe.html' : '/app.html';
                 }
 
             } catch (err) {
