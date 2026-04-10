@@ -41,6 +41,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   state.uid = activeUid;
 
+  // Wait for Firebase Auth to finish loading the persisted session from IndexedDB.
+  // Without this, Firestore calls race against auth — rules deny unauthenticated reads,
+  // and the onAuthStateChanged in recovery fires with null before the session is ready.
+  if (window.firebaseAuth?.authStateReady) {
+    await window.firebaseAuth.authStateReady();
+  }
+
   // Load user profile from Local DB
   try {
     let profile = await PromptLabDB.getUserProfile(activeUid);
@@ -48,11 +55,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!profile) {
       console.log('[PromptLab] Profile missing — attempting to create from Firebase auth...');
       try {
-        // Wait for Firebase auth to finish loading from IndexedDB
-        const firebaseUser = await new Promise(resolve => {
-          const unsub = window.firebaseAuth?.onAuthStateChanged(u => { unsub?.(); resolve(u); });
-          if (!window.firebaseAuth) resolve(null);
-        });
+        // authStateReady() already resolved above, so currentUser is reliably populated
+        const firebaseUser = window.firebaseAuth?.currentUser;
         if (firebaseUser) {
           const email = firebaseUser.email || '';
           const name = firebaseUser.displayName || email.split('@')[0] || 'User';
