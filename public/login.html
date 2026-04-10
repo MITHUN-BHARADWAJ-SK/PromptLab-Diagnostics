@@ -10,8 +10,6 @@
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%23dc2626'/><text x='32' y='44' text-anchor='middle' fill='white' font-size='36' font-weight='800' font-family='sans-serif'>P</text></svg>">
 
-    <!-- PromptLab Local Auth Engine -->
-    <!-- (Firebase removed per user request) -->
     <!-- Vercel Analytics -->
     <script defer src="/_vercel/insights/script.js"></script>
 </head>
@@ -39,7 +37,7 @@
                     <span class="divider-text">or</span>
                 </div>
 
-                <form class="auth-form" id="authForm" onsubmit="handleEmailAuth(event)">
+                <form class="auth-form" id="authForm">
                     <div class="form-group" id="nameGroup" style="display:none;">
                         <label class="form-label" for="authName">Display Name</label>
                         <input class="form-input" id="authName" type="text" placeholder="Your name" autocomplete="name">
@@ -58,12 +56,11 @@
                     <div class="form-group" id="userTypeGroup" style="display:none;">
                         <label class="form-label">I am a…</label>
                         <div class="user-type-selector">
-                            <button type="button" class="user-type-option selected"
-                                onclick="selectUserType(this, 'student')">
+                            <button type="button" class="user-type-option selected" data-type="student">
                                 <span class="ut-icon">🎓</span>
                                 <span class="ut-label">Student</span>
                             </button>
-                            <button type="button" class="user-type-option" onclick="selectUserType(this, 'creator')">
+                            <button type="button" class="user-type-option" data-type="creator">
                                 <span class="ut-icon">🎨</span>
                                 <span class="ut-label">Creator</span>
                             </button>
@@ -83,7 +80,7 @@
 
                 <div class="auth-toggle">
                     <span id="toggleText">Don't have an account?</span>
-                    <button class="toggle-btn" id="toggleBtn" onclick="toggleAuthMode()">Sign Up</button>
+                    <button type="button" class="toggle-btn" id="toggleBtn">Sign Up</button>
                 </div>
             </div>
 
@@ -97,7 +94,7 @@
                     Please verify it and log in.<br><br>
                     <span style="font-size:13px; color:#9ca3af;">Can't find it? Check your <strong style="color:#d1d5db;">spam or junk folder</strong>.</span>
                 </p>
-                <button class="btn-submit" onclick="showLogin()">
+                <button type="button" class="btn-submit" id="backToLoginBtn">
                     Back to Login
                 </button>
             </div>
@@ -146,7 +143,7 @@
                     console.log('[Auth] State changed: User detected but NOT verified. Signing out.');
                     signOut(auth).then(() => {
                         localStorage.removeItem('promptlab_active_user');
-                        window.showVerification(user.email);
+                        window._showVerification(user.email);
                     });
                 }
             }
@@ -154,30 +151,21 @@
     </script>
 
     <script>
+        // ── State ──────────────────────────────────────────────────
         let currentMode = 'signin';
         let selectedUserType = 'student';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('mode') === 'signup') {
-                toggleAuthMode();
-            } else if (params.get('mode') === 'verify') {
-                showVerification(params.get('email') || 'your email');
-            }
-        });
-
-        function showVerification(email) {
+        // ── Helpers (exposed on window so module script can call them) ──
+        window._showVerification = function(email) {
             document.getElementById('authContent').style.display = 'none';
             document.getElementById('verificationScreen').style.display = 'flex';
             document.getElementById('verifyUserEmail').textContent = email;
-            // Also update subtitle just in case
-            document.getElementById('authSubtitle').textContent = 'Please verify your email';
-        }
+        };
 
         function showLogin() {
             document.getElementById('authContent').style.display = 'block';
             document.getElementById('verificationScreen').style.display = 'none';
-            if (currentMode === 'signup') toggleAuthMode(); // Ensure it's in sign-in mode
+            if (currentMode === 'signup') toggleAuthMode();
             clearError();
         }
 
@@ -191,8 +179,8 @@
             const submitBtn = document.getElementById('submitBtn');
             const nameGroup = document.getElementById('nameGroup');
             const userTypeGroup = document.getElementById('userTypeGroup');
-
             const spamNotice = document.getElementById('spamNotice');
+
             if (currentMode === 'signup') {
                 title.textContent = 'Create Account';
                 subtitle.textContent = 'Start mastering AI prompts today';
@@ -216,12 +204,6 @@
             }
 
             clearError();
-        }
-
-        function selectUserType(el, type) {
-            document.querySelectorAll('.user-type-option').forEach(o => o.classList.remove('selected'));
-            el.classList.add('selected');
-            selectedUserType = type;
         }
 
         async function handleEmailAuth(e) {
@@ -262,10 +244,10 @@
                         await window.PromptLabDB.initUserProfile(cred.user.uid, email, name, selectedUserType);
                     }
 
-                    // Sign out and show verification
+                    // Sign out and show verification screen
                     await window.firebaseSignOut(window.firebaseAuth);
                     localStorage.removeItem('promptlab_active_user');
-                    showVerification(email);
+                    window._showVerification(email);
                     if (window.setManualAuthInProgress) window.setManualAuthInProgress(false);
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Create Account';
@@ -276,14 +258,14 @@
                     if (!cred.user.emailVerified) {
                         await window.firebaseSignOut(window.firebaseAuth);
                         localStorage.removeItem('promptlab_active_user');
-                        showVerification(email);
+                        window._showVerification(email);
                         if (window.setManualAuthInProgress) window.setManualAuthInProgress(false);
                         submitBtn.disabled = false;
                         submitBtn.textContent = 'Sign In';
                         return;
                     }
 
-                    // Profile creation happens on sign-up — don't block sign-in on Firestore writes.
+                    // Profile creation happens on sign-up only.
                     // app.js handles missing profiles via recovery on first load.
                     localStorage.setItem('promptlab_active_user', cred.user.uid);
                     if (window.setManualAuthInProgress) window.setManualAuthInProgress(false);
@@ -296,9 +278,9 @@
                 if (window.setManualAuthInProgress) window.setManualAuthInProgress(false);
                 let msg = 'Something went wrong. Please try again.';
                 if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-                    msg = 'Email or password is incorrect';
+                    msg = 'Email or password is incorrect.';
                 } else if (err.code === 'auth/email-already-in-use') {
-                    msg = 'User already exists. Please sign in';
+                    msg = 'An account with this email already exists. Please sign in.';
                 } else if (err.code === 'auth/weak-password') {
                     msg = 'Password must be at least 6 characters.';
                 } else if (err.code === 'auth/invalid-email') {
@@ -325,6 +307,35 @@
             el.textContent = '';
             el.style.display = 'none';
         }
+
+        // ── Wire up all event listeners once DOM is ready ──────────
+        document.addEventListener('DOMContentLoaded', () => {
+            // Form submit
+            document.getElementById('authForm').addEventListener('submit', handleEmailAuth);
+
+            // Toggle between sign-in and sign-up
+            document.getElementById('toggleBtn').addEventListener('click', toggleAuthMode);
+
+            // Back to login from verification screen
+            document.getElementById('backToLoginBtn').addEventListener('click', showLogin);
+
+            // User type selector (event delegation on the container)
+            document.querySelector('.user-type-selector').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-type]');
+                if (!btn) return;
+                document.querySelectorAll('.user-type-option').forEach(o => o.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedUserType = btn.dataset.type;
+            });
+
+            // Handle ?mode=signup or ?mode=verify URL params
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('mode') === 'signup') {
+                toggleAuthMode();
+            } else if (params.get('mode') === 'verify') {
+                window._showVerification(params.get('email') || 'your email');
+            }
+        });
     </script>
 </body>
 
