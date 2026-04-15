@@ -156,6 +156,25 @@
     <script>
         let currentMode = 'signin';
         let selectedUserType = 'student';
+        let verificationPollInterval = null;
+
+        function startVerificationPolling(user) {
+            if (verificationPollInterval) clearInterval(verificationPollInterval);
+            verificationPollInterval = setInterval(async () => {
+                try {
+                    await user.reload();
+                    if (user.emailVerified) {
+                        clearInterval(verificationPollInterval);
+                        verificationPollInterval = null;
+                        localStorage.setItem('promptlab_active_user', user.uid);
+                        window.location.href = '/app.html';
+                    }
+                } catch (e) {
+                    clearInterval(verificationPollInterval);
+                    verificationPollInterval = null;
+                }
+            }, 3000);
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
@@ -175,6 +194,10 @@
         }
 
         function showLogin() {
+            if (verificationPollInterval) {
+                clearInterval(verificationPollInterval);
+                verificationPollInterval = null;
+            }
             document.getElementById('authContent').style.display = 'block';
             document.getElementById('verificationScreen').style.display = 'none';
             if (currentMode === 'signup') toggleAuthMode(); // Ensure it's in sign-in mode
@@ -262,13 +285,13 @@
                         await window.PromptLabDB.initUserProfile(cred.user.uid, email, name, selectedUserType);
                     }
 
-                    // Sign out and show verification
-                    await window.firebaseSignOut(window.firebaseAuth);
-                    localStorage.removeItem('promptlab_active_user');
+                    // Show verification screen and poll — user stays signed in so we
+                    // can detect verification automatically without re-entering credentials
                     showVerification(email);
                     if (window.setManualAuthInProgress) window.setManualAuthInProgress(false);
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Create Account';
+                    startVerificationPolling(cred.user);
 
                 } else {
                     cred = await window.firebaseSignIn(window.firebaseAuth, email, password);

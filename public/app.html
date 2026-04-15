@@ -336,6 +336,15 @@
                         </div>
                     </div>
 
+                    <!-- Upgrade Button — hidden for paid users via updateUserChip() -->
+                    <a href="/subscribe.html"
+                        id="headerUpgradeBtn"
+                        class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-primary to-orange-500 text-white text-xs font-bold tracking-wide hover:opacity-90 hover:scale-105 transition-all shadow shadow-primary/30"
+                        title="Upgrade your plan">
+                        <span class="material-icons-round text-sm leading-none">bolt</span>
+                        Upgrade
+                    </a>
+
                     <div class="h-6 w-px bg-slate-200 dark:bg-border-dark"></div>
 
                     <button onclick="switchView('profile')"

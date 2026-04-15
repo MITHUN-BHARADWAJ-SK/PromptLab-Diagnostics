@@ -225,6 +225,14 @@ function updateUserChip() {
     headerPill.title = `${name} — ${tierDisplay}`;
   }
 
+  // Upgrade button — hide for paid users
+  const upgradeBtn = document.getElementById('headerUpgradeBtn');
+  if (upgradeBtn) {
+    const isPaid = rawTier.toLowerCase() !== 'free';
+    upgradeBtn.classList.toggle('hidden', isPaid);
+    upgradeBtn.classList.toggle('sm:inline-flex', !isPaid);
+  }
+
   // New Profile Page Big View
   if (document.getElementById('profileAvatarBig')) document.getElementById('profileAvatarBig').textContent = initial;
   if (document.getElementById('profileNameBig')) document.getElementById('profileNameBig').textContent = name;
