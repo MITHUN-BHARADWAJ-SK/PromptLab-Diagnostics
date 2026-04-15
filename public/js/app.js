@@ -187,14 +187,16 @@ async function loadProfile() {
       set('profileStatsTotal', remaining);
       set('profileStatsReset', `resets ${resetDate}`);
     } else {
-      const daily = profile.dailyCredits ?? 5;
-      const bonus = profile.bonusCredits ?? 0;
+      const credits = await PromptLabDB.checkCredits(state.uid);
+      const remaining = credits.daily ?? credits.total ?? 0;
+      const bonus = credits.bonus ?? 0;
+      const limit = credits.limit ?? 5;
       const resetRaw = profile.dailyCreditReset;
       const resetDate = resetRaw ? new Date(resetRaw).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—';
-      set('profileStatsGenerations', daily);
-      set('profileStatsLimit', 'of 5 /day');
+      set('profileStatsGenerations', remaining);
+      set('profileStatsLimit', `of ${limit} /day`);
       set('profileStatsBonus', bonus);
-      set('profileStatsTotal', daily + bonus);
+      set('profileStatsTotal', remaining + bonus);
       set('profileStatsReset', `resets ${resetDate}`);
     }
   } catch (e) {
