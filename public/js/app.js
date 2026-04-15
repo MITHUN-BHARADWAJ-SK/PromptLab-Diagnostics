@@ -191,12 +191,15 @@ async function loadProfile() {
       const remaining = credits.daily ?? credits.total ?? 0;
       const bonus = credits.bonus ?? 0;
       const limit = credits.limit ?? 5;
+      const total = remaining + bonus;
       const resetRaw = profile.dailyCreditReset;
       const resetDate = resetRaw ? new Date(resetRaw).toLocaleDateString([], { month: 'short', day: 'numeric' }) : '—';
+      // Free tier uses credits (not generation quota) — clarify label and sub-text
+      set('profileStatsGenLabel', 'Credits Left');
       set('profileStatsGenerations', remaining);
-      set('profileStatsLimit', `of ${limit} /day`);
+      set('profileStatsLimit', `of ${limit} /day  ·  ${Math.floor(total / 3)} gen available`);
       set('profileStatsBonus', bonus);
-      set('profileStatsTotal', remaining + bonus);
+      set('profileStatsTotal', total);
       set('profileStatsReset', `resets ${resetDate}`);
     }
   } catch (e) {
